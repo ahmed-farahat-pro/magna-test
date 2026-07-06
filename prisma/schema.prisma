@@ -1,0 +1,124 @@
+// AI Content Marketing Suite — Prisma schema
+// Datasource: Neon serverless Postgres. See notes below on pooled vs direct URLs.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Pooled connection (PgBouncer, ...-pooler.neon.tech) — used by the app at runtime
+  // on serverless. Keeps connection count sane across many short-lived lambdas.
+  url      = env("DATABASE_URL")
+  // Direct connection (no pooler) — used by `prisma migrate` / `prisma db push`,
+  // which need a real session (advisory locks, DDL) that PgBouncer can't proxy.
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Distinguishes the two write paths that both land in the Generation table.
+/// GENERATE = net-new content authored from a topic. IMPROVE = a refinement of
+/// user-supplied text. Kept in ONE table (single-table strategy) so the
+/// dashboard/history is one paginated, chronologically-sorted feed.
+enum GenerationKind {
+  GENERATE
+  IMPROVE
+}
+
+/// Content types for the generator. Each maps to a DISTINCT server-side prompt
+/// strategy. Stored as an enum so bad values are rejected at the DB boundary and
+/// so we can filter the dashboard by type cheaply. Nullable on IMPROVE rows.
+enum ContentType {
+  BLOG_POST
+  LINKEDIN_POST
+  AD_COPY
+  EMAIL
+}
+
+/// Goal for the Content Improver. Nullable on GENERATE rows.
+enum ImproveGoal {
+  SHORTER
+  MORE_PERSUASIVE
+  MORE_FORMAL
+  SEO_OPTIMIZED
+  REWRITE_FOR_AUDIENCE
+}
+
+/// Lifecycle of the attached image so the UI can render pending/failed states
+/// instead of a broken <img>. NONE = user never asked for an image.
+enum ImageStatus {
+  NONE
+  PENDING
+  READY
+  FAILED
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODELS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// One row per generation event (content OR improvement), scoped to an anonymous
+/// browser session. This is the single source of truth for History & Dashboard.
+model Generation {
+  // Identity — CUID (not autoincrement int): non-guessable, safe to expose in
+  // URLs/API paths, and avoids leaking row counts to other anonymous sessions.
+  id        String         @id @default(cuid())
+
+  // ── Session scoping ───────────────────────────────────────────────────────
+  // Mirrors the value of the httpOnly `sessionId` cookie. EVERY dashboard/API
+  // query filters on this. Not a FK to a Session table on purpose: sessions are
+  // ephemeral/anonymous and a lookup table adds a join with no auth benefit.
+  sessionId String
+
+  // ── Kind discriminator ────────────────────────────────────────────────────
+  kind      GenerationKind
+
+  // ── Generator inputs (present on GENERATE; null on IMPROVE) ────────────────
+  contentType    ContentType?
+  topic          String?        // the subject the user asked us to write about
+  tone           String?        // free-text/brand-voice tone ("witty", "authoritative")
+  targetAudience String?        // "B2B SaaS founders", "new parents", ...
+
+  // ── Improver inputs (present on IMPROVE; null on GENERATE) ─────────────────
+  improveGoal    ImproveGoal?
+  sourceText     String?  @db.Text // original text pasted by the user, kept for diffing/audit
+
+  // ── LLM output (present on both kinds) ─────────────────────────────────────
+  // The finished copy shown to the user and copied/exported. @db.Text = no length cap.
+  outputText     String   @db.Text
+  // Improver-only: short natural-language summary of what changed. Also reused as
+  // an optional "notes" field for GENERATE if we ever surface rationale.
+  explanation    String?  @db.Text
+
+  // ── Model/prompt provenance (debug + reproducibility, cheap to store) ──────
+  model          String?  // resolved model id actually used (audit; not hardcoded in app)
+  promptStrategy String?  // key naming the prompt template used ("blog_v2")
+  tokensUsed     Int?     // usage.output+input if the SDK returns it; for cost tracking
+
+  // ── Image fields (the FEATURED feature) ───────────────────────────────────
+  imageStatus    ImageStatus @default(NONE)
+  // PERMANENT Vercel Blob URL. DALL·E URLs expire ~1h, so we never store those —
+  // we download b64_json, re-upload to Blob, and persist THIS url. Nullable until READY.
+  imageUrl       String?
+  imagePrompt    String?  @db.Text // the auto-built visual prompt (for regenerate/audit)
+  imageStyle     String?  // style label chosen in the style picker ("photorealistic", "flat")
+  imageError     String?  // last failure reason when imageStatus = FAILED (shown/loggable)
+
+  // ── Timestamps ─────────────────────────────────────────────────────────────
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ── Indexes ────────────────────────────────────────────────────────────────
+  // Primary dashboard access path: "my rows, newest first" + cursor pagination.
+  // Composite (sessionId, createdAt desc) lets Postgres satisfy the WHERE + ORDER BY
+  // from one index with no extra sort step. `id` is the cursor tie-breaker.
+  @@index([sessionId, createdAt(sort: Desc), id])
+  // Filtered dashboard views ("show only my blog posts", "only images").
+  @@index([sessionId, contentType])
+  @@index([sessionId, kind])
+
+  @@map("generations")
+}
