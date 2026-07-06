@@ -5,6 +5,7 @@ import {
   generateSchema,
   zodDetails,
   CONTENT_TYPE_DB,
+  formatBrandVoice,
 } from "@/lib/validation";
 import { aiEnabled, MODEL } from "@/lib/ai/config";
 import { generate } from "@/lib/ai/generate";
@@ -42,9 +43,13 @@ export async function POST(req: Request) {
 
     const { contentType, topic, tone, audience } = parsed.data;
 
+    const brandVoiceText = parsed.data.brandVoice
+      ? formatBrandVoice(parsed.data.brandVoice)
+      : undefined;
+
     let result;
     try {
-      result = await generate(contentType, parsed.data);
+      result = await generate(contentType, parsed.data, brandVoiceText);
     } catch {
       return fail(
         "UPSTREAM_LLM_ERROR",

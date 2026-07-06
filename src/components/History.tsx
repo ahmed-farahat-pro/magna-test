@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { exportPdf, exportDoc } from "@/lib/export";
 
 const PAGE_SIZE = 12;
 
@@ -308,7 +309,29 @@ export default function History() {
                 }
                 className={ghost}
               >
-                Download
+                .txt
+              </button>
+              <button
+                onClick={() =>
+                  exportPdf(
+                    selected.outputText,
+                    `${selected.kind.toLowerCase()}-${selected.id.slice(0, 8)}`,
+                  )
+                }
+                className={ghost}
+              >
+                PDF
+              </button>
+              <button
+                onClick={() =>
+                  exportDoc(
+                    selected.outputText,
+                    `${selected.kind.toLowerCase()}-${selected.id.slice(0, 8)}`,
+                  )
+                }
+                className={ghost}
+              >
+                Word
               </button>
               <button
                 onClick={() => remove(selected.id)}

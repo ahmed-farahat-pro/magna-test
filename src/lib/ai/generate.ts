@@ -203,15 +203,19 @@ Keep the body under ~200 words unless the topic truly requires more. One idea, o
 export async function generate(
   contentType: ContentType,
   input: GenerateInput,
+  brandVoice?: string,
 ): Promise<GenResult> {
   const cfg = TYPES[contentType];
+  const userContent = brandVoice
+    ? `${cfg.user(input)}\n\n${brandVoice}`
+    : cfg.user(input);
   const res = await anthropic().messages.create({
     model: MODEL,
     max_tokens: cfg.maxTokens,
     system: cfg.system,
     thinking: { type: "disabled" },
     output_config: { format: { type: "json_schema", schema: cfg.schema } },
-    messages: [{ role: "user", content: cfg.user(input) }],
+    messages: [{ role: "user", content: userContent }],
   });
 
   if (res.stop_reason === "refusal") throw new Error("refusal");

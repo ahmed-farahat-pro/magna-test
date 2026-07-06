@@ -7,6 +7,7 @@ const LINKS = [
   { href: "/", label: "Generate" },
   { href: "/improve", label: "Improve" },
   { href: "/history", label: "History" },
+  { href: "/settings", label: "Settings" },
 ];
 
 export default function TopNav() {

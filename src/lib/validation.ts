@@ -17,12 +17,35 @@ export const CONTENT_TYPES = [
   "email",
 ] as const;
 
+// Brand voice (bonus) — passed from the client and injected into the prompt.
+export const brandVoiceSchema = z.object({
+  name: z.string().trim().min(1).max(60),
+  description: z.string().trim().max(500).optional(),
+  keywords: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
+  avoid: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
+});
+
 export const generateSchema = z.object({
   topic: z.string().trim().min(1, "Topic is required.").max(200),
   tone: z.enum(TONES),
   audience: z.string().trim().min(1, "Target audience is required.").max(120),
   contentType: z.enum(CONTENT_TYPES),
+  brandVoice: brandVoiceSchema.optional(),
 });
+
+export function formatBrandVoice(
+  bv: z.infer<typeof brandVoiceSchema>,
+): string {
+  const lines = [
+    "BRAND VOICE — write this in the following brand's voice:",
+    `Brand: ${bv.name}`,
+  ];
+  if (bv.description) lines.push(`Voice & style: ${bv.description}`);
+  if (bv.keywords?.length) lines.push(`Emphasize: ${bv.keywords.join(", ")}`);
+  if (bv.avoid?.length)
+    lines.push(`Avoid these words/phrases: ${bv.avoid.join(", ")}`);
+  return lines.join("\n");
+}
 
 export type GenerateInput = z.infer<typeof generateSchema>;
 

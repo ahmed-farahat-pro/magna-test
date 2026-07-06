@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
+import { loadBrandVoice, type BrandVoice } from "@/lib/brandVoice";
+import { exportPdf, exportDoc } from "@/lib/export";
 
 const CONTENT_TYPES = [
   { value: "blog_post", label: "Blog post" },
@@ -53,6 +55,14 @@ export default function Generator() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [copied, setCopied] = useState(false);
+  const [brandVoice, setBrandVoice] = useState<BrandVoice | null>(null);
+  const [useVoice, setUseVoice] = useState(false);
+
+  useEffect(() => {
+    const v = loadBrandVoice();
+    setBrandVoice(v);
+    setUseVoice(Boolean(v));
+  }, []);
 
   // image state
   const [imgUrl, setImgUrl] = useState<string | null>(null);
@@ -82,7 +92,13 @@ export default function Generator() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, tone, audience, contentType }),
+        body: JSON.stringify({
+          topic,
+          tone,
+          audience,
+          contentType,
+          brandVoice: useVoice && brandVoice ? brandVoice : undefined,
+        }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -247,6 +263,30 @@ export default function Generator() {
           />
         </div>
 
+        {brandVoice ? (
+          <label className="flex items-center gap-2.5 rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#3c4a54]">
+            <input
+              type="checkbox"
+              checked={useVoice}
+              onChange={(e) => setUseVoice(e.target.checked)}
+              className="h-4 w-4 accent-[#0e7a63]"
+            />
+            <span>
+              Use brand voice:{" "}
+              <span className="font-semibold text-[#0a5346]">
+                {brandVoice.name}
+              </span>
+            </span>
+          </label>
+        ) : (
+          <a
+            href="/settings"
+            className="rounded-lg border border-dashed border-[#d9dfd8] bg-white px-3.5 py-2.5 text-center text-xs text-[#8a938b] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+          >
+            + Set a brand voice in Settings
+          </a>
+        )}
+
         <button
           type="submit"
           disabled={!canSubmit}
@@ -300,12 +340,28 @@ export default function Generator() {
               <span className="font-mono text-xs text-[#8a938b]">
                 {result.saved ? "✓ saved to history" : "not saved (DB offline)"}
               </span>
-              <div className="ml-auto flex gap-2">
+              <div className="ml-auto flex flex-wrap gap-2">
                 <button onClick={copyText} className={btnGhost}>
                   {copied ? "Copied ✓" : "Copy"}
                 </button>
                 <button onClick={downloadText} className={btnGhost}>
-                  Download
+                  .txt
+                </button>
+                <button
+                  onClick={() =>
+                    exportPdf(result.outputText, `${result.contentType}-${Date.now()}`)
+                  }
+                  className={btnGhost}
+                >
+                  PDF
+                </button>
+                <button
+                  onClick={() =>
+                    exportDoc(result.outputText, `${result.contentType}-${Date.now()}`)
+                  }
+                  className={btnGhost}
+                >
+                  Word
                 </button>
               </div>
             </div>
