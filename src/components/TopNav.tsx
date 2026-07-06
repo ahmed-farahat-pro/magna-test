@@ -14,14 +14,14 @@ export default function TopNav() {
   const path = usePathname();
   return (
     <header className="sticky top-0 z-10 border-b border-[#d9dfd8] bg-[#eff2ee]/85 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
+      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-3.5">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#0e7a63]" />
-          <span className="font-semibold tracking-tight text-[#141a16]">
+          <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-[#0e7a63]" />
+          <span className="whitespace-nowrap font-semibold tracking-tight text-[#141a16]">
             AI Content Marketing Suite
           </span>
         </Link>
-        <nav className="flex items-center gap-1">
+        <nav className="-mx-1 flex items-center gap-1 overflow-x-auto px-1 sm:mx-0 sm:px-0">
           {LINKS.map((l) => {
             const active =
               l.href === "/" ? path === "/" : path.startsWith(l.href);
@@ -30,7 +30,7 @@ export default function TopNav() {
                 key={l.href}
                 href={l.href}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                   active
                     ? "bg-[#e6f2ec] text-[#0a5346]"
                     : "text-[#3c4a54] hover:bg-white"
@@ -42,7 +42,7 @@ export default function TopNav() {
           })}
           <a
             href="/api/health"
-            className="ml-2 font-mono text-xs text-[#8a938b] transition-colors hover:text-[#0a5346]"
+            className="ml-2 hidden shrink-0 font-mono text-xs text-[#8a938b] transition-colors hover:text-[#0a5346] sm:inline"
           >
             status
           </a>

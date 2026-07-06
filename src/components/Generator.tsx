@@ -368,7 +368,7 @@ export default function Generator() {
 
             <div
               aria-live="polite"
-              className="max-h-[46vh] overflow-y-auto whitespace-pre-wrap px-5 py-4 text-sm leading-relaxed text-[#1c241e]"
+              className="max-h-[46vh] overflow-y-auto whitespace-pre-wrap break-words px-5 py-4 text-sm leading-relaxed text-[#1c241e]"
             >
               {result.outputText}
             </div>
@@ -452,7 +452,7 @@ export default function Generator() {
                   </div>
 
                   {imgPrompt && (
-                    <p className="font-mono text-[0.68rem] leading-relaxed text-[#9aa39b]">
+                    <p className="break-words font-mono text-[0.68rem] leading-relaxed text-[#9aa39b]">
                       <span className="text-[#5c665e]">auto-prompt:</span>{" "}
                       {imgPrompt}
                     </p>

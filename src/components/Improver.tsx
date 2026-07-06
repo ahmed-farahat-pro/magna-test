@@ -156,7 +156,7 @@ export default function Improver() {
               <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[#8a938b]">
                 Before
               </div>
-              <div className="max-h-[40vh] overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed text-[#5c665e]">
+              <div className="max-h-[40vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[#5c665e]">
                 {result.original}
               </div>
             </div>
@@ -172,7 +172,7 @@ export default function Improver() {
                   {copied ? "Copied ✓" : "Copy"}
                 </button>
               </div>
-              <div className="max-h-[40vh] overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed text-[#1c241e]">
+              <div className="max-h-[40vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[#1c241e]">
                 {result.improved}
               </div>
             </div>

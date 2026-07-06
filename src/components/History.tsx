@@ -190,7 +190,7 @@ export default function History() {
                       {item.topic}
                     </p>
                   )}
-                  <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs leading-relaxed text-[#5c665e]">
+                  <p className="mt-1 line-clamp-3 whitespace-pre-wrap break-words text-xs leading-relaxed text-[#5c665e]">
                     {item.outputText}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-1.5 pt-1">
@@ -281,7 +281,7 @@ export default function History() {
                   className="mb-4 w-full rounded-lg border border-[#d9dfd8]"
                 />
               )}
-              <div className="whitespace-pre-wrap text-sm leading-relaxed text-[#1c241e]">
+              <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[#1c241e]">
                 {selected.outputText}
               </div>
               {selected.explanation && (
