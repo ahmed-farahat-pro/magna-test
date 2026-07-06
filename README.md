@@ -9,7 +9,7 @@ sees an API key.
 > Built for the Magna Labs 48-hour technical assessment.
 
 - **Live URL:** _to be added after the first Vercel deploy_
-- **Status:** deploy pipeline live · core generator shipping next
+- **Status:** all core features built — generator, per-post image, history, improver
 
 ## Features
 
@@ -69,9 +69,10 @@ Variables** for production. See `.env.example` for the annotated template.
 | `GET`  | `/api/health` | — | Service + DB + env status |
 | `POST` | `/api/generate` | `{ topic, tone, audience, contentType }` | `{ id, contentType, outputText, saved }` |
 | `POST` | `/api/images` | `{ generationId?, topic?, tone?, contentType?, style }` | `{ imageUrl, prompt, style }` |
-| `POST` | `/api/improve` | `{ text, goal }` | Refined text + explanation _(coming)_ |
-| `GET`  | `/api/history` | `?page=` | Paginated session feed _(coming)_ |
-| `DELETE` | `/api/history/:id` | — | Deletes row + image _(coming)_ |
+| `POST` | `/api/improve` | `{ text, goal, targetAudience? }` | `{ id, goal, improved, changeSummary, saved }` |
+| `GET`  | `/api/history` | `?page=&pageSize=` | `{ items[], page, pageSize, total, hasMore }` |
+| `GET`  | `/api/history/:id` | — | `{ item }` (ownership-scoped) |
+| `DELETE` | `/api/history/:id` | — | `{ deleted: { id } }` — also removes its Blob image |
 
 ## Deployment
 

@@ -1,4 +1,4 @@
-import { put } from "@vercel/blob";
+import { put, del } from "@vercel/blob";
 import { randomUUID } from "crypto";
 
 export const blobEnabled = (): boolean =>
@@ -16,4 +16,9 @@ export async function uploadPngFromBase64(b64: string): Promise<string> {
     contentType: "image/png",
   });
   return url;
+}
+
+/** Best-effort delete of a stored image (called when a history entry is removed). */
+export async function deleteBlob(url: string): Promise<void> {
+  await del(url);
 }

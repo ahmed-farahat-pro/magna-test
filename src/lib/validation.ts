@@ -61,6 +61,46 @@ export const imageSchema = z.object({
 
 export type ImageInput = z.infer<typeof imageSchema>;
 
+// ── Content Improver ─────────────────────────────────────────────────────────
+export const IMPROVE_GOALS = [
+  "shorter",
+  "more_persuasive",
+  "more_formal",
+  "seo_optimized",
+  "rewrite_for_audience",
+] as const;
+
+export const IMPROVE_GOAL_DB = {
+  shorter: "SHORTER",
+  more_persuasive: "MORE_PERSUASIVE",
+  more_formal: "MORE_FORMAL",
+  seo_optimized: "SEO_OPTIMIZED",
+  rewrite_for_audience: "REWRITE_FOR_AUDIENCE",
+} as const;
+
+export const improveSchema = z
+  .object({
+    text: z
+      .string()
+      .trim()
+      .min(1, "Paste some text to improve.")
+      .max(12000, "Text exceeds the 12,000 character limit."),
+    goal: z.enum(IMPROVE_GOALS),
+    targetAudience: z.string().trim().max(120).optional(),
+  })
+  .refine((d) => d.goal !== "rewrite_for_audience" || !!d.targetAudience, {
+    path: ["targetAudience"],
+    message: "A target audience is required to rewrite for a new audience.",
+  });
+
+export type ImproveInput = z.infer<typeof improveSchema>;
+
+// ── History ──────────────────────────────────────────────────────────────────
+export const historyQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).default(12),
+});
+
 /** Turn a ZodError into the API's `details[]` shape. */
 export function zodDetails(
   error: z.ZodError,
