@@ -7,6 +7,7 @@ const store = new Map<string, Bucket>();
 
 const LIMITS = {
   generate: { max: 20, windowMs: 60_000 },
+  image: { max: 12, windowMs: 60_000 },
 } as const;
 
 type BucketKey = keyof typeof LIMITS;

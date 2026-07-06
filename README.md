@@ -67,8 +67,8 @@ Variables** for production. See `.env.example` for the annotated template.
 | Method | Endpoint | Body | Returns |
 |--------|----------|------|---------|
 | `GET`  | `/api/health` | — | Service + DB + env status |
-| `POST` | `/api/generate` | `{ topic, tone, audience, contentType }` | Generated content _(coming)_ |
-| `POST` | `/api/images` | `{ generationId, style? }` | Permanent image URL _(coming)_ |
+| `POST` | `/api/generate` | `{ topic, tone, audience, contentType }` | `{ id, contentType, outputText, saved }` |
+| `POST` | `/api/images` | `{ generationId?, topic?, tone?, contentType?, style }` | `{ imageUrl, prompt, style }` |
 | `POST` | `/api/improve` | `{ text, goal }` | Refined text + explanation _(coming)_ |
 | `GET`  | `/api/history` | `?page=` | Paginated session feed _(coming)_ |
 | `DELETE` | `/api/history/:id` | — | Deletes row + image _(coming)_ |

@@ -18,11 +18,29 @@ const TONES = [
   "bold",
 ] as const;
 
+const IMAGE_STYLES = [
+  { value: "photographic", label: "Photographic" },
+  { value: "3d_render", label: "3D render" },
+  { value: "flat_illustration", label: "Flat" },
+  { value: "minimalist", label: "Minimal" },
+  { value: "bold_gradient", label: "Gradient" },
+  { value: "editorial", label: "Editorial" },
+] as const;
+
 const TYPE_LABEL: Record<string, string> = Object.fromEntries(
   CONTENT_TYPES.map((t) => [t.value, t.label]),
 );
 
-type Result = { outputText: string; contentType: string; saved: boolean };
+type ImageStyle = (typeof IMAGE_STYLES)[number]["value"];
+
+type Result = {
+  id: string | null;
+  outputText: string;
+  contentType: string;
+  saved: boolean;
+  topic: string;
+  tone: string;
+};
 
 export default function Generator() {
   const [contentType, setContentType] =
@@ -36,7 +54,22 @@ export default function Generator() {
   const [result, setResult] = useState<Result | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // image state
+  const [imgUrl, setImgUrl] = useState<string | null>(null);
+  const [imgLoading, setImgLoading] = useState(false);
+  const [imgError, setImgError] = useState<string | null>(null);
+  const [imgStyle, setImgStyle] = useState<ImageStyle>("photographic");
+  const [imgPrompt, setImgPrompt] = useState<string | null>(null);
+
   const canSubmit = topic.trim() && audience.trim() && !loading;
+
+  function resetImage() {
+    setImgUrl(null);
+    setImgError(null);
+    setImgPrompt(null);
+    setImgLoading(false);
+    setImgStyle("photographic");
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -44,6 +77,7 @@ export default function Generator() {
     setLoading(true);
     setError(null);
     setResult(null);
+    resetImage();
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -56,9 +90,12 @@ export default function Generator() {
         return;
       }
       setResult({
+        id: json.id ?? null,
         outputText: json.outputText,
         contentType: json.contentType,
         saved: json.saved,
+        topic,
+        tone,
       });
     } catch {
       setError("Network error. Please check your connection and try again.");
@@ -67,20 +104,63 @@ export default function Generator() {
     }
   }
 
-  async function copy() {
+  async function generateImage(style: ImageStyle) {
+    if (!result) return;
+    setImgLoading(true);
+    setImgError(null);
+    setImgStyle(style);
+    try {
+      const res = await fetch("/api/images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          generationId: result.id ?? undefined,
+          topic: result.topic,
+          tone: result.tone,
+          contentType: result.contentType,
+          style,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setImgError(json?.error?.message ?? "Image generation failed.");
+        return;
+      }
+      setImgUrl(json.imageUrl);
+      setImgPrompt(json.prompt ?? null);
+    } catch {
+      setImgError("Network error while generating the image.");
+    } finally {
+      setImgLoading(false);
+    }
+  }
+
+  async function copyText() {
     if (!result) return;
     await navigator.clipboard.writeText(result.outputText);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
 
-  function download() {
+  function downloadText() {
     if (!result) return;
-    const blob = new Blob([result.outputText], { type: "text/plain" });
+    trigger(
+      new Blob([result.outputText], { type: "text/plain" }),
+      `${result.contentType}-${Date.now()}.txt`,
+    );
+  }
+
+  async function downloadImage() {
+    if (!imgUrl) return;
+    const res = await fetch(imgUrl);
+    trigger(await res.blob(), `image-${Date.now()}.png`);
+  }
+
+  function trigger(blob: Blob, name: string) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${result.contentType}-${Date.now()}.txt`;
+    a.download = name;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -89,6 +169,8 @@ export default function Generator() {
     "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#9aa39b] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
   const labelCls =
     "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[#5c665e]";
+  const btnGhost =
+    "rounded-md border border-[#d9dfd8] bg-white px-3 py-1.5 text-xs font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]";
 
   return (
     <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 px-6 py-10 lg:grid-cols-[minmax(0,380px)_1fr]">
@@ -183,7 +265,7 @@ export default function Generator() {
             </p>
             <p className="max-w-xs text-xs text-[#8a938b]">
               Pick a format, describe the topic, tone, and audience, then hit
-              generate.
+              generate — then create a matching image in one click.
             </p>
           </div>
         )}
@@ -194,7 +276,6 @@ export default function Generator() {
             <div className="h-3 w-full animate-pulse rounded bg-[#eff2ee]" />
             <div className="h-3 w-11/12 animate-pulse rounded bg-[#eff2ee]" />
             <div className="h-3 w-4/5 animate-pulse rounded bg-[#eff2ee]" />
-            <div className="mt-2 h-3 w-2/3 animate-pulse rounded bg-[#eff2ee]" />
             <p className="mt-2 font-mono text-xs text-[#8a938b]">
               Writing with Claude…
             </p>
@@ -220,34 +301,108 @@ export default function Generator() {
                 {result.saved ? "✓ saved to history" : "not saved (DB offline)"}
               </span>
               <div className="ml-auto flex gap-2">
-                <button
-                  onClick={copy}
-                  className="rounded-md border border-[#d9dfd8] bg-white px-3 py-1.5 text-xs font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
-                >
+                <button onClick={copyText} className={btnGhost}>
                   {copied ? "Copied ✓" : "Copy"}
                 </button>
-                <button
-                  onClick={download}
-                  className="rounded-md border border-[#d9dfd8] bg-white px-3 py-1.5 text-xs font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
-                >
+                <button onClick={downloadText} className={btnGhost}>
                   Download
                 </button>
               </div>
             </div>
+
             <div
               aria-live="polite"
-              className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap px-5 py-4 text-sm leading-relaxed text-[#1c241e]"
+              className="max-h-[46vh] overflow-y-auto whitespace-pre-wrap px-5 py-4 text-sm leading-relaxed text-[#1c241e]"
             >
               {result.outputText}
             </div>
-            <div className="mt-auto border-t border-[#e7ebe6] px-5 py-3">
-              <button
-                disabled
-                title="Coming in the next build"
-                className="cursor-not-allowed rounded-md border border-dashed border-[#d9c3b8] bg-[#f7e8e0]/50 px-3 py-1.5 text-xs font-medium text-[#8a3315]/70"
-              >
-                🖼 Generate matching image — next
-              </button>
+
+            {/* ── Image pairing (featured) ── */}
+            <div className="mt-auto border-t border-[#e7ebe6] px-5 py-4">
+              {!imgUrl && !imgLoading && !imgError && (
+                <button
+                  onClick={() => generateImage(imgStyle)}
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#d9c3b8] bg-[#f7e8e0] px-4 py-2.5 text-sm font-semibold text-[#8a3315] transition-colors hover:bg-[#f2ddd0]"
+                >
+                  🖼 Generate matching image
+                </button>
+              )}
+
+              {imgLoading && !imgUrl && (
+                <div className="flex aspect-video max-w-md animate-pulse items-center justify-center rounded-lg bg-[#f4f7f3]">
+                  <span className="font-mono text-xs text-[#8a938b]">
+                    Painting your image…
+                  </span>
+                </div>
+              )}
+
+              {imgError && !imgLoading && (
+                <div className="rounded-lg border border-[#e7c9c0] bg-[#f7e8e0] p-3" role="alert">
+                  <p className="text-sm text-[#8a3315]">{imgError}</p>
+                  <button
+                    onClick={() => generateImage(imgStyle)}
+                    className="mt-2 rounded-md border border-[#d9c3b8] bg-white px-3 py-1.5 text-xs font-medium text-[#8a3315]"
+                  >
+                    Try again
+                  </button>
+                </div>
+              )}
+
+              {imgUrl && (
+                <div className="flex flex-col gap-3">
+                  <div className="relative max-w-md overflow-hidden rounded-lg border border-[#d9dfd8]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imgUrl}
+                      alt={`AI image for “${result.topic}”`}
+                      className={`w-full transition-opacity ${imgLoading ? "opacity-40" : "opacity-100"}`}
+                    />
+                    {imgLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-white/30">
+                        <span className="rounded-md bg-white/90 px-2 py-1 font-mono text-xs text-[#5c665e]">
+                          Regenerating…
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className={labelCls + " mb-0 mr-1"}>Style</span>
+                    {IMAGE_STYLES.map((s) => {
+                      const active = s.value === imgStyle;
+                      return (
+                        <button
+                          key={s.value}
+                          onClick={() => generateImage(s.value)}
+                          disabled={imgLoading}
+                          aria-pressed={active}
+                          className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
+                            active
+                              ? "border-[#b7451e] bg-[#f7e8e0] text-[#8a3315]"
+                              : "border-[#d9dfd8] bg-white text-[#3c4a54] hover:border-[#b9c6bd]"
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                    <button
+                      onClick={downloadImage}
+                      disabled={imgLoading}
+                      className={`${btnGhost} ml-auto disabled:opacity-50`}
+                    >
+                      Download image
+                    </button>
+                  </div>
+
+                  {imgPrompt && (
+                    <p className="font-mono text-[0.68rem] leading-relaxed text-[#9aa39b]">
+                      <span className="text-[#5c665e]">auto-prompt:</span>{" "}
+                      {imgPrompt}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

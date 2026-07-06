@@ -33,6 +33,34 @@ export const CONTENT_TYPE_DB = {
   email: "EMAIL",
 } as const;
 
+export const CONTENT_TYPE_WIRE = {
+  BLOG_POST: "blog_post",
+  LINKEDIN_POST: "linkedin_post",
+  AD_COPY: "ad_copy",
+  EMAIL: "email",
+} as const;
+
+// Image style presets (wire values). Each maps to a distinct set of visual
+// modifiers server-side — see src/lib/ai/image.ts.
+export const IMAGE_STYLES = [
+  "photographic",
+  "3d_render",
+  "flat_illustration",
+  "minimalist",
+  "bold_gradient",
+  "editorial",
+] as const;
+
+export const imageSchema = z.object({
+  generationId: z.string().trim().min(1).optional(),
+  topic: z.string().trim().max(200).optional(),
+  tone: z.string().trim().max(40).optional(),
+  contentType: z.enum(CONTENT_TYPES).optional(),
+  style: z.enum(IMAGE_STYLES),
+});
+
+export type ImageInput = z.infer<typeof imageSchema>;
+
 /** Turn a ZodError into the API's `details[]` shape. */
 export function zodDetails(
   error: z.ZodError,
