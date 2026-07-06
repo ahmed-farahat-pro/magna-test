@@ -1,3 +1,5 @@
+import { dbEnabled, getPrisma } from "@/lib/db";
+
 // Health / readiness probe. Never throws — safe to hit before env vars exist,
 // so the site is verifiably "live" from the very first deploy.
 export const runtime = "nodejs";
@@ -12,11 +14,9 @@ export async function GET() {
   };
 
   let db: "connected" | "error" | "unconfigured" = "unconfigured";
-  if (process.env.DATABASE_URL) {
+  if (dbEnabled()) {
     try {
-      // Lazy import so a missing/invalid DB never breaks the build or the app shell.
-      const { prisma } = await import("@/lib/db");
-      await prisma.$queryRaw`SELECT 1`;
+      await getPrisma().$queryRaw`SELECT 1`;
       db = "connected";
     } catch {
       db = "error";
