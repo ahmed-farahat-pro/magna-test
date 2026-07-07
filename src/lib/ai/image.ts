@@ -196,9 +196,14 @@ export async function buildImagePromptFromContent(input: {
         content: input.content,
       });
       if (scene) {
+        // Lower-case the scene's leading letter so it reads cleanly after
+        // "…showing" (avoids "showing A relaxed founder…").
+        const subjectScene = /^[A-Z][a-z]/.test(scene)
+          ? scene[0].toLowerCase() + scene.slice(1)
+          : scene;
         return {
           prompt: assemble({
-            subject: `A ${preset.leadNoun} showing ${scene}`,
+            subject: `A ${preset.leadNoun} showing ${subjectScene}`,
             tone: input.tone,
             contentType: input.contentType,
             style: input.style,
