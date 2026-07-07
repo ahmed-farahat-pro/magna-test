@@ -104,16 +104,23 @@ export async function generateImageB64(
   // Retry once for transient upstream hiccups.
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
+      // Note: the current OpenAI images API rejects `response_format`. DALL·E 3
+      // returns a (temporary) URL by default — we fetch its bytes and hand back
+      // base64 so the caller can re-host it permanently on Vercel Blob.
       const res = await openai().images.generate({
         model: "dall-e-3",
         prompt,
         n: 1,
         size,
-        response_format: "b64_json",
       });
-      const b64 = res.data?.[0]?.b64_json;
-      if (!b64) throw new Error("empty image response");
-      return b64;
+      const d = res.data?.[0];
+      if (d?.b64_json) return d.b64_json;
+      if (d?.url) {
+        const r = await fetch(d.url);
+        if (!r.ok) throw new Error(`image fetch failed: ${r.status}`);
+        return Buffer.from(await r.arrayBuffer()).toString("base64");
+      }
+      throw new Error("empty image response");
     } catch (e) {
       lastErr = e;
     }
