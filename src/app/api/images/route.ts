@@ -96,9 +96,15 @@ export async function POST(req: Request) {
     let imageUrl: string;
     try {
       imageUrl = await uploadPngFromBase64(b64);
-    } catch {
-      await markFailed("image_storage_failed");
-      return fail("UPSTREAM_BLOB_ERROR", "The image was created but could not be saved. Please try again.", requestId);
+    } catch (e) {
+      const detail = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+      await markFailed(`image_storage_failed: ${detail}`.slice(0, 300));
+      return fail(
+        "UPSTREAM_BLOB_ERROR",
+        "The image was created but could not be saved. Please try again.",
+        requestId,
+        { details: [{ path: "blob", message: detail }] },
+      );
     }
 
     // Attach to the generation row. If the link fails, delete the orphan blob and
