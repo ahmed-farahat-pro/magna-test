@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AutoDemo from "@/components/AutoDemo";
+import Architecture from "@/components/Architecture";
 
 export const metadata = {
   title: "AI Content Marketing Suite — watch it work",
@@ -208,6 +209,9 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* ── Under the hood: architecture + call flows ── */}
+      <Architecture />
 
       {/* ── Final CTA ── */}
       <section className="border-t border-[#d9dfd8] bg-white">
