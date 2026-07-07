@@ -162,10 +162,11 @@ export default function History() {
       {!loading && items.length > 0 && (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
+            {items.map((item, i) => (
               <article
                 key={item.id}
-                className="flex flex-col overflow-hidden rounded-xl border border-[#d9dfd8] bg-white"
+                style={{ animationDelay: `${i * 40}ms` }}
+                className="animate-fade-up flex flex-col overflow-hidden rounded-xl border border-[#d9dfd8] bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 {item.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -258,7 +259,7 @@ export default function History() {
       {/* ── Detail modal ── */}
       {selected && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           onClick={() => setSelected(null)}
         >
           <div
@@ -267,7 +268,7 @@ export default function History() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="hist-modal-title"
-            className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#d9dfd8] bg-white shadow-xl outline-none"
+            className="animate-scale-in flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#d9dfd8] bg-white shadow-xl outline-none"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#e7ebe6] px-5 py-3">

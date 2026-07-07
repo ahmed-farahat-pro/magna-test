@@ -3,7 +3,7 @@ import Generator from "@/components/Generator";
 export default function Home() {
   return (
     <div className="flex-1">
-      <div className="mx-auto max-w-6xl px-6 pt-8">
+      <div className="animate-fade-up mx-auto max-w-6xl px-6 pt-8">
         <h1 className="text-2xl font-extrabold tracking-tight text-[#141a16] sm:text-3xl">
           Content generator
         </h1>

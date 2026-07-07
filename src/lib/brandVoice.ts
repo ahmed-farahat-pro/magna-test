@@ -3,6 +3,9 @@
 // the prompt only when the user opts in.
 export type BrandVoice = {
   name: string;
+  personality?: string[];
+  formality?: string;
+  industry?: string;
   description?: string;
   keywords?: string[];
   avoid?: string[];

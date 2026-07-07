@@ -137,7 +137,7 @@ export default function Improver() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="inline-flex w-fit items-center justify-center gap-2 rounded-lg bg-[#0e7a63] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0a5346] disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex w-fit items-center justify-center gap-2 rounded-lg bg-[#0e7a63] px-5 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346] active:translate-y-0 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45"
         >
           {loading ? "Improving…" : "✨ Improve content"}
         </button>
@@ -150,7 +150,7 @@ export default function Improver() {
       )}
 
       {result && (
-        <div className="mt-8 flex flex-col gap-4">
+        <div className="animate-fade-up mt-8 flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-[#d9dfd8] bg-[#f4f7f3] p-4">
               <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[#5f6960]">

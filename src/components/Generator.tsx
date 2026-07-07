@@ -290,7 +290,7 @@ export default function Generator() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-[#0e7a63] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0a5346] disabled:cursor-not-allowed disabled:opacity-45"
+          className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-[#0e7a63] px-4 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346] active:translate-y-0 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45"
         >
           {loading ? "Generating…" : "✨ Generate content"}
         </button>
@@ -332,7 +332,7 @@ export default function Generator() {
         )}
 
         {result && !loading && (
-          <div className="flex h-full flex-col">
+          <div className="animate-fade-up flex h-full flex-col">
             <div className="flex flex-wrap items-center gap-2 border-b border-[#e7ebe6] px-5 py-3">
               <span className="rounded-md bg-[#e6f2ec] px-2.5 py-1 font-mono text-xs font-semibold text-[#0a5346]">
                 {TYPE_LABEL[result.contentType] ?? result.contentType}
@@ -411,7 +411,7 @@ export default function Generator() {
                     <img
                       src={imgUrl}
                       alt={`AI image for “${result.topic}”`}
-                      className={`w-full transition-opacity ${imgLoading ? "opacity-40" : "opacity-100"}`}
+                      className={`w-full animate-fade-in transition-opacity ${imgLoading ? "opacity-40" : "opacity-100"}`}
                     />
                     {imgLoading && (
                       <div className="absolute inset-0 flex items-center justify-center bg-white/30">

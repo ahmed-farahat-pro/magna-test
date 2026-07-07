@@ -20,6 +20,9 @@ export const CONTENT_TYPES = [
 // Brand voice (bonus) — passed from the client and injected into the prompt.
 export const brandVoiceSchema = z.object({
   name: z.string().trim().min(1).max(60),
+  personality: z.array(z.string().trim().min(1).max(40)).max(12).optional(),
+  formality: z.string().trim().max(40).optional(),
+  industry: z.string().trim().max(60).optional(),
   description: z.string().trim().max(500).optional(),
   keywords: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
   avoid: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
@@ -40,7 +43,11 @@ export function formatBrandVoice(
     "BRAND VOICE — write this in the following brand's voice:",
     `Brand: ${bv.name}`,
   ];
-  if (bv.description) lines.push(`Voice & style: ${bv.description}`);
+  if (bv.personality?.length)
+    lines.push(`Personality: ${bv.personality.join(", ")}`);
+  if (bv.formality) lines.push(`Formality: ${bv.formality}`);
+  if (bv.industry) lines.push(`Industry context: ${bv.industry}`);
+  if (bv.description) lines.push(`Voice & style notes: ${bv.description}`);
   if (bv.keywords?.length) lines.push(`Emphasize: ${bv.keywords.join(", ")}`);
   if (bv.avoid?.length)
     lines.push(`Avoid these words/phrases: ${bv.avoid.join(", ")}`);
