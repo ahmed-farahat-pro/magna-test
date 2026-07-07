@@ -312,7 +312,7 @@ export default function History() {
             Everything you generate or improve is saved here per session.
           </p>
           <Link
-            href="/"
+            href="/create"
             className="mt-1 rounded-lg bg-[#0e7a63] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#0a5346]"
           >
             Create your first piece →
