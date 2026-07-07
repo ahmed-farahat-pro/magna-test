@@ -3,21 +3,37 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 /**
- * A fully automated, looping demo of the app — no API calls, all static data.
- * It mirrors the real generator UI and plays the whole flow: a topic is typed
- * out, the copy streams in word-by-word, then a matching image "paints" into
- * focus. Purely illustrative, so the animated stage is aria-hidden with an
- * sr-only description alongside.
+ * A fully automated, looping demo of the whole app — no API calls, all static
+ * data. It mirrors the real UI and plays the complete story across three acts:
+ *   1. Generate — a topic is typed, a brand voice is applied, the copy streams
+ *      in word-by-word, and a matching image "paints" into focus.
+ *   2. Improve  — the copy is sent to the improver, a goal is chosen, and a
+ *      leveled-up version streams in beside the original with a "what changed".
+ *   3. History  — every piece is shown saved to the session, accumulating.
+ * Purely illustrative, so the animated stage is aria-hidden with an sr-only
+ * description alongside.
  */
 
+type Mode = "generate" | "improve" | "history";
+
 type Phase =
-  | "typing"
-  | "selecting"
-  | "generating"
-  | "streaming"
-  | "painting"
-  | "reveal"
-  | "done";
+  | "g-type"
+  | "g-select"
+  | "g-gen"
+  | "g-stream"
+  | "g-paint"
+  | "g-reveal"
+  | "g-done"
+  | "i-enter"
+  | "i-select"
+  | "i-improve"
+  | "i-stream"
+  | "i-done"
+  | "h-enter"
+  | "h-done";
+
+const modeOf = (p: Phase): Mode =>
+  p[0] === "g" ? "generate" : p[0] === "i" ? "improve" : "history";
 
 type Demo = {
   type: string;
@@ -26,7 +42,9 @@ type Demo = {
   topic: string;
   body: string;
   caption: string;
-  accent: "green" | "blue" | "amber";
+  improveGoal: string;
+  improved: string;
+  changed: string;
   Scene: () => ReactNode;
 };
 
@@ -48,7 +66,6 @@ function SceneBlog() {
       <rect width="480" height="300" fill="url(#blogSun)" />
       <circle cx="386" cy="66" r="40" fill="#f4b878" />
       <rect y="214" width="480" height="86" fill="#bfdcc6" />
-      {/* coffee */}
       <g transform="translate(64,150)">
         <rect x="8" y="6" width="6" height="14" rx="3" fill="#8fd6bf" />
         <rect x="24" y="0" width="6" height="20" rx="3" fill="#8fd6bf" />
@@ -60,7 +77,6 @@ function SceneBlog() {
           strokeWidth="6"
         />
       </g>
-      {/* paid invoice cards */}
       <g transform="translate(198,58)">
         <rect
           width="128"
@@ -117,7 +133,6 @@ function SceneLinkedIn() {
         </linearGradient>
       </defs>
       <rect width="480" height="300" fill="url(#liBg)" />
-      {/* connections */}
       <g stroke="#9cc3bb" strokeWidth="2">
         <line x1="240" y1="150" x2="110" y2="80" />
         <line x1="240" y1="150" x2="120" y2="220" />
@@ -125,7 +140,6 @@ function SceneLinkedIn() {
         <line x1="240" y1="150" x2="380" y2="210" />
         <line x1="240" y1="150" x2="240" y2="52" />
       </g>
-      {/* satellite nodes */}
       {[
         [110, 80],
         [120, 220],
@@ -135,7 +149,6 @@ function SceneLinkedIn() {
       ].map(([x, y], k) => (
         <circle key={k} cx={x} cy={y} r="16" fill="#2f6d8a" opacity="0.85" />
       ))}
-      {/* central avatar */}
       <circle cx="240" cy="150" r="42" fill="#0e7a63" />
       <circle cx="240" cy="136" r="15" fill="#eaf5ef" />
       <path d="M214 176 a26 22 0 0 1 52 0 z" fill="#eaf5ef" />
@@ -167,7 +180,6 @@ function SceneAd() {
         </radialGradient>
       </defs>
       <rect width="480" height="300" fill="url(#adBg)" />
-      {/* rays */}
       <g stroke="#ffffff" strokeWidth="10" opacity="0.18" strokeLinecap="round">
         <line x1="240" y1="150" x2="240" y2="-40" />
         <line x1="240" y1="150" x2="470" y2="10" />
@@ -178,27 +190,12 @@ function SceneAd() {
         <line x1="240" y1="150" x2="10" y2="10" />
       </g>
       <rect width="480" height="300" fill="url(#adGlow)" />
-      {/* product card */}
       <g transform="translate(170,96)">
-        <rect
-          width="140"
-          height="108"
-          rx="16"
-          fill="#ffffff"
-          opacity="0.96"
-        />
+        <rect width="140" height="108" rx="16" fill="#ffffff" opacity="0.96" />
         <rect x="20" y="22" width="100" height="12" rx="6" fill="#c96b8f" />
         <rect x="20" y="44" width="72" height="10" rx="5" fill="#e6b8c6" />
-        <rect
-          x="20"
-          y="72"
-          width="100"
-          height="20"
-          rx="10"
-          fill="#0e7a63"
-        />
+        <rect x="20" y="72" width="100" height="20" rx="10" fill="#0e7a63" />
       </g>
-      {/* sparkles */}
       {[
         [120, 70, 6],
         [360, 90, 8],
@@ -219,7 +216,11 @@ const DEMOS: Demo[] = [
     topic: "Why small teams should automate invoicing",
     body: "Stop chasing invoices. Let them chase themselves.\n\nSmall teams lose hours every week nudging clients for money they have already earned. Automating your invoicing flips the script: reminders go out on time, every time — so you get paid up to 2x faster without a single awkward follow-up.\n\nReclaim your Fridays. Your cash flow will thank you.",
     caption: "photographic · a founder relaxing while invoices settle themselves",
-    accent: "green",
+    improveGoal: "Shorter",
+    improved:
+      "Stop chasing invoices — automate them.\n\nReminders go out on time, every time, so small teams get paid up to 2x faster. No awkward follow-ups. Reclaim your Fridays.",
+    changed:
+      "Cut ~40% of the length, kept the hook and the 2x proof, tightened the close.",
     Scene: SceneBlog,
   },
   {
@@ -229,7 +230,11 @@ const DEMOS: Demo[] = [
     topic: "The one task every founder should automate first",
     body: "Most founders automate the wrong thing first.\n\nThey buy tools for problems they do not have yet — and ignore the three hours a week quietly bleeding out of manual invoicing.\n\nStart where the pain actually is. Automate the boring money stuff. Then go build.\n\nWhat is the first task you would hand to a robot?",
     caption: "flat illustration · a network of connections around one clear idea",
-    accent: "blue",
+    improveGoal: "More persuasive",
+    improved:
+      "Most founders automate the wrong thing first.\n\nThey chase shiny tools while three hours a week bleed out of manual invoicing — that is 150+ hours a year you will never bill back.\n\nFix the leak first. Automate the money. Then go build.\n\nWhat would you hand to a robot tomorrow?",
+    changed:
+      "Added a concrete number (150+ hrs/yr), raised the stakes, sharpened the closing question.",
     Scene: SceneLinkedIn,
   },
   {
@@ -239,37 +244,59 @@ const DEMOS: Demo[] = [
     topic: "Get paid faster with automated invoice reminders",
     body: "Get paid 2x faster — on autopilot.\n\nStop writing “just following up” emails. Our tool chases every late invoice for you, so the cash lands while you sleep.\n\nNo more awkward reminders. No more waiting. Just paid.\n\nStart free →",
     caption: "bold gradient · a product in the spotlight, high-energy",
-    accent: "amber",
+    improveGoal: "More formal",
+    improved:
+      "Accelerate your cash flow with automated invoice reminders.\n\nOur platform follows up on every outstanding invoice automatically, so payments arrive sooner — with no manual chasing required.\n\nBegin with a free trial today.",
+    changed:
+      "Raised the register for enterprise buyers, removed slang, kept the core benefit.",
     Scene: SceneAd,
   },
 ];
 
-const STEPS = ["Describe", "Write", "Illustrate", "Export"] as const;
+const BRAND_VOICE = { name: "Acme Co.", chips: ["Witty", "Confident", "Warm"] };
 
-function phaseStep(p: Phase): number {
-  if (p === "typing" || p === "selecting") return 0;
-  if (p === "generating" || p === "streaming") return 1;
-  if (p === "painting" || p === "reveal") return 2;
-  return 3;
-}
-
-const NARRATION: Record<Phase, string> = {
-  typing: "You describe the topic",
-  selecting: "Pick a format & tone",
-  generating: "Claude gets to work",
-  streaming: "Your copy is written live",
-  painting: "A matching image is painted",
-  reveal: "Your image is ready",
-  done: "Copy, save, or export",
-};
+const IMPROVE_GOALS = [
+  "Shorter",
+  "More persuasive",
+  "More formal",
+  "SEO",
+  "Re-audience",
+];
 
 const CONTENT_TYPES = ["Blog post", "LinkedIn", "Ad copy", "Email"];
 
+const TABS: { mode: Mode; label: string }[] = [
+  { mode: "generate", label: "Generate" },
+  { mode: "improve", label: "Improve" },
+  { mode: "history", label: "History" },
+];
+
+const NARRATION: Record<Phase, string> = {
+  "g-type": "You describe the topic",
+  "g-select": "Applying your brand voice",
+  "g-gen": "Claude gets to work",
+  "g-stream": "Your copy is written live",
+  "g-paint": "A matching image is painted",
+  "g-reveal": "Your image is ready",
+  "g-done": "Saved — now let's refine it",
+  "i-enter": "Send it to the Improver",
+  "i-select": "Pick an improvement goal",
+  "i-improve": "Rewriting with intent",
+  "i-stream": "Your copy, leveled up",
+  "i-done": "See exactly what changed",
+  "h-enter": "Everything's saved to History",
+  "h-done": "Revisit or reuse anytime",
+};
+
+const labelCls =
+  "mb-1.5 block font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]";
+
 export default function AutoDemo() {
   const [idx, setIdx] = useState(0);
-  const [phase, setPhase] = useState<Phase>("typing");
+  const [phase, setPhase] = useState<Phase>("g-type");
   const [topic, setTopic] = useState("");
-  const [body, setBody] = useState("");
+  const [genBody, setGenBody] = useState("");
+  const [impBody, setImpBody] = useState("");
   const [imgOn, setImgOn] = useState(false);
 
   useEffect(() => {
@@ -277,8 +304,7 @@ export default function AutoDemo() {
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const sleep = (ms: number) =>
-      new Promise<void>((r) => setTimeout(r, ms));
+    const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
     async function typeInto(text: string, set: (s: string) => void, per: number) {
       for (let i = 1; i <= text.length; i++) {
@@ -298,53 +324,71 @@ export default function AutoDemo() {
       }
     }
 
-    async function play(i: number) {
+    async function playStory(i: number) {
       const d = DEMOS[i];
       setIdx(i);
       setTopic("");
-      setBody("");
+      setGenBody("");
+      setImpBody("");
       setImgOn(false);
 
-      if (reduced) {
-        setPhase("done");
-        setTopic(d.topic);
-        setBody(d.body);
-        setImgOn(true);
-        return;
-      }
-
-      setPhase("typing");
+      // ── Act 1: Generate ──
+      setPhase("g-type");
       await sleep(500);
       await typeInto(d.topic, setTopic, 42);
-      await sleep(500);
-      setPhase("selecting");
-      await sleep(850);
-      setPhase("generating");
-      await sleep(650);
-      setPhase("streaming");
-      await sleep(450);
-      await streamWords(d.body, setBody, 46);
-      await sleep(550);
-      setPhase("painting");
-      await sleep(1400);
-      setPhase("reveal");
+      await sleep(400);
+      setPhase("g-select");
+      await sleep(1100);
+      setPhase("g-gen");
+      await sleep(600);
+      setPhase("g-stream");
+      await sleep(350);
+      await streamWords(d.body, setGenBody, 42);
+      await sleep(400);
+      setPhase("g-paint");
+      await sleep(1300);
+      setPhase("g-reveal");
       setImgOn(true);
-      await sleep(1000);
-      setPhase("done");
-      await sleep(2400);
+      await sleep(900);
+      setPhase("g-done");
+      await sleep(1700);
+
+      // ── Act 2: Improve ──
+      setPhase("i-enter");
+      await sleep(900);
+      setPhase("i-select");
+      await sleep(1100);
+      setPhase("i-improve");
+      await sleep(900);
+      setPhase("i-stream");
+      await streamWords(d.improved, setImpBody, 40);
+      await sleep(400);
+      setPhase("i-done");
+      await sleep(2500);
+
+      // ── Act 3: History ──
+      setPhase("h-enter");
+      await sleep(700);
+      setPhase("h-done");
+      await sleep(2700);
     }
 
     (async () => {
       await sleep(300);
       // Honor reduced-motion: show one fully-formed example and hold it — no
-      // auto-cycling (which would swap the whole panel every few seconds).
+      // typing, streaming, or auto-cycling between acts.
       if (reduced) {
-        await play(0);
+        const d = DEMOS[0];
+        setIdx(0);
+        setTopic(d.topic);
+        setGenBody(d.body);
+        setImgOn(true);
+        setPhase("g-done");
         return;
       }
       let i = 0;
       while (!cancelled) {
-        await play(i);
+        await playStory(i);
         i = (i + 1) % DEMOS.length;
       }
     })();
@@ -355,46 +399,46 @@ export default function AutoDemo() {
   }, []);
 
   const d = DEMOS[idx];
-  const step = phaseStep(phase);
-  const generating = phase === "generating" || phase === "streaming";
-  const showText =
-    phase === "streaming" ||
-    phase === "painting" ||
-    phase === "reveal" ||
-    phase === "done";
+  const mode = modeOf(phase);
+  const generating = phase === "g-gen" || phase === "g-stream";
+  const showGenText = ["g-stream", "g-paint", "g-reveal", "g-done"].includes(phase);
+  const improveActive = ["i-select", "i-improve", "i-stream", "i-done"].includes(
+    phase,
+  );
+  const showImpText = phase === "i-stream" || phase === "i-done";
+  const historyItems = DEMOS.slice(0, idx + 1);
 
   return (
     <div className="w-full">
       <p className="sr-only">
-        An automated preview: you type a topic, choose a format and tone, and the
-        app streams finished marketing copy and generates a matching image, ready
-        to copy, save, or export.
+        An automated preview of the whole app: you describe a topic and apply a
+        saved brand voice, the app streams finished marketing copy and paints a
+        matching image, you send the copy to the improver to sharpen it, and every
+        piece is saved to your history to revisit or reuse.
       </p>
 
       <div
         aria-hidden="true"
         className="overflow-hidden rounded-2xl border border-[#d9dfd8] bg-white shadow-xl"
       >
-        {/* window chrome + stepper */}
+        {/* window chrome + mode tabs */}
         <div className="flex items-center gap-3 border-b border-[#e7ebe6] bg-[#f7f9f6] px-4 py-2.5">
           <div className="flex gap-1.5">
             <span className="h-3 w-3 rounded-full bg-[#e7c9c0]" />
             <span className="h-3 w-3 rounded-full bg-[#efe0c4]" />
             <span className="h-3 w-3 rounded-full bg-[#cfe3d3]" />
           </div>
-          <div className="ml-1 hidden items-center gap-1.5 sm:flex">
-            {STEPS.map((s, k) => (
+          <div className="ml-1 hidden items-center gap-1 sm:flex">
+            {TABS.map((t) => (
               <span
-                key={s}
-                className={`rounded-full px-2.5 py-1 font-mono text-[0.66rem] font-semibold transition-colors ${
-                  k === step
-                    ? "bg-[#0e7a63] text-white"
-                    : k < step
-                      ? "bg-[#e6f2ec] text-[#0a5346]"
-                      : "bg-white text-[#5f6960]"
+                key={t.mode}
+                className={`rounded-md px-2.5 py-1 font-mono text-[0.68rem] font-semibold transition-colors ${
+                  t.mode === mode
+                    ? "bg-[#e6f2ec] text-[#0a5346]"
+                    : "text-[#5f6960]"
                 }`}
               >
-                {k + 1}. {s}
+                {t.label}
               </span>
             ))}
           </div>
@@ -404,148 +448,279 @@ export default function AutoDemo() {
           </span>
         </div>
 
-        {/* body: form | output */}
-        <div className="grid grid-cols-1 md:h-[470px] md:grid-cols-[minmax(0,270px)_1fr]">
-          {/* form */}
-          <div className="flex flex-col gap-3.5 border-b border-[#e7ebe6] p-4 md:border-b-0 md:border-r">
-            <div>
-              <span className="mb-1.5 block font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
-                Content type
-              </span>
-              <div className="grid grid-cols-2 gap-1.5">
-                {CONTENT_TYPES.map((t) => {
-                  const active = t === d.type;
-                  return (
-                    <div
-                      key={t}
-                      className={`rounded-lg border px-2.5 py-2 text-center text-xs font-medium transition-all ${
-                        active
-                          ? `border-[#0e7a63] bg-[#e6f2ec] text-[#0a5346] ${phase === "selecting" ? "ring-2 ring-[#0e7a63]/25" : ""}`
-                          : "border-[#d9dfd8] bg-white text-[#3c4a54]"
-                      }`}
-                    >
-                      {t}
+        {/* body — a panel per mode, crossfading on mode change */}
+        <div className="md:h-[470px]">
+          <div key={mode} className="animate-fade-in h-full">
+            {/* ── GENERATE ── */}
+            {mode === "generate" && (
+              <div className="grid h-full grid-cols-1 md:min-h-0 md:grid-cols-[minmax(0,270px)_1fr]">
+                {/* form */}
+                <div className="flex flex-col gap-3 border-b border-[#e7ebe6] p-4 md:border-b-0 md:border-r">
+                  <div>
+                    <span className={labelCls}>Content type</span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {CONTENT_TYPES.map((t) => {
+                        const active = t === d.type;
+                        return (
+                          <div
+                            key={t}
+                            className={`rounded-lg border px-2.5 py-2 text-center text-xs font-medium transition-all ${
+                              active
+                                ? "border-[#0e7a63] bg-[#e6f2ec] text-[#0a5346]"
+                                : "border-[#d9dfd8] bg-white text-[#3c4a54]"
+                            }`}
+                          >
+                            {t}
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                  </div>
 
-            <div>
-              <span className="mb-1.5 block font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
-                Topic
-              </span>
-              <div className="min-h-[68px] rounded-lg border border-[#d9dfd8] bg-white px-3 py-2 text-sm leading-relaxed text-[#141a16]">
-                {topic}
-                {phase === "typing" && (
-                  <span className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-blink rounded-sm bg-[#0e7a63] align-middle" />
-                )}
-                {!topic && phase !== "typing" && (
-                  <span className="text-[#5f6960]">{d.topic}</span>
-                )}
-              </div>
-            </div>
+                  <div>
+                    <span className={labelCls}>Topic</span>
+                    <div className="min-h-[56px] rounded-lg border border-[#d9dfd8] bg-white px-3 py-2 text-sm leading-relaxed text-[#141a16]">
+                      {topic}
+                      {phase === "g-type" && (
+                        <span className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-blink rounded-sm bg-[#0e7a63] align-middle" />
+                      )}
+                    </div>
+                  </div>
 
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <span className="mb-1.5 block font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
-                  Tone
-                </span>
-                <div className="rounded-lg border border-[#d9dfd8] bg-white px-3 py-2 text-xs text-[#3c4a54]">
-                  {d.tone}
+                  {/* brand voice — visibly applied */}
+                  <div
+                    className={`rounded-lg border px-3 py-2 transition-all ${
+                      phase === "g-select"
+                        ? "border-[#0e7a63] bg-[#e6f2ec] ring-2 ring-[#0e7a63]/20"
+                        : "border-[#d9dfd8] bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 text-xs text-[#3c4a54]">
+                      <span className="flex h-4 w-4 items-center justify-center rounded bg-[#0e7a63] text-[0.6rem] font-bold text-white">
+                        ✓
+                      </span>
+                      <span>
+                        Brand voice:{" "}
+                        <span className="font-semibold text-[#0a5346]">
+                          {BRAND_VOICE.name}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {BRAND_VOICE.chips.map((c) => (
+                        <span
+                          key={c}
+                          className="rounded-full border border-[#bfe0d0] bg-white px-2 py-0.5 text-[0.62rem] font-medium text-[#0a5346]"
+                        >
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div
+                    className={`mt-auto inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-all ${
+                      generating ? "bg-[#0a5346]" : "bg-[#0e7a63]"
+                    }`}
+                  >
+                    {generating ? (
+                      <>
+                        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                        Generating…
+                      </>
+                    ) : (
+                      <>✨ Generate content</>
+                    )}
+                  </div>
+                </div>
+
+                {/* output */}
+                <div className="flex min-w-0 flex-col md:h-full md:min-h-0">
+                  <div className="flex flex-wrap items-center gap-2 border-b border-[#e7ebe6] px-4 py-2.5">
+                    <span className="rounded-md bg-[#e6f2ec] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-[#0a5346]">
+                      {d.type}
+                    </span>
+                    <span className="rounded-md bg-[#f2ede4] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-[#7a5a2e]">
+                      in {BRAND_VOICE.name}&apos;s voice
+                    </span>
+                    <span className="ml-auto font-mono text-[0.66rem] text-[#5f6960]">
+                      {phase === "g-done" ? "✓ saved" : "streaming…"}
+                    </span>
+                  </div>
+
+                  <div className="min-h-[140px] flex-1 overflow-y-auto px-4 py-3 md:min-h-0">
+                    {!showGenText ? (
+                      <div className="flex flex-col gap-2.5">
+                        {generating ? (
+                          <>
+                            <div className="shimmer h-3 w-1/3 rounded bg-[#e7ebe6]" />
+                            <div className="shimmer h-3 w-11/12 rounded bg-[#eff2ee]" />
+                            <div className="shimmer h-3 w-full rounded bg-[#eff2ee]" />
+                            <div className="shimmer h-3 w-5/6 rounded bg-[#eff2ee]" />
+                          </>
+                        ) : (
+                          <p className="pt-6 text-center text-xs text-[#5f6960]">
+                            Your generated content will appear here
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[#1c241e]">
+                        {genBody}
+                        {phase === "g-stream" && (
+                          <span className="ml-0.5 inline-block h-4 w-[3px] translate-y-0.5 animate-blink rounded-sm bg-[#0e7a63] align-middle" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="border-t border-[#e7ebe6] p-4">
+                    {phase === "g-paint" ? (
+                      <div className="shimmer flex aspect-[16/10] w-full items-center justify-center rounded-lg bg-[#f4f7f3] md:w-[300px]">
+                        <span className="font-mono text-xs text-[#5f6960]">
+                          Painting your image…
+                        </span>
+                      </div>
+                    ) : imgOn ? (
+                      <div className="flex flex-col gap-2">
+                        <div
+                          key={idx}
+                          className="animate-paint-in aspect-[16/10] w-full overflow-hidden rounded-lg border border-[#d9dfd8] md:w-[300px]"
+                        >
+                          <d.Scene />
+                        </div>
+                        <p className="font-mono text-[0.64rem] leading-relaxed text-[#5f6960]">
+                          <span className="text-[#5c665e]">auto-prompt:</span>{" "}
+                          {d.caption}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="inline-flex items-center gap-2 rounded-lg border border-[#d9c3b8] bg-[#f7e8e0] px-3.5 py-2 text-xs font-semibold text-[#8a3315]">
+                        🖼 Generate matching image
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex-[1.4]">
-                <span className="mb-1.5 block font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
-                  Audience
-                </span>
-                <div className="truncate rounded-lg border border-[#d9dfd8] bg-white px-3 py-2 text-xs text-[#3c4a54]">
-                  {d.audience}
+            )}
+
+            {/* ── IMPROVE ── */}
+            {mode === "improve" && (
+              <div className="flex h-full flex-col p-4 md:p-5">
+                <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                  <span className={labelCls + " mb-0 mr-1"}>Improve goal</span>
+                  {IMPROVE_GOALS.map((g) => {
+                    const active = improveActive && g === d.improveGoal;
+                    return (
+                      <span
+                        key={g}
+                        className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
+                          active
+                            ? "border-[#b7451e] bg-[#f7e8e0] text-[#8a3315] ring-2 ring-[#b7451e]/15"
+                            : "border-[#d9dfd8] bg-white text-[#3c4a54]"
+                        }`}
+                      >
+                        {g}
+                      </span>
+                    );
+                  })}
+                </div>
+
+                <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
+                  {/* original */}
+                  <div className="flex min-h-[120px] flex-col overflow-hidden rounded-lg border border-[#d9dfd8] bg-[#fbfdfb]">
+                    <div className="border-b border-[#e7ebe6] px-3 py-1.5 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#5f6960]">
+                      Original
+                    </div>
+                    <div className="flex-1 overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 text-[0.82rem] leading-relaxed text-[#5c665e]">
+                      {d.body}
+                    </div>
+                  </div>
+                  {/* improved */}
+                  <div className="flex min-h-[120px] flex-col overflow-hidden rounded-lg border border-[#bfe0d0] bg-white">
+                    <div className="flex items-center gap-2 border-b border-[#e7ebe6] px-3 py-1.5">
+                      <span className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#0a5346]">
+                        Improved
+                      </span>
+                      <span className="rounded bg-[#e6f2ec] px-1.5 py-0.5 font-mono text-[0.58rem] font-semibold text-[#0a5346]">
+                        {d.improveGoal}
+                      </span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto px-3 py-2 text-[0.82rem] leading-relaxed text-[#1c241e]">
+                      {phase === "i-improve" ? (
+                        <div className="flex flex-col gap-2 pt-1">
+                          <div className="shimmer h-2.5 w-2/3 rounded bg-[#eff2ee]" />
+                          <div className="shimmer h-2.5 w-full rounded bg-[#eff2ee]" />
+                          <div className="shimmer h-2.5 w-4/5 rounded bg-[#eff2ee]" />
+                        </div>
+                      ) : showImpText ? (
+                        <div className="whitespace-pre-wrap break-words">
+                          {impBody}
+                          {phase === "i-stream" && (
+                            <span className="ml-0.5 inline-block h-3.5 w-[3px] translate-y-0.5 animate-blink rounded-sm bg-[#0e7a63] align-middle" />
+                          )}
+                        </div>
+                      ) : (
+                        <p className="pt-3 text-center text-xs text-[#5f6960]">
+                          Choose a goal to sharpen this copy
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={`mt-3 rounded-lg border border-[#e7ebe6] bg-[#f4f7f3] px-3 py-2 transition-opacity ${
+                    phase === "i-done" ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <span className="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
+                    What changed
+                  </span>{" "}
+                  <span className="text-xs text-[#3c4a54]">{d.changed}</span>
                 </div>
               </div>
-            </div>
+            )}
 
-            <div
-              className={`mt-auto inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-all ${
-                generating ? "bg-[#0a5346]" : "bg-[#0e7a63]"
-              }`}
-            >
-              {generating ? (
-                <>
-                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  Generating…
-                </>
-              ) : (
-                <>✨ Generate content</>
-              )}
-            </div>
-          </div>
-
-          {/* output */}
-          <div className="flex min-w-0 flex-col">
-            <div className="flex items-center gap-2 border-b border-[#e7ebe6] px-4 py-2.5">
-              <span className="rounded-md bg-[#e6f2ec] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-[#0a5346]">
-                {d.type}
-              </span>
-              <span className="font-mono text-[0.66rem] text-[#5f6960]">
-                {phase === "done" ? "✓ saved to history" : "streaming…"}
-              </span>
-            </div>
-
-            {/* text region */}
-            <div className="min-h-[150px] flex-1 overflow-y-auto px-4 py-3 md:min-h-0">
-              {!showText ? (
-                <div className="flex flex-col gap-2.5">
-                  {generating ? (
-                    <>
-                      <div className="shimmer h-3 w-1/3 rounded bg-[#e7ebe6]" />
-                      <div className="shimmer h-3 w-11/12 rounded bg-[#eff2ee]" />
-                      <div className="shimmer h-3 w-full rounded bg-[#eff2ee]" />
-                      <div className="shimmer h-3 w-5/6 rounded bg-[#eff2ee]" />
-                    </>
-                  ) : (
-                    <p className="pt-6 text-center text-xs text-[#5f6960]">
-                      Your generated content will appear here
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[#1c241e]">
-                  {body}
-                  {phase === "streaming" && (
-                    <span className="ml-0.5 inline-block h-4 w-[3px] translate-y-0.5 animate-blink rounded-sm bg-[#0e7a63] align-middle" />
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* image region */}
-            <div className="border-t border-[#e7ebe6] p-4">
-              {phase === "painting" ? (
-                <div className="shimmer flex aspect-[16/10] w-full items-center justify-center rounded-lg bg-[#f4f7f3] md:w-[320px]">
-                  <span className="font-mono text-xs text-[#5f6960]">
-                    Painting your image…
+            {/* ── HISTORY ── */}
+            {mode === "history" && (
+              <div className="h-full overflow-y-auto p-4 md:p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className={labelCls + " mb-0"}>
+                    Saved this session
+                  </span>
+                  <span className="font-mono text-xs text-[#5c665e]">
+                    {historyItems.length} item
+                    {historyItems.length === 1 ? "" : "s"}
                   </span>
                 </div>
-              ) : imgOn ? (
-                <div className="flex flex-col gap-2">
-                  <div
-                    key={idx}
-                    className="animate-paint-in aspect-[16/10] w-full overflow-hidden rounded-lg border border-[#d9dfd8] md:w-[320px]"
-                  >
-                    <d.Scene />
-                  </div>
-                  <p className="font-mono text-[0.64rem] leading-relaxed text-[#5f6960]">
-                    <span className="text-[#5c665e]">auto-prompt:</span>{" "}
-                    {d.caption}
-                  </p>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  {historyItems.map((it, k) => (
+                    <div
+                      key={it.type}
+                      style={{ animationDelay: `${k * 110}ms` }}
+                      className="animate-fade-up overflow-hidden rounded-xl border border-[#d9dfd8] bg-white"
+                    >
+                      <div className="aspect-[16/10] w-full overflow-hidden border-b border-[#e7ebe6]">
+                        <it.Scene />
+                      </div>
+                      <div className="p-2.5">
+                        <span className="rounded bg-[#e6f2ec] px-1.5 py-0.5 font-mono text-[0.58rem] font-semibold text-[#0a5346]">
+                          {it.type}
+                        </span>
+                        <p className="mt-1.5 line-clamp-2 text-[0.72rem] leading-snug text-[#3c4a54]">
+                          {it.topic}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <div className="inline-flex items-center gap-2 rounded-lg border border-[#d9c3b8] bg-[#f7e8e0] px-3.5 py-2 text-xs font-semibold text-[#8a3315]">
-                  🖼 Generate matching image
-                </div>
-              )}
-            </div>
+                <p className="mt-3 font-mono text-[0.64rem] text-[#5f6960]">
+                  Every generation &amp; improvement is scoped to your session —
+                  copy, export, or refine any of them again.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

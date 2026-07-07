@@ -92,9 +92,10 @@ export default function Landing() {
             className="animate-fade-up mx-auto mt-4 max-w-2xl text-pretty text-lg text-[#3c4a54]"
             style={{ animationDelay: "120ms" }}
           >
-            Describe a topic. Watch Claude write finished, on-brand copy live, then
-            paint a matching image from the words. Copy, save, or export — done.
-            Here it is, running by itself:
+            Describe a topic, apply your brand voice, and watch Claude write
+            finished copy live — then paint a matching image, sharpen it in the
+            improver, and save it all to history. Here&apos;s the whole thing,
+            running by itself:
           </p>
           <div
             className="animate-fade-up mt-7 flex flex-wrap items-center justify-center gap-3"
@@ -122,8 +123,8 @@ export default function Landing() {
         >
           <AutoDemo />
           <p className="mt-3 text-center font-mono text-xs text-[#5f6960]">
-            ↑ A live, automated preview — no clicks needed. This is exactly what
-            you get.
+            ↑ A live, automated tour of the whole app — generate, improve &amp;
+            history. No clicks needed.
           </p>
         </div>
       </section>
