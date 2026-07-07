@@ -39,6 +39,7 @@ interface TypeConfig {
   promptStrategy: string;
   maxTokens: number;
   system: string;
+  streamSystem: string;
   user: (i: GenerateInput) => string;
   schema: Record<string, unknown>;
   assemble: (s: Structured) => string;
@@ -61,6 +62,7 @@ const TYPES: Record<ContentType, TypeConfig> = {
   blog_post: {
     promptStrategy: "blog_seo_v1",
     maxTokens: 4000,
+    streamSystem: `You are a senior SEO content writer. Write a COMPLETE, ready-to-publish blog post in clean markdown: a scroll-earning hook, an H1 title (# ), descriptive ## H2 sections with short scannable paragraphs, and a conclusion with one concrete call to action. Match the requested tone and audience precisely. Be specific; never invent statistics. Aim for 700–1100 words. Output ONLY the finished markdown post — no preamble, no JSON, no code fences.`,
     system: `You are a senior SEO content strategist and long-form writer who ranks B2B and B2C articles on page one of Google. You write for humans first, search engines second.
 
 Every blog post you write:
@@ -99,6 +101,7 @@ Match the requested tone and audience precisely. Be specific and evidence-orient
   linkedin_post: {
     promptStrategy: "linkedin_hook_v1",
     maxTokens: 1200,
+    streamSystem: `You are a top LinkedIn ghostwriter. Write a COMPLETE LinkedIn post: a scroll-stopping first line, then short single-sentence lines separated by blank lines, one clear idea, a soft engagement CTA (a question), and 3–5 specific hashtags on the final line. 120–220 words. Match tone and audience; no emoji spam. Output ONLY the finished post text — no preamble, no JSON, no code fences.`,
     system: `You are a LinkedIn ghostwriter who has grown founder and operator accounts past 50k followers. You understand the feed: the first line is everything, because the platform truncates after ~2 lines with "…see more".
 
 Every post you write:
@@ -128,6 +131,7 @@ Length 120–220 words. Match tone and audience. No emoji spam. Output ONLY the 
   ad_copy: {
     promptStrategy: "ad_directresponse_v1",
     maxTokens: 1600,
+    streamSystem: `You are a direct-response copywriter. Write EXACTLY THREE distinct ad variants, each attacking a different psychological angle. Format each in markdown as: "**Variant N — <angle>**", then "Headline: ...", a 1–3 sentence body, then "CTA: ...". Benefit-led and thumb-stopping; no fake urgency or unverifiable superlatives. Match tone and audience. Output ONLY the finished markdown — no preamble, no JSON, no code fences.`,
     system: `You are a direct-response copywriter in the tradition of Ogilvy and Halbert, writing ads that convert cold traffic on Meta, Google, and paid social.
 
 Produce exactly THREE distinct ad variants so the marketer can A/B test. Each variant must attack the offer from a DIFFERENT psychological angle — pick three of: pain/agitate/solve, aspiration/transformation, social proof/credibility, urgency/scarcity, curiosity/pattern-interrupt.
@@ -167,6 +171,7 @@ Variants must be genuinely different in angle AND wording — do not reword the 
   email: {
     promptStrategy: "email_lifecycle_v1",
     maxTokens: 1400,
+    streamSystem: `You are a lifecycle email copywriter. Write a COMPLETE marketing email in markdown: 3 subject-line options (labelled "Subject 1/2/3"), a "Preview:" line, a warm scannable body that opens with "Hi {firstName}," and builds to a single primary CTA. Keep it under ~200 words. Match tone and audience. Output ONLY the finished markdown — no preamble, no JSON, no code fences.`,
     system: `You are a lifecycle and campaign email copywriter. The subject line and preview text decide whether the email is opened; the body decides whether it converts.
 
 Every email you write includes:
@@ -274,4 +279,25 @@ export async function generate(
     };
   }
   throw new Error(lastError);
+}
+
+/**
+ * Prompt config for the streaming path — uses a markdown-output system prompt so
+ * tokens can be streamed live to the client (no JSON schema to buffer first).
+ */
+export function getStreamConfig(
+  contentType: ContentType,
+  input: GenerateInput,
+  brandVoice?: string,
+): { system: string; user: string; maxTokens: number; promptStrategy: string } {
+  const cfg = TYPES[contentType];
+  const user = brandVoice
+    ? `${cfg.user(input)}\n\n${brandVoice}`
+    : cfg.user(input);
+  return {
+    system: cfg.streamSystem,
+    user,
+    maxTokens: cfg.maxTokens,
+    promptStrategy: cfg.promptStrategy,
+  };
 }

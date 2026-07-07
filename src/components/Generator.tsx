@@ -55,6 +55,8 @@ export default function Generator() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [copied, setCopied] = useState(false);
+  const [streaming, setStreaming] = useState(false);
+  const [streamText, setStreamText] = useState("");
   const [brandVoice, setBrandVoice] = useState<BrandVoice | null>(null);
   const [useVoice, setUseVoice] = useState(false);
 
@@ -85,6 +87,8 @@ export default function Generator() {
     e.preventDefault();
     if (!canSubmit) return;
     setLoading(true);
+    setStreaming(true);
+    setStreamText("");
     setError(null);
     setResult(null);
     resetImage();
@@ -100,16 +104,45 @@ export default function Generator() {
           brandVoice: useVoice && brandVoice ? brandVoice : undefined,
         }),
       });
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json?.error?.message ?? "Generation failed. Please try again.");
+      if (!res.ok || !res.body) {
+        const j = await res.json().catch(() => null);
+        setError(j?.error?.message ?? "Generation failed. Please try again.");
+        return;
+      }
+
+      // Stream tokens live; the final SEP-delimited chunk carries JSON metadata.
+      const SEP = String.fromCharCode(30);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        const sep = acc.indexOf(SEP);
+        setStreamText(sep >= 0 ? acc.slice(0, sep) : acc);
+      }
+      acc += decoder.decode();
+
+      const sep = acc.indexOf(SEP);
+      const textPart = sep >= 0 ? acc.slice(0, sep) : acc;
+      let meta: { id?: string | null; saved?: boolean; error?: string } = {};
+      if (sep >= 0) {
+        try {
+          meta = JSON.parse(acc.slice(sep + 1));
+        } catch {
+          /* ignore trailer parse errors */
+        }
+      }
+      if (meta.error) {
+        setError(meta.error);
         return;
       }
       setResult({
-        id: json.id ?? null,
-        outputText: json.outputText,
-        contentType: json.contentType,
-        saved: json.saved,
+        id: meta.id ?? null,
+        outputText: textPart,
+        contentType,
+        saved: meta.saved ?? false,
         topic,
         tone,
       });
@@ -117,6 +150,7 @@ export default function Generator() {
       setError("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
+      setStreaming(false);
     }
   }
 
@@ -298,7 +332,7 @@ export default function Generator() {
 
       {/* ── Result ── */}
       <section className="min-h-[420px] rounded-xl border border-[#d9dfd8] bg-white">
-        {!result && !loading && !error && (
+        {!result && !streaming && !error && (
           <div className="flex h-full min-h-[420px] flex-col items-center justify-center gap-2 px-6 text-center">
             <p className="text-sm font-medium text-[#3c4a54]">
               Your generated content will appear here
@@ -310,19 +344,34 @@ export default function Generator() {
           </div>
         )}
 
-        {loading && (
-          <div className="flex flex-col gap-3 p-6" aria-busy="true">
-            <div className="h-3 w-1/3 animate-pulse rounded bg-[#e7ebe6]" />
-            <div className="h-3 w-full animate-pulse rounded bg-[#eff2ee]" />
-            <div className="h-3 w-11/12 animate-pulse rounded bg-[#eff2ee]" />
-            <div className="h-3 w-4/5 animate-pulse rounded bg-[#eff2ee]" />
-            <p className="mt-2 font-mono text-xs text-[#5f6960]">
-              Writing with Claude…
-            </p>
+        {streaming && (
+          <div
+            className="animate-fade-in flex h-full flex-col p-6"
+            aria-busy="true"
+            aria-live="polite"
+          >
+            {streamText ? (
+              <div className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[#1c241e]">
+                {streamText}
+                <span
+                  className="ml-0.5 inline-block h-4 w-[3px] translate-y-0.5 animate-pulse rounded-sm bg-[#0e7a63] align-middle"
+                  aria-hidden="true"
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <div className="h-3 w-1/3 animate-pulse rounded bg-[#e7ebe6]" />
+                <div className="h-3 w-full animate-pulse rounded bg-[#eff2ee]" />
+                <div className="h-3 w-11/12 animate-pulse rounded bg-[#eff2ee]" />
+                <p className="mt-2 font-mono text-xs text-[#5f6960]">
+                  Writing with Claude…
+                </p>
+              </div>
+            )}
           </div>
         )}
 
-        {error && !loading && (
+        {error && !streaming && (
           <div className="m-6 rounded-lg border border-[#e7c9c0] bg-[#f7e8e0] p-4" role="alert">
             <p className="text-sm font-semibold text-[#8a3315]">
               Couldn&apos;t generate content
@@ -331,7 +380,7 @@ export default function Generator() {
           </div>
         )}
 
-        {result && !loading && (
+        {result && !streaming && (
           <div className="animate-fade-up flex h-full flex-col">
             <div className="flex flex-wrap items-center gap-2 border-b border-[#e7ebe6] px-5 py-3">
               <span className="rounded-md bg-[#e6f2ec] px-2.5 py-1 font-mono text-xs font-semibold text-[#0a5346]">

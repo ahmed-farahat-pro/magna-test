@@ -1,19 +1,27 @@
 import { getSessionId } from "@/lib/session";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { ok, fail, newRequestId } from "@/lib/http";
+import { fail, newRequestId } from "@/lib/http";
 import {
   generateSchema,
   zodDetails,
   CONTENT_TYPE_DB,
   formatBrandVoice,
 } from "@/lib/validation";
-import { aiEnabled, MODEL } from "@/lib/ai/config";
-import { generate } from "@/lib/ai/generate";
+import { aiEnabled, anthropic, MODEL } from "@/lib/ai/config";
+import { getStreamConfig } from "@/lib/ai/generate";
 import { dbEnabled, getPrisma } from "@/lib/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
+// Record-separator delimiter between the streamed text and the JSON trailer.
+const SEP = String.fromCharCode(30); // U+001E
+
+// Streams the generated copy token-by-token (text/plain). The final chunk is
+// SEP followed by a JSON trailer: { id, contentType, saved } (or { error }).
+// Validation / rate-limit / config failures return before the stream begins as
+// normal JSON errors, so the client checks res.ok first.
 export async function POST(req: Request) {
   const requestId = newRequestId();
   try {
@@ -42,58 +50,92 @@ export async function POST(req: Request) {
     }
 
     const { contentType, topic, tone, audience } = parsed.data;
-
     const brandVoiceText = parsed.data.brandVoice
       ? formatBrandVoice(parsed.data.brandVoice)
       : undefined;
-
-    let result;
-    try {
-      result = await generate(contentType, parsed.data, brandVoiceText);
-    } catch {
-      return fail(
-        "UPSTREAM_LLM_ERROR",
-        "The AI service could not generate content just now. Please try again.",
-        requestId,
-      );
-    }
-
-    // Best-effort persistence: the generator still works before the DB is wired.
-    let id: string | null = null;
-    if (dbEnabled()) {
-      try {
-        const rec = await getPrisma().generation.create({
-          data: {
-            sessionId,
-            kind: "GENERATE",
-            contentType: CONTENT_TYPE_DB[contentType],
-            topic,
-            tone,
-            targetAudience: audience,
-            outputText: result.outputText,
-            model: MODEL,
-            promptStrategy: result.promptStrategy,
-            tokensUsed: result.usage.inputTokens + result.usage.outputTokens,
-          },
-          select: { id: true },
-        });
-        id = rec.id;
-      } catch {
-        // Swallow persistence errors — return the content regardless.
-      }
-    }
-
-    return ok(
-      {
-        id,
-        contentType,
-        outputText: result.outputText,
-        structured: result.structured,
-        saved: id !== null,
-        usage: result.usage,
-      },
-      requestId,
+    const { system, user, maxTokens, promptStrategy } = getStreamConfig(
+      contentType,
+      parsed.data,
+      brandVoiceText,
     );
+
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        let full = "";
+        try {
+          const s = anthropic().messages.stream({
+            model: MODEL,
+            max_tokens: maxTokens,
+            system,
+            thinking: { type: "disabled" },
+            messages: [{ role: "user", content: user }],
+          });
+          for await (const event of s) {
+            if (
+              event.type === "content_block_delta" &&
+              event.delta.type === "text_delta"
+            ) {
+              full += event.delta.text;
+              controller.enqueue(encoder.encode(event.delta.text));
+            }
+          }
+        } catch {
+          controller.enqueue(
+            encoder.encode(
+              SEP +
+                JSON.stringify({
+                  error:
+                    "The AI service failed while generating. Please try again.",
+                }),
+            ),
+          );
+          controller.close();
+          return;
+        }
+
+        // Persist the finished text (best-effort).
+        let id: string | null = null;
+        if (dbEnabled() && full.trim()) {
+          try {
+            const rec = await getPrisma().generation.create({
+              data: {
+                sessionId,
+                kind: "GENERATE",
+                contentType: CONTENT_TYPE_DB[contentType],
+                topic,
+                tone,
+                targetAudience: audience,
+                outputText: full,
+                model: MODEL,
+                promptStrategy,
+              },
+              select: { id: true },
+            });
+            id = rec.id;
+          } catch {
+            /* swallow persistence errors */
+          }
+        }
+
+        controller.enqueue(
+          encoder.encode(
+            SEP + JSON.stringify({ id, contentType, saved: id !== null }),
+          ),
+        );
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        "content-type": "text/plain; charset=utf-8",
+        "x-request-id": requestId,
+        "cache-control": "no-store",
+        "x-accel-buffering": "no",
+      },
+    });
   } catch {
     return fail("INTERNAL_ERROR", "Something went wrong.", requestId);
   }
