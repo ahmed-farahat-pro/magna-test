@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { exportPdf, exportDoc } from "@/lib/export";
 
@@ -65,6 +65,7 @@ export default function History() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Item | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async (p: number) => {
     setLoading(true);
@@ -97,6 +98,10 @@ export default function History() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    if (selected) dialogRef.current?.focus();
+  }, [selected]);
 
   async function remove(id: string) {
     if (!confirm("Delete this entry? This can't be undone.")) return;
@@ -142,7 +147,7 @@ export default function History() {
       {!loading && !error && items.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#d9dfd8] bg-white py-20 text-center">
           <p className="text-sm font-medium text-[#3c4a54]">No content yet</p>
-          <p className="max-w-xs text-xs text-[#8a938b]">
+          <p className="max-w-xs text-xs text-[#5f6960]">
             Everything you generate or improve is saved here per session.
           </p>
           <Link
@@ -181,7 +186,7 @@ export default function History() {
                     >
                       {label(item)}
                     </span>
-                    <span className="font-mono text-[0.68rem] text-[#9aa39b]">
+                    <span className="font-mono text-[0.68rem] text-[#5f6960]">
                       {fmtDate(item.createdAt)}
                     </span>
                   </div>
@@ -257,11 +262,19 @@ export default function History() {
           onClick={() => setSelected(null)}
         >
           <div
-            className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#d9dfd8] bg-white shadow-xl"
+            ref={dialogRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="hist-modal-title"
+            className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#d9dfd8] bg-white shadow-xl outline-none"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#e7ebe6] px-5 py-3">
-              <span className="font-mono text-xs font-semibold text-[#3c4a54]">
+              <span
+                id="hist-modal-title"
+                className="font-mono text-xs font-semibold text-[#3c4a54]"
+              >
                 {label(selected)} · {fmtDate(selected.createdAt)}
               </span>
               <button

@@ -69,7 +69,7 @@ export default function Improver() {
   }
 
   const inputCls =
-    "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#9aa39b] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
+    "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#5f6960] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
   const labelCls =
     "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[#5c665e]";
 
@@ -89,7 +89,7 @@ export default function Improver() {
             placeholder="Paste the marketing copy you want to improve…"
             className={`${inputCls} resize-y`}
           />
-          <p className="mt-1 text-right font-mono text-xs text-[#9aa39b]">
+          <p className="mt-1 text-right font-mono text-xs text-[#5f6960]">
             {text.length} / 12,000
           </p>
         </div>
@@ -153,7 +153,7 @@ export default function Improver() {
         <div className="mt-8 flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-[#d9dfd8] bg-[#f4f7f3] p-4">
-              <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[#8a938b]">
+              <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[#5f6960]">
                 Before
               </div>
               <div className="max-h-[40vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[#5c665e]">

@@ -74,6 +74,14 @@ export async function improve(
     throw new Error("parse_failed");
   }
 
+  if (
+    !d.improved?.trim() ||
+    !d.changeSummary?.trim() ||
+    /^\s*(placeholder|tbd|n\/?a)\s*$/i.test(d.improved)
+  ) {
+    throw new Error("degenerate_output");
+  }
+
   return {
     improved: d.improved,
     changeSummary: d.changeSummary,

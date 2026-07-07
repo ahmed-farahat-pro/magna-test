@@ -61,7 +61,7 @@ export default function BrandVoiceForm() {
   }
 
   const inputCls =
-    "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#9aa39b] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
+    "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#5f6960] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
   const labelCls =
     "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[#5c665e]";
 

@@ -22,6 +22,7 @@ interface BlogOut {
 interface LinkedInOut {
   hook: string;
   body: string;
+  softCta: string;
   hashtags: string[];
 }
 interface AdOut {
@@ -115,7 +116,7 @@ Length 120–220 words. Match tone and audience. No emoji spam. Output ONLY the 
       ["hook", "body", "softCta", "hashtags"],
     ),
     assemble: (s) => {
-      const d = s as unknown as LinkedInOut & { softCta?: string };
+      const d = s as unknown as LinkedInOut;
       const tags = (d.hashtags ?? [])
         .map((h) => (h.startsWith("#") ? h : `#${h.replace(/^#*/, "")}`))
         .join(" ");
@@ -200,6 +201,29 @@ Keep the body under ~200 words unless the topic truly requires more. One idea, o
  * Generate polished content for a content type using its distinct prompt
  * strategy and a strict JSON output schema, then assemble the copy-paste text.
  */
+// Catches degenerate structured decodes that can slip through json_schema at
+// HTTP 200 — required fields stub-filled with "placeholder", left empty, or an
+// empty required array. We retry once, and fail loudly rather than persist junk.
+const STUB = /^\s*(placeholder|lorem ipsum|tbd|todo|n\/?a|xxx+|\.{3,})\s*$/i;
+
+function isDegenerate(s: Structured): boolean {
+  let hasContent = false;
+  let bad = false;
+  const walk = (v: unknown) => {
+    if (typeof v === "string") {
+      if (v.trim()) hasContent = true;
+      if (STUB.test(v)) bad = true;
+    } else if (Array.isArray(v)) {
+      if (v.length === 0) bad = true;
+      v.forEach(walk);
+    } else if (v && typeof v === "object") {
+      Object.values(v).forEach(walk);
+    }
+  };
+  walk(s);
+  return bad || !hasContent;
+}
+
 export async function generate(
   contentType: ContentType,
   input: GenerateInput,
@@ -209,34 +233,45 @@ export async function generate(
   const userContent = brandVoice
     ? `${cfg.user(input)}\n\n${brandVoice}`
     : cfg.user(input);
-  const res = await anthropic().messages.create({
-    model: MODEL,
-    max_tokens: cfg.maxTokens,
-    system: cfg.system,
-    thinking: { type: "disabled" },
-    output_config: { format: { type: "json_schema", schema: cfg.schema } },
-    messages: [{ role: "user", content: userContent }],
-  });
 
-  if (res.stop_reason === "refusal") throw new Error("refusal");
+  let lastError = "generation_failed";
+  // Up to 2 attempts: strict json_schema decoding occasionally stub-fills fields.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await anthropic().messages.create({
+      model: MODEL,
+      max_tokens: cfg.maxTokens,
+      system: cfg.system,
+      thinking: { type: "disabled" },
+      output_config: { format: { type: "json_schema", schema: cfg.schema } },
+      messages: [{ role: "user", content: userContent }],
+    });
 
-  const block = res.content.find((b) => b.type === "text");
-  const raw = block && block.type === "text" ? block.text : "";
+    if (res.stop_reason === "refusal") throw new Error("refusal");
 
-  let structured: Structured;
-  try {
-    structured = JSON.parse(raw) as Structured;
-  } catch {
-    throw new Error("parse_failed");
+    const block = res.content.find((b) => b.type === "text");
+    const raw = block && block.type === "text" ? block.text : "";
+
+    let structured: Structured;
+    try {
+      structured = JSON.parse(raw) as Structured;
+    } catch {
+      lastError = "parse_failed";
+      continue;
+    }
+    if (isDegenerate(structured)) {
+      lastError = "degenerate_output";
+      continue;
+    }
+
+    return {
+      outputText: cfg.assemble(structured),
+      structured,
+      promptStrategy: cfg.promptStrategy,
+      usage: {
+        inputTokens: res.usage.input_tokens,
+        outputTokens: res.usage.output_tokens,
+      },
+    };
   }
-
-  return {
-    outputText: cfg.assemble(structured),
-    structured,
-    promptStrategy: cfg.promptStrategy,
-    usage: {
-      inputTokens: res.usage.input_tokens,
-      outputTokens: res.usage.output_tokens,
-    },
-  };
+  throw new Error(lastError);
 }

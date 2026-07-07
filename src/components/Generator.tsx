@@ -182,7 +182,7 @@ export default function Generator() {
   }
 
   const inputCls =
-    "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#9aa39b] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
+    "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#5f6960] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
   const labelCls =
     "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[#5c665e]";
   const btnGhost =
@@ -281,7 +281,7 @@ export default function Generator() {
         ) : (
           <a
             href="/settings"
-            className="rounded-lg border border-dashed border-[#d9dfd8] bg-white px-3.5 py-2.5 text-center text-xs text-[#8a938b] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+            className="rounded-lg border border-dashed border-[#d9dfd8] bg-white px-3.5 py-2.5 text-center text-xs text-[#5f6960] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
           >
             + Set a brand voice in Settings
           </a>
@@ -303,7 +303,7 @@ export default function Generator() {
             <p className="text-sm font-medium text-[#3c4a54]">
               Your generated content will appear here
             </p>
-            <p className="max-w-xs text-xs text-[#8a938b]">
+            <p className="max-w-xs text-xs text-[#5f6960]">
               Pick a format, describe the topic, tone, and audience, then hit
               generate — then create a matching image in one click.
             </p>
@@ -316,7 +316,7 @@ export default function Generator() {
             <div className="h-3 w-full animate-pulse rounded bg-[#eff2ee]" />
             <div className="h-3 w-11/12 animate-pulse rounded bg-[#eff2ee]" />
             <div className="h-3 w-4/5 animate-pulse rounded bg-[#eff2ee]" />
-            <p className="mt-2 font-mono text-xs text-[#8a938b]">
+            <p className="mt-2 font-mono text-xs text-[#5f6960]">
               Writing with Claude…
             </p>
           </div>
@@ -337,7 +337,7 @@ export default function Generator() {
               <span className="rounded-md bg-[#e6f2ec] px-2.5 py-1 font-mono text-xs font-semibold text-[#0a5346]">
                 {TYPE_LABEL[result.contentType] ?? result.contentType}
               </span>
-              <span className="font-mono text-xs text-[#8a938b]">
+              <span className="font-mono text-xs text-[#5f6960]">
                 {result.saved ? "✓ saved to history" : "not saved (DB offline)"}
               </span>
               <div className="ml-auto flex flex-wrap gap-2">
@@ -386,7 +386,7 @@ export default function Generator() {
 
               {imgLoading && !imgUrl && (
                 <div className="flex aspect-video max-w-md animate-pulse items-center justify-center rounded-lg bg-[#f4f7f3]">
-                  <span className="font-mono text-xs text-[#8a938b]">
+                  <span className="font-mono text-xs text-[#5f6960]">
                     Painting your image…
                   </span>
                 </div>
@@ -452,7 +452,7 @@ export default function Generator() {
                   </div>
 
                   {imgPrompt && (
-                    <p className="break-words font-mono text-[0.68rem] leading-relaxed text-[#9aa39b]">
+                    <p className="break-words font-mono text-[0.68rem] leading-relaxed text-[#5f6960]">
                       <span className="text-[#5c665e]">auto-prompt:</span>{" "}
                       {imgPrompt}
                     </p>

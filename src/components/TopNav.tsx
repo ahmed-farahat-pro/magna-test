@@ -30,7 +30,7 @@ export default function TopNav() {
                 key={l.href}
                 href={l.href}
                 aria-current={active ? "page" : undefined}
-                className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`flex min-h-[44px] shrink-0 items-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:min-h-0 ${
                   active
                     ? "bg-[#e6f2ec] text-[#0a5346]"
                     : "text-[#3c4a54] hover:bg-white"
@@ -42,7 +42,7 @@ export default function TopNav() {
           })}
           <a
             href="/api/health"
-            className="ml-2 hidden shrink-0 font-mono text-xs text-[#8a938b] transition-colors hover:text-[#0a5346] sm:inline"
+            className="ml-2 hidden shrink-0 font-mono text-xs text-[#5f6960] transition-colors hover:text-[#0a5346] sm:inline"
           >
             status
           </a>
