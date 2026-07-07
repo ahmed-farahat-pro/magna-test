@@ -1,4 +1,4 @@
-import { openai } from "./config";
+import { openai, anthropic, MODEL, aiEnabled } from "./config";
 import { IMAGE_STYLES, CONTENT_TYPES } from "@/lib/validation";
 
 type ImageStyle = (typeof IMAGE_STYLES)[number];
@@ -57,9 +57,11 @@ const COMPOSITION: Record<ContentType, string> = {
     "clean banner-style composition, friendly and inviting, subject slightly off-center with breathing room",
 };
 
-/** Deterministically build a rich DALL·E 3 prompt from the content's topic + tone. */
-export function buildImagePrompt(input: {
-  topic: string;
+// Assemble the final image prompt from a "subject clause" (what is literally in
+// the frame) plus the deterministic style / composition / lighting scaffolding.
+// This keeps the user's chosen style fully in control while the subject varies.
+function assemble(input: {
+  subject: string;
   tone: string;
   contentType?: ContentType;
   style: ImageStyle;
@@ -77,7 +79,7 @@ export function buildImagePrompt(input: {
 
   return (
     [
-      `A ${preset.leadNoun} representing "${input.topic}"`,
+      input.subject,
       `conveying a ${input.tone} mood`,
       composition,
       lighting,
@@ -86,6 +88,129 @@ export function buildImagePrompt(input: {
       "No text, no words, no letters, no logos, no watermark, no UI elements.",
     ].join(". ") + "."
   );
+}
+
+/** Deterministically build a rich image prompt from the content's topic + tone. */
+export function buildImagePrompt(input: {
+  topic: string;
+  tone: string;
+  contentType?: ContentType;
+  style: ImageStyle;
+}): string {
+  const preset = STYLE_PRESETS[input.style];
+  return assemble({
+    subject: `A ${preset.leadNoun} representing "${input.topic}"`,
+    tone: input.tone,
+    contentType: input.contentType,
+    style: input.style,
+  });
+}
+
+// Structured "art director" output: a single concrete visual scene grounded in
+// the actual generated copy (not just the topic string).
+const SCENE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["scene"],
+  properties: {
+    scene: {
+      type: "string",
+      description:
+        "One concrete, literal visual scene (at most two sentences) that best illustrates the copy. Only what is physically visible — main subject, setting, key objects or action. No art style, camera, color, lighting, or mood words; no text, letters, numbers, logos, charts, or screen UI.",
+    },
+  },
+} as const;
+
+/**
+ * Ask Claude to distill the finished marketing copy into one concrete visual
+ * scene. Returns null (caller falls back to the topic-based prompt) on refusal,
+ * a parse failure, or a too-short result.
+ */
+async function describeScene(input: {
+  topic: string;
+  tone: string;
+  contentType?: ContentType;
+  content: string;
+}): Promise<string | null> {
+  const res = await anthropic().messages.create(
+    {
+      model: MODEL,
+      max_tokens: 400,
+      thinking: { type: "disabled" },
+      system:
+        "You are an art director for a marketing-image generator. You are given a finished piece of marketing copy. Distill its single core message into ONE concrete, literal visual scene that a photographer or illustrator could capture to illustrate it. " +
+        "Describe only what is physically visible: the main subject, the setting, and a few key objects or an action. Be specific and evocative but concise — at most two sentences. " +
+        "Do NOT mention art style, medium, camera, lens, lighting, color palette, or mood adjectives — those are added separately. Do NOT place any text, words, letters, numbers, logos, charts, graphs, or screen UI in the scene. Avoid real brand names and identifiable real people. " +
+        "Return only the scene description via the schema.",
+      output_config: { format: { type: "json_schema", schema: SCENE_SCHEMA } },
+      messages: [
+        {
+          role: "user",
+          content:
+            `CONTENT TYPE: ${input.contentType ?? "post"}\n` +
+            `TOPIC: ${input.topic}\n` +
+            `TONE: ${input.tone}\n\n` +
+            `MARKETING COPY:\n"""\n${input.content.slice(0, 2400).trim()}\n"""\n\n` +
+            "Describe the single best visual scene to illustrate this.",
+        },
+      ],
+    },
+    // Bound this auxiliary call so an Anthropic slowdown/transient error can't eat
+    // the route's 60s budget (default SDK timeout is 10m with 2 retries). On
+    // timeout the SDK throws and the caller falls back to the deterministic prompt.
+    { timeout: 8000, maxRetries: 0 },
+  );
+
+  if (res.stop_reason === "refusal") return null;
+  const block = res.content.find((b) => b.type === "text");
+  const raw = block && block.type === "text" ? block.text : "";
+  try {
+    const parsed = JSON.parse(raw) as { scene?: unknown };
+    const scene = typeof parsed.scene === "string" ? parsed.scene.trim() : "";
+    return scene.length >= 8 ? scene : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Build a content-aware image prompt: derive a concrete scene from the generated
+ * copy (via Claude), then render it in the user's chosen style. Falls back to the
+ * deterministic topic-based prompt if AI is unavailable, the copy is too short,
+ * or the art-director step fails — so image generation never depends on it.
+ */
+export async function buildImagePromptFromContent(input: {
+  topic: string;
+  tone: string;
+  contentType?: ContentType;
+  style: ImageStyle;
+  content?: string | null;
+}): Promise<{ prompt: string; enhanced: boolean }> {
+  const preset = STYLE_PRESETS[input.style];
+  if (aiEnabled() && input.content && input.content.trim().length > 40) {
+    try {
+      const scene = await describeScene({
+        topic: input.topic,
+        tone: input.tone,
+        contentType: input.contentType,
+        content: input.content,
+      });
+      if (scene) {
+        return {
+          prompt: assemble({
+            subject: `A ${preset.leadNoun} showing ${scene}`,
+            tone: input.tone,
+            contentType: input.contentType,
+            style: input.style,
+          }),
+          enhanced: true,
+        };
+      }
+    } catch {
+      /* fall through to the deterministic prompt */
+    }
+  }
+  return { prompt: buildImagePrompt(input), enhanced: false };
 }
 
 /** Wide hero for blog/ad, square for social/email. */

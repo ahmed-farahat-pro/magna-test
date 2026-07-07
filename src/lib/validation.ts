@@ -86,6 +86,9 @@ export const imageSchema = z.object({
   topic: z.string().trim().max(200).optional(),
   tone: z.string().trim().max(40).optional(),
   contentType: z.enum(CONTENT_TYPES).optional(),
+  // The generated copy, used to derive a content-aware image prompt. The stored
+  // generation is preferred; this is a fallback for when the DB is offline.
+  content: z.string().trim().max(12000).optional(),
   style: z.enum(IMAGE_STYLES),
 });
 

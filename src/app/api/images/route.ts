@@ -3,7 +3,11 @@ import { checkRateLimit } from "@/lib/rateLimit";
 import { ok, fail, newRequestId } from "@/lib/http";
 import { imageSchema, zodDetails, CONTENT_TYPE_WIRE } from "@/lib/validation";
 import { imageEnabled } from "@/lib/ai/config";
-import { buildImagePrompt, generateImageB64, isWide } from "@/lib/ai/image";
+import {
+  buildImagePromptFromContent,
+  generateImageB64,
+  isWide,
+} from "@/lib/ai/image";
 import { blobEnabled, uploadPngFromBase64, deleteBlob } from "@/lib/blob";
 import { dbEnabled, getPrisma } from "@/lib/db";
 
@@ -37,11 +41,14 @@ export async function POST(req: Request) {
     let topic = parsed.data.topic?.trim() ?? "";
     let tone = parsed.data.tone?.trim() || "professional";
     let contentType = parsed.data.contentType;
+    // The generated copy drives a content-aware image prompt. Prefer the stored
+    // generation (source of truth, ownership-scoped); fall back to the request.
+    let content = parsed.data.content?.trim() || null;
 
     if (generationId && dbEnabled()) {
       const row = await getPrisma().generation.findFirst({
         where: { id: generationId, sessionId },
-        select: { topic: true, tone: true, contentType: true },
+        select: { topic: true, tone: true, contentType: true, outputText: true },
       });
       if (!row) {
         return fail("NOT_FOUND", "That content could not be found.", requestId);
@@ -49,6 +56,7 @@ export async function POST(req: Request) {
       topic = row.topic?.trim() || topic;
       tone = row.tone?.trim() || tone;
       contentType = row.contentType ? CONTENT_TYPE_WIRE[row.contentType] : contentType;
+      content = row.outputText?.trim() || content;
     }
 
     if (!topic) {
@@ -63,7 +71,13 @@ export async function POST(req: Request) {
       return fail("CONFIG_ERROR", "Image storage is not configured (missing BLOB_READ_WRITE_TOKEN).", requestId);
     }
 
-    const prompt = buildImagePrompt({ topic, tone, contentType, style });
+    const { prompt, enhanced } = await buildImagePromptFromContent({
+      topic,
+      tone,
+      contentType,
+      style,
+      content,
+    });
     const canAttach = Boolean(generationId) && dbEnabled();
 
     // Record a failure on the row (best-effort) so imageStatus/imageError reflect reality.
@@ -138,7 +152,7 @@ export async function POST(req: Request) {
       }
     }
 
-    return ok({ imageUrl, prompt, style, saved: canAttach }, requestId);
+    return ok({ imageUrl, prompt, style, saved: canAttach, enhanced }, requestId);
   } catch {
     return fail("INTERNAL_ERROR", "Something went wrong.", requestId);
   }

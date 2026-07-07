@@ -168,6 +168,7 @@ export default function Generator() {
           topic: result.topic,
           tone: result.tone,
           contentType: result.contentType,
+          content: result.outputText,
           style,
         }),
       });
