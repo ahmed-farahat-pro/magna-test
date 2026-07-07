@@ -89,29 +89,47 @@ export function buildImagePrompt(input: {
 }
 
 /** Wide hero for blog/ad, square for social/email. */
-export function imageSize(contentType?: ContentType): "1024x1024" | "1792x1024" {
-  return contentType === "blog_post" || contentType === "ad_copy"
-    ? "1792x1024"
-    : "1024x1024";
+export function isWide(contentType?: ContentType): boolean {
+  return contentType === "blog_post" || contentType === "ad_copy";
 }
 
-/** Call DALL·E 3 and return the raw base64 PNG (for re-hosting on Blob). */
+// Accounts vary in which image models they can access (dall-e-3 may be
+// unavailable; gpt-image-1 can require org verification; dall-e-2 is broadly
+// available). Try the best one and fall back automatically. An explicit
+// OPENAI_IMAGE_MODEL env var, if set, is tried first.
+const IMAGE_MODELS: { model: string; square: string; wide: string }[] = [
+  ...(process.env.OPENAI_IMAGE_MODEL
+    ? [
+        {
+          model: process.env.OPENAI_IMAGE_MODEL,
+          square: "1024x1024",
+          wide: "1024x1024",
+        },
+      ]
+    : []),
+  { model: "gpt-image-1", square: "1024x1024", wide: "1536x1024" },
+  { model: "dall-e-3", square: "1024x1024", wide: "1792x1024" },
+  { model: "dall-e-2", square: "1024x1024", wide: "1024x1024" },
+];
+
+const AVAILABILITY =
+  /does not exist|not found|must be verified|do not have access|model_not_found|unsupported|not supported/i;
+
+/** Generate an image and return raw base64 PNG (for re-hosting on Blob). */
 export async function generateImageB64(
   prompt: string,
-  size: "1024x1024" | "1792x1024",
+  wide: boolean,
 ): Promise<string> {
   let lastErr: unknown;
-  // Retry once for transient upstream hiccups.
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (const m of IMAGE_MODELS) {
     try {
-      // Note: the current OpenAI images API rejects `response_format`. DALL·E 3
-      // returns a (temporary) URL by default — we fetch its bytes and hand back
-      // base64 so the caller can re-host it permanently on Vercel Blob.
+      // The current OpenAI images API rejects `response_format`; models return a
+      // temporary URL (or b64). We normalize to base64 for permanent Blob hosting.
       const res = await openai().images.generate({
-        model: "dall-e-3",
+        model: m.model,
         prompt,
         n: 1,
-        size,
+        size: wide ? m.wide : m.square,
       });
       const d = res.data?.[0];
       if (d?.b64_json) return d.b64_json;
@@ -123,6 +141,10 @@ export async function generateImageB64(
       throw new Error("empty image response");
     } catch (e) {
       lastErr = e;
+      const msg = e instanceof Error ? e.message : String(e);
+      // Only fall through to the next model for availability/verification errors;
+      // for real errors (content policy, quota) stop and surface it.
+      if (!AVAILABILITY.test(msg)) throw e;
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error("image generation failed");

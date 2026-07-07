@@ -3,7 +3,7 @@ import { checkRateLimit } from "@/lib/rateLimit";
 import { ok, fail, newRequestId } from "@/lib/http";
 import { imageSchema, zodDetails, CONTENT_TYPE_WIRE } from "@/lib/validation";
 import { imageEnabled } from "@/lib/ai/config";
-import { buildImagePrompt, generateImageB64, imageSize } from "@/lib/ai/image";
+import { buildImagePrompt, generateImageB64, isWide } from "@/lib/ai/image";
 import { blobEnabled, uploadPngFromBase64, deleteBlob } from "@/lib/blob";
 import { dbEnabled, getPrisma } from "@/lib/db";
 
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
 
     let b64: string;
     try {
-      b64 = await generateImageB64(prompt, imageSize(contentType));
+      b64 = await generateImageB64(prompt, isWide(contentType));
     } catch (e) {
       const detail = (e instanceof Error ? e.message : String(e)).slice(0, 300);
       await markFailed(`image_generation_failed: ${detail}`.slice(0, 300));
