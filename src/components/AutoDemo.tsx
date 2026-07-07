@@ -529,7 +529,7 @@ export default function AutoDemo() {
                         Generating…
                       </>
                     ) : (
-                      <>✨ Generate content</>
+                      <>Generate content</>
                     )}
                   </div>
                 </div>
@@ -596,7 +596,7 @@ export default function AutoDemo() {
                       </div>
                     ) : (
                       <div className="inline-flex items-center gap-2 rounded-lg border border-[#d9c3b8] bg-[#f7e8e0] px-3.5 py-2 text-xs font-semibold text-[#8a3315]">
-                        🖼 Generate matching image
+                        Generate matching image
                       </div>
                     )}
                   </div>

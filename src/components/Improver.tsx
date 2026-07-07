@@ -139,7 +139,7 @@ export default function Improver() {
           disabled={!canSubmit}
           className="inline-flex w-fit items-center justify-center gap-2 rounded-lg bg-[#0e7a63] px-5 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346] active:translate-y-0 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45"
         >
-          {loading ? "Improving…" : "✨ Improve content"}
+          {loading ? "Improving…" : "Improve content"}
         </button>
       </form>
 
