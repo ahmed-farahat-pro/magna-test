@@ -100,14 +100,23 @@ export async function generateImageB64(
   prompt: string,
   size: "1024x1024" | "1792x1024",
 ): Promise<string> {
-  const res = await openai().images.generate({
-    model: "dall-e-3",
-    prompt,
-    n: 1,
-    size,
-    response_format: "b64_json",
-  });
-  const b64 = res.data?.[0]?.b64_json;
-  if (!b64) throw new Error("no_image");
-  return b64;
+  let lastErr: unknown;
+  // Retry once for transient upstream hiccups.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await openai().images.generate({
+        model: "dall-e-3",
+        prompt,
+        n: 1,
+        size,
+        response_format: "b64_json",
+      });
+      const b64 = res.data?.[0]?.b64_json;
+      if (!b64) throw new Error("empty image response");
+      return b64;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error("image generation failed");
 }

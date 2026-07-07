@@ -82,9 +82,15 @@ export async function POST(req: Request) {
     let b64: string;
     try {
       b64 = await generateImageB64(prompt, imageSize(contentType));
-    } catch {
-      await markFailed("image_generation_failed");
-      return fail("UPSTREAM_IMAGE_ERROR", "The image service could not create an image. Try a different style or topic.", requestId);
+    } catch (e) {
+      const detail = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+      await markFailed(`image_generation_failed: ${detail}`.slice(0, 300));
+      return fail(
+        "UPSTREAM_IMAGE_ERROR",
+        "The image service could not create an image. Try a different style or topic.",
+        requestId,
+        { details: [{ path: "image", message: detail }] },
+      );
     }
 
     let imageUrl: string;
