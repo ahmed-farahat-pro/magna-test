@@ -2,7 +2,7 @@
 
 import { useState, useEffect, type FormEvent } from "react";
 import { loadBrandVoice, type BrandVoice } from "@/lib/brandVoice";
-import { exportPdf, exportDoc } from "@/lib/export";
+import { exportPdf, exportDocx } from "@/lib/export";
 
 const CONTENT_TYPES = [
   { value: "blog_post", label: "Blog post" },
@@ -398,7 +398,10 @@ export default function Generator() {
                 </button>
                 <button
                   onClick={() =>
-                    exportPdf(result.outputText, `${result.contentType}-${Date.now()}`)
+                    exportPdf(
+                      result.outputText,
+                      `${result.contentType}-${Date.now()}`,
+                    ).catch(() => {})
                   }
                   className={btnGhost}
                 >
@@ -406,7 +409,10 @@ export default function Generator() {
                 </button>
                 <button
                   onClick={() =>
-                    exportDoc(result.outputText, `${result.contentType}-${Date.now()}`)
+                    exportDocx(
+                      result.outputText,
+                      `${result.contentType}-${Date.now()}`,
+                    ).catch(() => {})
                   }
                   className={btnGhost}
                 >

@@ -1,8 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
-import { exportPdf, exportDoc } from "@/lib/export";
+import { exportPdf, exportDocx } from "@/lib/export";
 
 const PAGE_SIZE = 12;
 
@@ -58,6 +65,157 @@ function triggerDownload(text: string, name: string) {
   URL.revokeObjectURL(url);
 }
 
+function MenuItem({
+  onClick,
+  children,
+}: {
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      role="menuitem"
+      onClick={onClick}
+      className="block w-full whitespace-nowrap px-3.5 py-2 text-left text-xs font-medium text-[#3c4a54] transition-colors hover:bg-[#f0f5f1] hover:text-[#0a5346]"
+    >
+      {children}
+    </button>
+  );
+}
+
+// Download picker: Text / Word / PDF, plus "with photo" variants when the entry
+// has a generated image. Rendered through a portal with fixed positioning so the
+// menu is never clipped by the card's overflow-hidden or hover transform.
+function DownloadMenu({ item, up = false }: { item: Item; up?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const base = `${item.kind.toLowerCase()}-${item.id.slice(0, 8)}`;
+  const hasImg = Boolean(item.imageUrl);
+
+  const close = useCallback(() => setOpen(false), []);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      const t = e.target as Node;
+      if (btnRef.current?.contains(t)) return;
+      if (menuRef.current?.contains(t)) return;
+      setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      // Consume Escape here so the enclosing modal's Escape handler doesn't also
+      // fire and close the whole modal — the open menu owns Escape first.
+      if (e.key === "Escape") {
+        e.stopImmediatePropagation();
+        setOpen(false);
+      }
+    }
+    window.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [open, close]);
+
+  function toggle() {
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({
+        top: up ? r.top : r.bottom,
+        right: window.innerWidth - r.right,
+      });
+    }
+    setOpen((o) => !o);
+  }
+
+  async function run(fn: () => void | Promise<void>) {
+    setOpen(false);
+    setBusy(true);
+    try {
+      await fn();
+    } catch {
+      /* export is best-effort */
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={toggle}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={ghost}
+      >
+        {busy ? "Preparing…" : "Download ▾"}
+      </button>
+      {open &&
+        pos &&
+        createPortal(
+          <div
+            id="dl-menu-pop"
+            ref={menuRef}
+            role="menu"
+            style={{
+              position: "fixed",
+              top: up ? undefined : pos.top + 6,
+              bottom: up ? window.innerHeight - pos.top + 6 : undefined,
+              right: pos.right,
+              zIndex: 9999,
+            }}
+            className="w-44 overflow-hidden rounded-lg border border-[#d9dfd8] bg-white py-1 shadow-xl"
+          >
+            <MenuItem
+              onClick={() => run(() => triggerDownload(item.outputText, `${base}.txt`))}
+            >
+              Text only (.txt)
+            </MenuItem>
+            <MenuItem onClick={() => run(() => exportDocx(item.outputText, base))}>
+              Word (.docx)
+            </MenuItem>
+            <MenuItem onClick={() => run(() => exportPdf(item.outputText, base))}>
+              PDF (.pdf)
+            </MenuItem>
+            {hasImg && (
+              <>
+                <div className="my-1 border-t border-[#e7ebe6]" />
+                <div className="px-3.5 pb-1 pt-0.5 font-mono text-[0.6rem] uppercase tracking-[0.08em] text-[#5f6960]">
+                  With photo
+                </div>
+                <MenuItem
+                  onClick={() =>
+                    run(() => exportDocx(item.outputText, `${base}-with-image`, item.imageUrl))
+                  }
+                >
+                  Word + photo
+                </MenuItem>
+                <MenuItem
+                  onClick={() =>
+                    run(() => exportPdf(item.outputText, `${base}-with-image`, item.imageUrl))
+                  }
+                >
+                  PDF + photo
+                </MenuItem>
+              </>
+            )}
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
+
 export default function History() {
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState(0);
@@ -93,7 +251,10 @@ export default function History() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setSelected(null);
+      // If a download menu is open, let it own Escape (close the menu, not the modal).
+      if (e.key === "Escape" && !document.getElementById("dl-menu-pop")) {
+        setSelected(null);
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -209,17 +370,7 @@ export default function History() {
                     >
                       Copy
                     </button>
-                    <button
-                      onClick={() =>
-                        triggerDownload(
-                          item.outputText,
-                          `${item.kind.toLowerCase()}-${item.id.slice(0, 8)}.txt`,
-                        )
-                      }
-                      className={ghost}
-                    >
-                      Download
-                    </button>
+                    <DownloadMenu item={item} />
                     <button
                       onClick={() => remove(item.id)}
                       className="ml-auto rounded-md border border-[#e7c9c0] bg-white px-2.5 py-1 text-xs font-medium text-[#a62a2a] transition-colors hover:bg-[#f7e8e0]"
@@ -314,39 +465,7 @@ export default function History() {
               >
                 Copy
               </button>
-              <button
-                onClick={() =>
-                  triggerDownload(
-                    selected.outputText,
-                    `${selected.kind.toLowerCase()}-${selected.id.slice(0, 8)}.txt`,
-                  )
-                }
-                className={ghost}
-              >
-                .txt
-              </button>
-              <button
-                onClick={() =>
-                  exportPdf(
-                    selected.outputText,
-                    `${selected.kind.toLowerCase()}-${selected.id.slice(0, 8)}`,
-                  )
-                }
-                className={ghost}
-              >
-                PDF
-              </button>
-              <button
-                onClick={() =>
-                  exportDoc(
-                    selected.outputText,
-                    `${selected.kind.toLowerCase()}-${selected.id.slice(0, 8)}`,
-                  )
-                }
-                className={ghost}
-              >
-                Word
-              </button>
+              <DownloadMenu item={selected} up />
               <button
                 onClick={() => remove(selected.id)}
                 className="ml-auto rounded-md border border-[#e7c9c0] bg-white px-2.5 py-1 text-xs font-medium text-[#a62a2a] transition-colors hover:bg-[#f7e8e0]"
