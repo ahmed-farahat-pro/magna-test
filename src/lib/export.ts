@@ -18,6 +18,20 @@ function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
+// Flatten the Markdown-flavored assembled copy into clean plain text for exports,
+// so headings/bold don't render as literal '#'/'**' in the PDF/Word file.
+function stripMarkdown(s: string): string {
+  return s
+    .replace(/^#{1,6}\s+/gm, "") // headings
+    .replace(/\*\*([^*]+)\*\*/g, "$1") // bold
+    .replace(/`([^`]+)`/g, "$1") // inline code
+    .replace(/^\s*[-*]\s+/gm, "• ") // bullets
+    .replace(/^-{3,}\s*$/gm, "") // horizontal rules
+    .replace(/^_(.+)_$/gm, "$1") // whole-line italics (e.g. meta line)
+    .replace(/\n{3,}/g, "\n\n") // collapse extra blank lines
+    .trim();
+}
+
 export async function exportPdf(text: string, filename: string): Promise<void> {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -26,7 +40,10 @@ export async function exportPdf(text: string, filename: string): Promise<void> {
   const pageHeight = doc.internal.pageSize.getHeight();
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
-  const lines = doc.splitTextToSize(text, pageWidth - margin * 2) as string[];
+  const lines = doc.splitTextToSize(
+    stripMarkdown(text),
+    pageWidth - margin * 2,
+  ) as string[];
   const lineHeight = 16;
   let y = margin;
   for (const line of lines) {
@@ -45,7 +62,7 @@ export function exportDoc(text: string, filename: string): void {
     "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
     "xmlns:w='urn:schemas-microsoft-com:office:word' " +
     "xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head>" +
-    `<body><pre style="font-family:Calibri,Arial,sans-serif;font-size:11pt;white-space:pre-wrap;">${escapeHtml(text)}</pre></body></html>`;
+    `<body><pre style="font-family:Calibri,Arial,sans-serif;font-size:11pt;white-space:pre-wrap;">${escapeHtml(stripMarkdown(text))}</pre></body></html>`;
   const blob = new Blob(["﻿", html], { type: "application/msword" });
   triggerBlob(blob, filename.endsWith(".doc") ? filename : `${filename}.doc`);
 }

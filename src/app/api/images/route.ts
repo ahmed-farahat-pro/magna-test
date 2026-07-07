@@ -4,7 +4,7 @@ import { ok, fail, newRequestId } from "@/lib/http";
 import { imageSchema, zodDetails, CONTENT_TYPE_WIRE } from "@/lib/validation";
 import { imageEnabled } from "@/lib/ai/config";
 import { buildImagePrompt, generateImageB64, imageSize } from "@/lib/ai/image";
-import { blobEnabled, uploadPngFromBase64 } from "@/lib/blob";
+import { blobEnabled, uploadPngFromBase64, deleteBlob } from "@/lib/blob";
 import { dbEnabled, getPrisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -64,11 +64,26 @@ export async function POST(req: Request) {
     }
 
     const prompt = buildImagePrompt({ topic, tone, contentType, style });
+    const canAttach = Boolean(generationId) && dbEnabled();
+
+    // Record a failure on the row (best-effort) so imageStatus/imageError reflect reality.
+    async function markFailed(reason: string) {
+      if (!canAttach) return;
+      try {
+        await getPrisma().generation.updateMany({
+          where: { id: generationId as string, sessionId },
+          data: { imageStatus: "FAILED", imageError: reason.slice(0, 300) },
+        });
+      } catch {
+        /* ignore */
+      }
+    }
 
     let b64: string;
     try {
       b64 = await generateImageB64(prompt, imageSize(contentType));
     } catch {
+      await markFailed("image_generation_failed");
       return fail("UPSTREAM_IMAGE_ERROR", "The image service could not create an image. Try a different style or topic.", requestId);
     }
 
@@ -76,27 +91,42 @@ export async function POST(req: Request) {
     try {
       imageUrl = await uploadPngFromBase64(b64);
     } catch {
+      await markFailed("image_storage_failed");
       return fail("UPSTREAM_BLOB_ERROR", "The image was created but could not be saved. Please try again.", requestId);
     }
 
-    // Attach to the generation row when we have one.
-    if (generationId && dbEnabled()) {
+    // Attach to the generation row. If the link fails, delete the orphan blob and
+    // report the failure — never leave the user with an image that isn't persisted.
+    if (canAttach) {
+      let attached = false;
       try {
-        await getPrisma().generation.updateMany({
-          where: { id: generationId, sessionId },
+        const r = await getPrisma().generation.updateMany({
+          where: { id: generationId as string, sessionId },
           data: {
             imageUrl,
             imagePrompt: prompt,
             imageStyle: style,
             imageStatus: "READY",
+            imageError: null,
           },
         });
+        attached = r.count > 0;
       } catch {
-        // Non-fatal — still return the image to the client.
+        attached = false;
+      }
+      if (!attached) {
+        if (blobEnabled()) {
+          try {
+            await deleteBlob(imageUrl);
+          } catch {
+            /* ignore */
+          }
+        }
+        return fail("UPSTREAM_BLOB_ERROR", "The image was created but could not be attached to your content. Please try again.", requestId);
       }
     }
 
-    return ok({ imageUrl, prompt, style }, requestId);
+    return ok({ imageUrl, prompt, style, saved: canAttach }, requestId);
   } catch {
     return fail("INTERNAL_ERROR", "Something went wrong.", requestId);
   }
