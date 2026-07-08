@@ -3,6 +3,7 @@ import { hashPassword, setAuthCookie } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { ok, fail, newRequestId, tooLarge, clientIp } from "@/lib/http";
 import { credentialsSchema, zodDetails } from "@/lib/validation";
+import { passwordStrength } from "@/lib/passwordStrength";
 import { isDisposableEmail } from "@/lib/email";
 import { dbEnabled, getPrisma } from "@/lib/db";
 import { claimAnonData } from "@/lib/migrateAnon";
@@ -46,6 +47,15 @@ export async function POST(req: Request) {
         "Please use a permanent email address — temporary/disposable inboxes aren't allowed.",
         requestId,
         { details: [{ path: "email", message: "disposable" }] },
+      );
+    }
+    // Enforce password strength server-side (the client meter is only a UX hint).
+    if (passwordStrength(parsed.data.password).label === "weak") {
+      return fail(
+        "VALIDATION_ERROR",
+        "Choose a stronger password — mix length with upper/lowercase, numbers, or symbols.",
+        requestId,
+        { details: [{ path: "password", message: "weak" }] },
       );
     }
     const prisma = getPrisma();

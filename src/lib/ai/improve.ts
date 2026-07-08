@@ -1,4 +1,5 @@
 import { anthropic, MODEL } from "./config";
+import { SAFETY_INSTRUCTION_STRUCTURED } from "./moderation";
 import type { ImproveInput } from "@/lib/validation";
 
 type Goal = ImproveInput["goal"];
@@ -56,7 +57,7 @@ export async function improve(
   const res = await anthropic().messages.create({
     model: MODEL,
     max_tokens: 2000,
-    system: SYSTEM,
+    system: SYSTEM + SAFETY_INSTRUCTION_STRUCTURED,
     thinking: { type: "disabled" },
     output_config: { format: { type: "json_schema", schema: SCHEMA } },
     messages: [{ role: "user", content: user }],

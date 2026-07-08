@@ -13,7 +13,7 @@ function triggerBlob(blob: Blob, name: string) {
 
 // Flatten the Markdown-flavored assembled copy into clean plain text for exports,
 // so headings/bold don't render as literal '#'/'**' in the PDF/Word file.
-function stripMarkdown(s: string): string {
+export function stripMarkdown(s: string): string {
   return s
     .replace(/^#{1,6}\s+/gm, "") // headings
     .replace(/\*\*([^*]+)\*\*/g, "$1") // bold

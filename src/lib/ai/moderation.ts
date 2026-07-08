@@ -27,6 +27,10 @@ export const REFUSAL_SENTINEL = "⟦REFUSED⟧";
 // metaphor so legitimate copy is never refused.
 export const SAFETY_INSTRUCTION = `\n\nSAFETY POLICY: You only write legitimate marketing content. If the request asks you to create content that promotes, glorifies, plans, or gives instructions for real-world violence against people, terrorism, weapons or explosives, hatred against a protected group, sexual content involving minors, self-harm or suicide, or other clearly harmful or illegal activity — do NOT write it. In that case, respond with EXACTLY "${REFUSAL_SENTINEL} <a short reason>" and nothing else. Ordinary competitive marketing language (e.g. "crush the competition", "killer feature", "kill it at the gym", "explosive growth", "target audience") is legitimate and must NEVER be refused.`;
 
+// Same policy, phrased for a structured (JSON) output path like the improver:
+// the sentinel goes into the primary text field so parseRefusal() catches it.
+export const SAFETY_INSTRUCTION_STRUCTURED = `\n\nSAFETY POLICY: You only edit legitimate marketing content. If the text to improve promotes, glorifies, plans, or gives instructions for real-world violence against people, terrorism, weapons or explosives, hatred against a protected group, sexual content involving minors, self-harm or suicide, or other clearly harmful or illegal activity — do NOT improve it. Instead set the primary rewritten-text field to EXACTLY "${REFUSAL_SENTINEL} <a short reason>". Ordinary competitive marketing language ("crush the competition", "killer feature", "explosive growth") is legitimate and must NEVER be refused.`;
+
 const RULES: { category: string; message: string; re: RegExp }[] = [
   {
     category: "weapons",

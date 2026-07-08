@@ -142,7 +142,7 @@ export async function POST(req: Request) {
             encoder.encode(
               SEP +
                 JSON.stringify({
-                  error: `We can't create that — ${refusalReason}. Please try a different topic.`,
+                  error: `We can't create that — ${refusalReason.replace(/[.\s]+$/, "")}. Please try a different topic.`,
                   code: "CONTENT_BLOCKED",
                   retryable: false,
                 }),

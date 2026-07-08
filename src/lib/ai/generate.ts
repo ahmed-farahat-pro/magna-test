@@ -110,7 +110,7 @@ Match the requested tone and audience precisely. Be specific and evidence-orient
   linkedin_post: {
     promptStrategy: "linkedin_hook_v1",
     maxTokens: 1200,
-    streamSystem: `You are a top LinkedIn ghostwriter. Write a COMPLETE LinkedIn post: a scroll-stopping first line, then short single-sentence lines separated by blank lines, one clear idea, a soft engagement CTA (a question), and 3–5 specific hashtags on the final line. 120–220 words. Match tone and audience; no emoji spam. Output ONLY the finished post text — no preamble, no JSON, no code fences.`,
+    streamSystem: `You are a top LinkedIn ghostwriter. Write a COMPLETE LinkedIn post: a scroll-stopping first line, then short single-sentence lines separated by blank lines, one clear idea, a soft engagement CTA (a question), and 3–5 specific hashtags — each MUST begin with a # symbol (e.g. #B2BMarketing) — together on the final line. 120–220 words. Match tone and audience; no emoji spam. Output ONLY the finished post text — no preamble, no JSON, no code fences.`,
     system: `You are a LinkedIn ghostwriter who has grown founder and operator accounts past 50k followers. You understand the feed: the first line is everything, because the platform truncates after ~2 lines with "…see more".
 
 Every post you write:

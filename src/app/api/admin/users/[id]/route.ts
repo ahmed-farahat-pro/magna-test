@@ -27,12 +27,14 @@ export async function DELETE(_req: Request, ctx: Ctx) {
     const user = await prisma.user.findUnique({ where: { id }, select: { id: true } });
     if (!user) return fail("NOT_FOUND", "That user could not be found.", requestId);
 
+    // All-or-nothing: the user row and every owned row are deleted atomically, so
+    // a mid-way failure can't leave an account with its data already gone.
     const [gens, voices, events] = await prisma.$transaction([
       prisma.generation.deleteMany({ where: { sessionId: id } }),
       prisma.brandVoice.deleteMany({ where: { sessionId: id } }),
       prisma.activityEvent.deleteMany({ where: { sessionId: id } }),
+      prisma.user.delete({ where: { id } }),
     ]);
-    await prisma.user.delete({ where: { id } });
 
     return ok(
       {

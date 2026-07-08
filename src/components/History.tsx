@@ -11,7 +11,7 @@ import {
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
-import { exportPdf, exportDocx } from "@/lib/export";
+import { exportPdf, exportDocx, stripMarkdown } from "@/lib/export";
 
 const PAGE_SIZE = 12;
 
@@ -59,7 +59,8 @@ function fmtDate(iso: string): string {
 }
 
 function triggerDownload(text: string, name: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+  // Match the pdf/docx exports — plain text shouldn't carry raw markdown (**, #).
+  const url = URL.createObjectURL(new Blob([stripMarkdown(text)], { type: "text/plain" }));
   const a = document.createElement("a");
   a.href = url;
   a.download = name;
