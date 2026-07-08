@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   try {
     const sessionId = await getSessionId();
 
-    const rl = checkRateLimit(sessionId, "generate");
+    const rl = await checkRateLimit(sessionId, "generate");
     if (!rl.ok) {
       return fail("RATE_LIMITED", `Too many requests. Try again in ${rl.retryAfter}s.`, requestId, {
         headers: { "retry-after": String(rl.retryAfter) },

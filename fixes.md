@@ -255,6 +255,24 @@ to **`VIDEO_SCRIPT.pdf`** for recording.
 
 ---
 
+## Round 3 — durability & workflow evidence
+
+### R3.1 · Durable rate limiting
+`rateLimit.ts` now uses **Upstash Redis** (sliding window) when
+`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` are set — correct across
+Vercel's many serverless instances and cold starts — with a graceful **in-memory
+fallback** when Redis isn't configured (so it still works locally). `checkRateLimit`
+is now async; `/api/health` reports the active backend (`upstash` | `memory`).
+
+### R3.2 · Committed Claude Code workflow artifacts
+Added [`docs/claude-code/`](./docs/claude-code/): a `WORKFLOW.md` narrative, a
+curated `prompt-log.md`, and the **actual multi-agent workflow scripts** used to
+review and grade the build (`adversarial-review.js`, `grade-assessment.js`,
+`regrade-assessment.js`) — concrete evidence of the AI-native workflow beyond
+`CLAUDE.md` and the commit history.
+
+---
+
 ## Verification
 
 Everything above was confirmed on **https://magna-test-ten.vercel.app** after

@@ -1,5 +1,6 @@
 import { dbEnabled, getPrisma } from "@/lib/db";
 import { sessionSecretConfigured } from "@/lib/sessionSecret";
+import { rateLimitBackend } from "@/lib/rateLimit";
 
 // Health / readiness probe. Never throws — safe to hit before env vars exist,
 // so the site is verifiably "live" from the very first deploy.
@@ -29,6 +30,7 @@ export async function GET() {
     ok: true,
     service: "ai-content-marketing-suite",
     db,
+    rateLimit: rateLimitBackend(),
     env,
     timestamp: new Date().toISOString(),
   });

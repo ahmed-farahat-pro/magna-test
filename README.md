@@ -11,6 +11,7 @@ an API key.
 - **Live:** https://magna-test-ten.vercel.app
 - **Repo:** https://github.com/ahmed-farahat-pro/magna-test
 - **Architecture note:** [`ARCHITECTURE.md`](./ARCHITECTURE.md) · also in-app at `/architecture`
+- **Claude Code workflow:** [`docs/claude-code/`](./docs/claude-code/) — steering doc, prompt log, and the committed multi-agent review/grading workflow scripts
 
 ---
 
@@ -71,8 +72,10 @@ Variables** for production.
 | `DATABASE_URL` | Neon **pooled** connection (host contains `-pooler`) — app runtime |
 | `DIRECT_URL` | Neon **direct** connection — used by `prisma migrate` |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob — permanent image hosting |
-| `SESSION_SECRET` | HMAC secret that signs the session cookie |
+| `SESSION_SECRET` | HMAC secret that signs the session cookie (**required in production** — the app fails closed without it) |
 | `OPENAI_IMAGE_MODEL` | *(optional)* pin a specific image model, tried before the fallback chain |
+| `UPSTASH_REDIS_REST_URL` | *(optional)* durable, multi-instance rate limiting — falls back to in-memory if unset |
+| `UPSTASH_REDIS_REST_TOKEN` | *(optional)* paired with the URL above |
 
 ---
 
