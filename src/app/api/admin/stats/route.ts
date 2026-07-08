@@ -6,7 +6,7 @@ import { logError } from "@/lib/log";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type DayRow = { day: Date; count: bigint };
+type DayRow = { day: Date; users: bigint; anon: bigint };
 
 // Aggregate traffic + usage metrics for the admin dashboard.
 export async function GET() {
@@ -42,7 +42,9 @@ export async function GET() {
         select: { id: true, type: true, isUser: true, sessionId: true, meta: true, createdAt: true },
       }),
       prisma.$queryRaw<DayRow[]>`
-        SELECT date_trunc('day', "createdAt") AS day, COUNT(*)::bigint AS count
+        SELECT date_trunc('day', "createdAt") AS day,
+               COUNT(*) FILTER (WHERE "isUser")::bigint AS users,
+               COUNT(*) FILTER (WHERE NOT "isUser")::bigint AS anon
         FROM "activity_events"
         WHERE "createdAt" > NOW() - INTERVAL '14 days'
         GROUP BY day ORDER BY day ASC
@@ -81,7 +83,9 @@ export async function GET() {
         actionsByActor,
         perDay: perDay.map((d) => ({
           day: d.day.toISOString().slice(0, 10),
-          count: Number(d.count),
+          users: Number(d.users),
+          anon: Number(d.anon),
+          count: Number(d.users) + Number(d.anon),
         })),
         recent: recent.map((e) => ({
           id: e.id,

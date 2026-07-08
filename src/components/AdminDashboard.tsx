@@ -20,7 +20,7 @@ type Stats = {
   overview: Overview;
   totalsByType: Record<string, number>;
   actionsByActor: { user: number; anon: number };
-  perDay: { day: string; count: number }[];
+  perDay: { day: string; users: number; anon: number; count: number }[];
   recent: {
     id: string;
     type: string;
@@ -166,7 +166,19 @@ export default function AdminDashboard() {
   }
 
   const ov = stats?.overview;
-  const maxDay = Math.max(1, ...(stats?.perDay ?? []).map((d) => d.count));
+
+  // Build a continuous 14-day axis (so a single active day isn't one huge bar),
+  // each day split into registered-user vs anonymous activity.
+  const byDay = new Map((stats?.perDay ?? []).map((d) => [d.day, d]));
+  const days14 = Array.from({ length: 14 }, (_, i) => {
+    const dt = new Date();
+    dt.setHours(0, 0, 0, 0);
+    dt.setDate(dt.getDate() - (13 - i));
+    const key = dt.toISOString().slice(0, 10);
+    const row = byDay.get(key);
+    return { day: key, users: row?.users ?? 0, anon: row?.anon ?? 0, count: row?.count ?? 0 };
+  });
+  const maxDay = Math.max(1, ...days14.map((d) => d.count));
 
   return (
     <main className="flex-1 bg-[var(--bg)]">
@@ -271,7 +283,7 @@ export default function AdminDashboard() {
 
         {/* overview cards */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {[
+          {([
             { label: "Registered users", value: ov?.users, accent: true },
             { label: "Anonymous sessions", value: ov?.anonymousSessions },
             { label: "Total actions", value: ov?.totalActions },
@@ -279,8 +291,12 @@ export default function AdminDashboard() {
             { label: "Image requests", value: ov?.imageRequests },
             { label: "Improvements", value: ov?.improveRequests },
             { label: "Brand voices", value: ov?.brandVoices },
-            { label: "Logins / signups", value: ov ? `${ov.logins} / ${ov.signups}` : undefined },
-          ].map((c) => (
+            {
+              label: "New sign-ups",
+              value: ov?.signups,
+              sub: ov ? `${ov.logins} returning ${ov.logins === 1 ? "login" : "logins"}` : undefined,
+            },
+          ] as { label: string; value?: number; accent?: boolean; sub?: string }[]).map((c) => (
             <div
               key={c.label}
               className={`rounded-xl border bg-[var(--surface)] p-4 shadow-sm ${
@@ -293,6 +309,9 @@ export default function AdminDashboard() {
               <div className="mt-1 text-2xl font-extrabold tabular-nums text-[var(--ink)]">
                 {c.value ?? (loading ? "…" : 0)}
               </div>
+              {c.sub && (
+                <div className="mt-0.5 text-[0.7rem] text-[var(--muted)]">{c.sub}</div>
+              )}
             </div>
           ))}
         </div>
@@ -300,22 +319,51 @@ export default function AdminDashboard() {
         {/* activity chart + actor split */}
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm lg:col-span-2">
-            <h2 className="text-sm font-bold text-[var(--ink)]">Activity — last 14 days</h2>
-            <div className="mt-4 flex h-32 items-end gap-1.5">
-              {(stats?.perDay ?? []).length === 0 && (
-                <p className="text-sm text-[var(--muted)]">No activity yet.</p>
-              )}
-              {(stats?.perDay ?? []).map((d) => (
-                <div key={d.day} className="group flex h-full flex-1 flex-col items-center justify-end">
-                  <span className="mb-0.5 font-mono text-[0.6rem] tabular-nums text-[var(--muted)]">
-                    {d.count}
-                  </span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-bold text-[var(--ink)]">Activity — last 14 days</h2>
+              <div className="flex items-center gap-3 text-xs text-[var(--body)]">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-sm bg-[var(--accent)]" /> Registered
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-sm bg-[var(--rust-2)]" /> Anonymous
+                </span>
+              </div>
+            </div>
+            <div className="mt-4 flex h-36 items-end gap-1.5">
+              {days14.map((d) => (
+                <div
+                  key={d.day}
+                  className="group flex h-full flex-1 flex-col items-center justify-end"
+                  title={`${d.day} — ${d.users} registered, ${d.anon} anonymous`}
+                >
+                  {d.count > 0 && (
+                    <span className="mb-0.5 font-mono text-[0.58rem] tabular-nums text-[var(--muted)]">
+                      {d.count}
+                    </span>
+                  )}
+                  {/* stacked column: registered (bottom) + anonymous (top) */}
                   <div
-                    className="w-full rounded-t bg-[var(--accent)] transition-all group-hover:bg-[var(--accent-strong)]"
-                    style={{ height: `${Math.max(4, (d.count / maxDay) * 100)}%` }}
-                    title={`${d.day}: ${d.count}`}
-                  />
-                  <span className="mt-1 font-mono text-[0.55rem] text-[var(--muted)]">
+                    className="flex w-full flex-col justify-end overflow-hidden rounded-t"
+                    style={{ height: `${Math.max(d.count ? 4 : 1, (d.count / maxDay) * 100)}%` }}
+                  >
+                    {d.anon > 0 && (
+                      <div
+                        className="w-full bg-[var(--rust-2)] transition-all"
+                        style={{ height: `${(d.anon / Math.max(1, d.count)) * 100}%` }}
+                      />
+                    )}
+                    {d.users > 0 && (
+                      <div
+                        className="w-full bg-[var(--accent)] transition-all"
+                        style={{ height: `${(d.users / Math.max(1, d.count)) * 100}%` }}
+                      />
+                    )}
+                    {d.count === 0 && (
+                      <div className="h-full w-full rounded-t bg-[var(--border-2)]" />
+                    )}
+                  </div>
+                  <span className="mt-1 font-mono text-[0.5rem] text-[var(--muted)]">
                     {d.day.slice(5)}
                   </span>
                 </div>
@@ -468,7 +516,7 @@ function ActorSplit({ user, anon }: { user: number; anon: number }) {
       </div>
       <div className="mt-2 flex justify-between text-xs">
         <span className="flex items-center gap-1.5 text-[var(--body)]">
-          <span className="inline-block h-2 w-2 rounded-full bg-[var(--accent)]" /> Users {user}
+          <span className="inline-block h-2 w-2 rounded-full bg-[var(--accent)]" /> Registered {user}
         </span>
         <span className="flex items-center gap-1.5 text-[var(--body)]">
           <span className="inline-block h-2 w-2 rounded-full bg-[var(--rust-2)]" /> Anonymous {anon}
