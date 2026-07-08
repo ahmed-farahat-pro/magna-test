@@ -1,5 +1,6 @@
 import Link from "next/link";
 import WorkflowFlows from "@/components/WorkflowFlows";
+import TechStack from "@/components/TechStack";
 
 export const metadata = {
   title: "How it works — Workflow | AI Content Marketing Suite",
@@ -17,7 +18,8 @@ const LEGEND: { label: string; dot: string }[] = [
 export default function WorkflowPage() {
   return (
     <main className="flex-1">
-      <div className="mx-auto max-w-3xl px-5 py-12 sm:px-6">
+      <div className="mx-auto max-w-5xl px-5 py-12 sm:px-6">
+        <div className="mx-auto max-w-3xl">
         <div className="animate-fade-up text-center">
           <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#0a5346]">
             Workflow
@@ -52,8 +54,11 @@ export default function WorkflowPage() {
         <div className="mt-10">
           <WorkflowFlows />
         </div>
+        </div>
 
-        <div className="mt-12 flex flex-wrap justify-center gap-3">
+        <TechStack />
+
+        <div className="mt-14 flex flex-wrap justify-center gap-3">
           <Link
             href="/create"
             className="inline-flex items-center gap-2 rounded-lg bg-[#0e7a63] px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346]"
