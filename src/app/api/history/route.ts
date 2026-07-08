@@ -30,7 +30,7 @@ export async function GET(req: Request) {
 
     const prisma = getPrisma();
     const where = { sessionId };
-    const [items, total] = await Promise.all([
+    const [items, total, spend] = await Promise.all([
       prisma.generation.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -46,14 +46,32 @@ export async function GET(req: Request) {
           explanation: true,
           imageUrl: true,
           imageStyle: true,
+          model: true,
+          tokensUsed: true,
+          costUsd: true,
           createdAt: true,
         },
       }),
       prisma.generation.count({ where }),
+      // Your lifetime spend across every piece (not just this page).
+      prisma.generation.aggregate({
+        where,
+        _sum: { costUsd: true, tokensUsed: true },
+      }),
     ]);
 
     return ok(
-      { items, page, pageSize, total, hasMore: page * pageSize < total },
+      {
+        items,
+        page,
+        pageSize,
+        total,
+        hasMore: page * pageSize < total,
+        spend: {
+          costUsd: spend._sum.costUsd ?? 0,
+          tokensUsed: spend._sum.tokensUsed ?? 0,
+        },
+      },
       requestId,
     );
   } catch (e) {

@@ -12,6 +12,7 @@ const CAPS: { label: string; kind: "core" | "bonus" }[] = [
   { label: "Content safety + refusal handling", kind: "bonus" },
   { label: "Accounts + cross-device sync", kind: "core" },
   { label: "Admin dashboard & analytics", kind: "bonus" },
+  { label: "Token & cost tracking per user", kind: "bonus" },
   { label: "Export PDF / Word / txt", kind: "bonus" },
   { label: "Durable rate limiting", kind: "bonus" },
   { label: "Light & dark themes", kind: "bonus" },

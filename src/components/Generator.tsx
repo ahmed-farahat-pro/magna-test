@@ -9,6 +9,7 @@ import {
 } from "@/lib/brandVoice";
 import { exportPdf, exportDocx } from "@/lib/export";
 import { toast } from "@/lib/toast";
+import Select from "@/components/Select";
 
 const CONTENT_TYPES = [
   { value: "blog_post", label: "Blog post" },
@@ -339,18 +340,15 @@ export default function Generator() {
           <label className={labelCls} htmlFor="tone">
             Tone
           </label>
-          <select
-            id="tone"
+          <Select
+            ariaLabel="Tone"
             value={tone}
-            onChange={(e) => setTone(e.target.value as (typeof TONES)[number])}
-            className={`${inputCls} capitalize`}
-          >
-            {TONES.map((t) => (
-              <option key={t} value={t} className="capitalize">
-                {t}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => setTone(v as (typeof TONES)[number])}
+            options={TONES.map((t) => ({
+              value: t,
+              label: t.charAt(0).toUpperCase() + t.slice(1),
+            }))}
+          />
         </div>
 
         <div>
@@ -372,23 +370,19 @@ export default function Generator() {
             <label className={labelCls} htmlFor="voice">
               Brand voice
             </label>
-            <select
-              id="voice"
+            <Select
+              ariaLabel="Brand voice"
               value={voiceId ?? ""}
-              onChange={(e) => {
-                const id = e.target.value || null;
+              onChange={(v) => {
+                const id = v || null;
                 setVoiceId(id);
                 setSelectedVoiceId(id);
               }}
-              className={inputCls}
-            >
-              <option value="">None</option>
-              {voices.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.name}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "None" },
+                ...voices.map((v) => ({ value: v.id ?? "", label: v.name })),
+              ]}
+            />
             <a
               href="/settings"
               className="mt-1 inline-block text-xs text-[var(--muted)] transition-colors hover:text-[var(--accent-strong)]"

@@ -30,8 +30,15 @@ export async function GET() {
             by: ["sessionId"],
             where: { sessionId: { in: ids } },
             _count: { _all: true },
+            _sum: { costUsd: true, tokensUsed: true },
           })
-        : Promise.resolve([] as { sessionId: string; _count: { _all: number } }[]),
+        : Promise.resolve(
+            [] as {
+              sessionId: string;
+              _count: { _all: number };
+              _sum: { costUsd: number | null; tokensUsed: number | null };
+            }[],
+          ),
       ids.length
         ? prisma.activityEvent.groupBy({
             by: ["sessionId"],
@@ -41,6 +48,8 @@ export async function GET() {
         : Promise.resolve([] as { sessionId: string; _count: { _all: number } }[]),
     ]);
     const genCount = new Map(gens.map((g) => [g.sessionId, g._count._all]));
+    const costByUser = new Map(gens.map((g) => [g.sessionId, g._sum.costUsd ?? 0]));
+    const tokensByUser = new Map(gens.map((g) => [g.sessionId, g._sum.tokensUsed ?? 0]));
     const actCount = new Map(acts.map((a) => [a.sessionId, a._count._all]));
 
     return ok(
@@ -51,7 +60,10 @@ export async function GET() {
           createdAt: u.createdAt.toISOString(),
           generations: genCount.get(u.id) ?? 0,
           actions: actCount.get(u.id) ?? 0,
+          costUsd: costByUser.get(u.id) ?? 0,
+          tokensUsed: tokensByUser.get(u.id) ?? 0,
         })),
+        totalSpend: users.reduce((s, u) => s + (costByUser.get(u.id) ?? 0), 0),
       },
       requestId,
     );

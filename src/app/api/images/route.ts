@@ -10,6 +10,7 @@ import {
   isWide,
 } from "@/lib/ai/image";
 import { describeAiError } from "@/lib/ai/errors";
+import { imageCost } from "@/lib/pricing";
 import { blobEnabled, uploadPngFromBase64, deleteBlob } from "@/lib/blob";
 import { dbEnabled, getPrisma } from "@/lib/db";
 import { logError } from "@/lib/log";
@@ -112,8 +113,11 @@ export async function POST(req: Request) {
     }
 
     let b64: string;
+    let imageModel: string;
     try {
-      b64 = await generateImageB64(prompt, isWide(contentType));
+      const gen = await generateImageB64(prompt, isWide(contentType));
+      b64 = gen.b64;
+      imageModel = gen.model;
     } catch (e) {
       const ai = describeAiError(e, "image");
       logError("images.generate", requestId, e, { style, reason: ai.reason });
@@ -152,6 +156,8 @@ export async function POST(req: Request) {
             imageStyle: style,
             imageStatus: "READY",
             imageError: null,
+            // Add the image cost onto this row's running total (a restyle adds again).
+            costUsd: { increment: imageCost(imageModel) },
           },
         });
         attached = r.count > 0;
@@ -173,7 +179,15 @@ export async function POST(req: Request) {
     await track("image_generate", sessionId, isUser, { style, saved: canAttach });
 
     return ok(
-      { imageUrl, prompt, style, saved: canAttach, enhanced, scene },
+      {
+        imageUrl,
+        prompt,
+        style,
+        saved: canAttach,
+        enhanced,
+        scene,
+        usage: { model: imageModel, costUsd: imageCost(imageModel) },
+      },
       requestId,
     );
   } catch (e) {

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/Skeleton";
 import { toast } from "@/lib/toast";
+import { fmtUsd, fmtTokens } from "@/lib/pricing";
 
 type Overview = {
   users: number;
@@ -17,6 +18,8 @@ type Overview = {
   imagesStored: number;
   logins: number;
   signups: number;
+  totalSpendUsd: number;
+  totalTokens: number;
 };
 type Stats = {
   overview: Overview;
@@ -38,6 +41,8 @@ type UserRow = {
   createdAt: string;
   generations: number;
   actions: number;
+  costUsd: number;
+  tokensUsed: number;
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -303,7 +308,13 @@ export default function AdminDashboard() {
               value: ov?.signups,
               sub: ov ? `${ov.logins} returning ${ov.logins === 1 ? "login" : "logins"}` : undefined,
             },
-          ] as { label: string; value?: number; accent?: boolean; sub?: string }[]).map((c) => (
+            {
+              label: "Total AI spend",
+              value: ov ? fmtUsd(ov.totalSpendUsd) : undefined,
+              sub: ov ? `${fmtTokens(ov.totalTokens)} tokens` : undefined,
+              accent: true,
+            },
+          ] as { label: string; value?: number | string; accent?: boolean; sub?: string }[]).map((c) => (
             <div
               key={c.label}
               className={`rounded-xl border bg-[var(--surface)] p-4 shadow-sm ${
@@ -419,13 +430,14 @@ export default function AdminDashboard() {
                   <th className="px-3 py-2.5 font-semibold">Joined</th>
                   <th className="px-3 py-2.5 text-right font-semibold">Content</th>
                   <th className="px-3 py-2.5 text-right font-semibold">Actions</th>
+                  <th className="px-3 py-2.5 text-right font-semibold">Spend</th>
                   <th className="px-5 py-2.5 text-right font-semibold">Manage</th>
                 </tr>
               </thead>
               <tbody>
                 {(users ?? []).length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-5 py-6 text-center text-[var(--muted)]">
+                    <td colSpan={6} className="px-5 py-6 text-center text-[var(--muted)]">
                       {loading ? "Loading…" : "No registered users yet."}
                     </td>
                   </tr>
@@ -443,6 +455,10 @@ export default function AdminDashboard() {
                     </td>
                     <td className="px-3 py-3 text-right font-mono tabular-nums text-[var(--body)]">
                       {u.actions}
+                    </td>
+                    <td className="px-3 py-3 text-right font-mono tabular-nums">
+                      <span className="font-semibold text-[var(--accent-strong)]">{fmtUsd(u.costUsd)}</span>
+                      <span className="ml-1 text-[0.62rem] text-[var(--muted)]">{fmtTokens(u.tokensUsed)}t</span>
                     </td>
                     <td className="px-5 py-3 text-right">
                       {confirmId === u.id ? (

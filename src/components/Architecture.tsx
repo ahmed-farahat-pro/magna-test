@@ -294,6 +294,7 @@ const BONUS_LIST = [
   "Durable rate limiting (Upstash Redis, in-memory fallback)",
   "Admin dashboard — traffic, usage & user management (+ landing video)",
   "Full activity tracking (registered vs anonymous, by action type)",
+  "Per-piece token, model & USD cost — with per-user spend in the admin",
   "Light & dark themes with a persisted toggle",
   "Animations, polish & this self-running onboarding demo",
 ];

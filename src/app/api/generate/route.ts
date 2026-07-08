@@ -13,6 +13,7 @@ import { aiEnabled, anthropic, MODEL } from "@/lib/ai/config";
 import { getStreamConfig, streamedOutputIssue } from "@/lib/ai/generate";
 import { screenContent, parseRefusal, REFUSAL_SENTINEL } from "@/lib/ai/moderation";
 import { describeAiError } from "@/lib/ai/errors";
+import { textCost } from "@/lib/pricing";
 import { dbEnabled, getPrisma } from "@/lib/db";
 import { logError, logWarn } from "@/lib/log";
 
@@ -84,6 +85,8 @@ export async function POST(req: Request) {
         let full = "";
         let flushed = false; // have we started streaming real copy to the client?
         let pending = ""; // buffered opening, held until the refusal decision
+        let inputTokens = 0;
+        let outputTokens = 0;
         try {
           const s = anthropic().messages.stream({
             model: MODEL,
@@ -93,6 +96,12 @@ export async function POST(req: Request) {
             messages: [{ role: "user", content: user }],
           });
           for await (const event of s) {
+            // Token usage arrives on the message frames, not the text deltas.
+            if (event.type === "message_start") {
+              inputTokens = event.message.usage?.input_tokens ?? 0;
+            } else if (event.type === "message_delta") {
+              outputTokens = event.usage?.output_tokens ?? outputTokens;
+            }
             if (
               event.type === "content_block_delta" &&
               event.delta.type === "text_delta"
@@ -178,6 +187,10 @@ export async function POST(req: Request) {
           return;
         }
 
+        // Token usage → USD cost for this generation.
+        const tokensUsed = inputTokens + outputTokens;
+        const costUsd = textCost(MODEL, inputTokens, outputTokens);
+
         // Persist the finished text (best-effort).
         let id: string | null = null;
         if (dbEnabled() && full.trim()) {
@@ -193,6 +206,8 @@ export async function POST(req: Request) {
                 outputText: full,
                 model: MODEL,
                 promptStrategy,
+                tokensUsed,
+                costUsd,
               },
               select: { id: true },
             });
@@ -213,7 +228,13 @@ export async function POST(req: Request) {
         controller.enqueue(
           encoder.encode(
             SEP +
-              JSON.stringify({ id, contentType, saved: id !== null, avoided }),
+              JSON.stringify({
+                id,
+                contentType,
+                saved: id !== null,
+                avoided,
+                usage: { model: MODEL, inputTokens, outputTokens, tokensUsed, costUsd },
+              }),
           ),
         );
         controller.close();

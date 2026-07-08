@@ -97,6 +97,7 @@ model Generation {
   model          String?  // resolved model id actually used (audit; not hardcoded in app)
   promptStrategy String?  // key naming the prompt template used ("blog_v2")
   tokensUsed     Int?     // usage.output+input if the SDK returns it; for cost tracking
+  costUsd        Float?   // computed USD cost (text tokens + any image), for spend rollups
 
   // ── Image fields (the FEATURED feature) ───────────────────────────────────
   imageStatus    ImageStatus @default(NONE)

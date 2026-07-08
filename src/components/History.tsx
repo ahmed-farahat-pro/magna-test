@@ -13,6 +13,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { exportPdf, exportDocx, stripMarkdown } from "@/lib/export";
 import { toast } from "@/lib/toast";
+import { fmtUsd, fmtTokens } from "@/lib/pricing";
 import { CardSkeleton } from "@/components/Skeleton";
 
 const PAGE_SIZE = 12;
@@ -41,6 +42,9 @@ type Item = {
   explanation: string | null;
   imageUrl: string | null;
   imageStyle: string | null;
+  model: string | null;
+  tokensUsed: number | null;
+  costUsd: number | null;
   createdAt: string;
 };
 
@@ -224,6 +228,7 @@ function DownloadMenu({ item, up = false }: { item: Item; up?: boolean }) {
 export default function History() {
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState(0);
+  const [spend, setSpend] = useState<{ costUsd: number; tokensUsed: number } | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -245,6 +250,7 @@ export default function History() {
       }
       setItems(json.items);
       setTotal(json.total);
+      setSpend(json.spend ?? null);
       setPage(json.page);
     } catch {
       setError("Network error while loading history.");
@@ -342,10 +348,22 @@ export default function History() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-8">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-xs text-[var(--muted-2)]">
           {loading ? "loading…" : `${total} item${total === 1 ? "" : "s"}`}
         </p>
+        {spend && (spend.costUsd > 0 || spend.tokensUsed > 0) && (
+          <div className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1.5 text-xs">
+            <span className="text-[var(--muted)]">Your AI spend</span>
+            <span className="font-mono font-bold tabular-nums text-[var(--accent-strong)]">
+              {fmtUsd(spend.costUsd)}
+            </span>
+            <span className="h-3 w-px bg-[var(--border)]" />
+            <span className="font-mono tabular-nums text-[var(--body)]">
+              {fmtTokens(spend.tokensUsed)} tokens
+            </span>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -420,6 +438,21 @@ export default function History() {
                   <p className="mt-1 line-clamp-3 whitespace-pre-wrap break-words text-xs leading-relaxed text-[var(--muted-2)]">
                     {item.outputText}
                   </p>
+                  {(item.costUsd != null || item.tokensUsed != null) && (
+                    <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.62rem] text-[var(--muted)]">
+                      {item.model && (
+                        <span className="rounded border border-[var(--border-2)] bg-[var(--surface-2)] px-1.5 py-0.5">
+                          {item.model}
+                        </span>
+                      )}
+                      {item.tokensUsed != null && <span>{fmtTokens(item.tokensUsed)} tok</span>}
+                      {item.costUsd != null && (
+                        <span className="font-semibold text-[var(--accent-strong)]">
+                          {fmtUsd(item.costUsd)}
+                        </span>
+                      )}
+                    </p>
+                  )}
                   <div className="mt-3 flex flex-wrap gap-1.5 pt-1">
                     <button onClick={() => setSelected(item)} className={ghost}>
                       View

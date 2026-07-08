@@ -60,6 +60,11 @@ const TRADEOFFS: [string, string][] = [
 
 const NEXT: { title: string; body: string; starred: boolean }[] = [
   {
+    title: "Business memory (a RAG layer)",
+    body: "Index each brand's past posts, emails, and LinkedIn content into a vector store, then retrieve the closest real examples at generation time and feed them to the model — so the output matches how that specific business actually writes, not just a described voice. Not built yet, purely a time constraint.",
+    starred: true,
+  },
+  {
     title: "A Canva-style text overlay",
     body: "Place and style text directly on top of the generated photos — headlines, captions, and CTAs baked into the image.",
     starred: true,

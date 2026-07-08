@@ -9,6 +9,7 @@ import {
   type BrandVoice,
 } from "@/lib/brandVoice";
 import { toast } from "@/lib/toast";
+import Select from "@/components/Select";
 
 const PERSONALITY = [
   "Confident",
@@ -218,37 +219,29 @@ export default function BrandVoiceForm() {
               <label className={labelCls} htmlFor="bv-formality">
                 Formality
               </label>
-              <select
-                id="bv-formality"
+              <Select
+                ariaLabel="Formality"
                 value={formality}
-                onChange={(e) => setFormality(e.target.value)}
-                className={inputCls}
-              >
-                <option value="">Choose…</option>
-                {FORMALITY.map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
+                onChange={setFormality}
+                options={[
+                  { value: "", label: "Choose…" },
+                  ...FORMALITY.map((f) => ({ value: f, label: f })),
+                ]}
+              />
             </div>
             <div>
               <label className={labelCls} htmlFor="bv-industry">
                 Industry
               </label>
-              <select
-                id="bv-industry"
+              <Select
+                ariaLabel="Industry"
                 value={industry}
-                onChange={(e) => setIndustry(e.target.value)}
-                className={inputCls}
-              >
-                <option value="">Choose…</option>
-                {INDUSTRY.map((i) => (
-                  <option key={i} value={i}>
-                    {i}
-                  </option>
-                ))}
-              </select>
+                onChange={setIndustry}
+                options={[
+                  { value: "", label: "Choose…" },
+                  ...INDUSTRY.map((i) => ({ value: i, label: i })),
+                ]}
+              />
             </div>
           </div>
 

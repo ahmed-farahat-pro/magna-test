@@ -249,11 +249,12 @@ const IMAGE_MODELS: { model: string; square: string; wide: string }[] = [
 const AVAILABILITY =
   /does not exist|not found|must be verified|do not have access|model_not_found|unsupported|not supported/i;
 
-/** Generate an image and return raw base64 PNG (for re-hosting on Blob). */
+/** Generate an image; returns the raw base64 PNG and the model that produced it
+ *  (the first one in the fallback chain that succeeded) — used for cost tracking. */
 export async function generateImageB64(
   prompt: string,
   wide: boolean,
-): Promise<string> {
+): Promise<{ b64: string; model: string }> {
   let lastErr: unknown;
   for (const m of IMAGE_MODELS) {
     try {
@@ -266,11 +267,11 @@ export async function generateImageB64(
         size: wide ? m.wide : m.square,
       });
       const d = res.data?.[0];
-      if (d?.b64_json) return d.b64_json;
+      if (d?.b64_json) return { b64: d.b64_json, model: m.model };
       if (d?.url) {
         const r = await fetch(d.url);
         if (!r.ok) throw new Error(`image fetch failed: ${r.status}`);
-        return Buffer.from(await r.arrayBuffer()).toString("base64");
+        return { b64: Buffer.from(await r.arrayBuffer()).toString("base64"), model: m.model };
       }
       throw new Error("empty image response");
     } catch (e) {

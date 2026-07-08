@@ -50,6 +50,11 @@ _AI Content Marketing Suite — design choices, trade-offs, and what's next. One
 
 ## What I'd build next (with more time)
 
+- **Business memory (a RAG layer)** — index each brand's past posts, emails, and
+  LinkedIn content into a vector store, retrieve the closest real examples at
+  generation time, and feed them to the model so the output matches how that
+  specific business actually writes — not just a described voice. Not built yet,
+  purely a time constraint.
 - **A Canva-style overlay** to place and style text directly on top of the
   generated photos — headlines, captions, CTAs baked into the image.
 - **A small in-browser photo editor** — crop, filters, brightness/contrast, and

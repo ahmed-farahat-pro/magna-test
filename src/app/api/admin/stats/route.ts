@@ -29,6 +29,7 @@ export async function GET() {
       brandVoices,
       recent,
       perDay,
+      spend,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.activityEvent.groupBy({ by: ["type"], _count: { _all: true } }),
@@ -49,6 +50,7 @@ export async function GET() {
         WHERE "createdAt" > NOW() - INTERVAL '14 days'
         GROUP BY day ORDER BY day ASC
       `,
+      prisma.generation.aggregate({ _sum: { costUsd: true, tokensUsed: true } }),
     ]);
 
     const totalsByType: Record<string, number> = {};
@@ -78,6 +80,8 @@ export async function GET() {
           imagesStored: images,
           logins: totalsByType["login"] ?? 0,
           signups: totalsByType["signup"] ?? 0,
+          totalSpendUsd: spend._sum.costUsd ?? 0,
+          totalTokens: spend._sum.tokensUsed ?? 0,
         },
         totalsByType,
         actionsByActor,

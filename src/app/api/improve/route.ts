@@ -7,6 +7,7 @@ import { aiEnabled, MODEL } from "@/lib/ai/config";
 import { improve } from "@/lib/ai/improve";
 import { screenContent, parseRefusal } from "@/lib/ai/moderation";
 import { describeAiError } from "@/lib/ai/errors";
+import { textCost } from "@/lib/pricing";
 import { logError, logWarn } from "@/lib/log";
 import { dbEnabled, getPrisma } from "@/lib/db";
 
@@ -71,6 +72,9 @@ export async function POST(req: Request) {
     }
 
     let id: string | null = null;
+    const tokensUsed = result.usage.inputTokens + result.usage.outputTokens;
+    const costUsd = textCost(MODEL, result.usage.inputTokens, result.usage.outputTokens);
+
     if (dbEnabled()) {
       try {
         const rec = await getPrisma().generation.create({
@@ -84,7 +88,8 @@ export async function POST(req: Request) {
             explanation: result.changeSummary,
             model: MODEL,
             promptStrategy: `improve_${goal}`,
-            tokensUsed: result.usage.inputTokens + result.usage.outputTokens,
+            tokensUsed,
+            costUsd,
           },
           select: { id: true },
         });
@@ -103,7 +108,7 @@ export async function POST(req: Request) {
         improved: result.improved,
         changeSummary: result.changeSummary,
         saved: id !== null,
-        usage: result.usage,
+        usage: { ...result.usage, model: MODEL, tokensUsed, costUsd },
       },
       requestId,
     );
