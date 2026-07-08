@@ -133,6 +133,28 @@ export const improveSchema = z
 
 export type ImproveInput = z.infer<typeof improveSchema>;
 
+// ── Brand-voice hard enforcement ─────────────────────────────────────────────
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Which of the brand's "avoid" words/phrases actually appear in the text. */
+export function findAvoidedWords(text: string, avoid: string[]): string[] {
+  return [
+    ...new Set(
+      avoid
+        .map((w) => w.trim())
+        .filter(Boolean)
+        .filter((w) => new RegExp(`\\b${escapeRe(w)}\\b`, "i").test(text)),
+    ),
+  ];
+}
+
+export const enforceSchema = z.object({
+  generationId: z.string().trim().min(1).optional(),
+  text: z.string().trim().min(1).max(12000),
+  avoid: z.array(z.string().trim().min(1).max(60)).min(1).max(20),
+});
+export type EnforceInput = z.infer<typeof enforceSchema>;
+
 // ── History ──────────────────────────────────────────────────────────────────
 export const historyQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

@@ -6,6 +6,7 @@ import {
   zodDetails,
   CONTENT_TYPE_DB,
   formatBrandVoice,
+  findAvoidedWords,
 } from "@/lib/validation";
 import { aiEnabled, anthropic, MODEL } from "@/lib/ai/config";
 import { getStreamConfig, streamedOutputIssue } from "@/lib/ai/generate";
@@ -147,9 +148,15 @@ export async function POST(req: Request) {
           }
         }
 
+        // Hard brand-voice check: which "avoid" words slipped into the output.
+        const avoided = parsed.data.brandVoice?.avoid?.length
+          ? findAvoidedWords(full, parsed.data.brandVoice.avoid)
+          : [];
+
         controller.enqueue(
           encoder.encode(
-            SEP + JSON.stringify({ id, contentType, saved: id !== null }),
+            SEP +
+              JSON.stringify({ id, contentType, saved: id !== null, avoided }),
           ),
         );
         controller.close();

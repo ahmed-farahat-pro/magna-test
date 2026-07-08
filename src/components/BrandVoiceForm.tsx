@@ -5,6 +5,9 @@ import {
   loadBrandVoice,
   saveBrandVoice,
   clearBrandVoice,
+  pullBrandVoice,
+  pushBrandVoice,
+  type BrandVoice,
 } from "@/lib/brandVoice";
 
 const PERSONALITY = [
@@ -60,8 +63,7 @@ export default function BrandVoiceForm() {
   const [hasSaved, setHasSaved] = useState(false);
 
   useEffect(() => {
-    const v = loadBrandVoice();
-    if (v) {
+    function apply(v: BrandVoice) {
       setName(v.name ?? "");
       setPersonality(v.personality ?? []);
       setFormality(v.formality ?? "");
@@ -71,6 +73,18 @@ export default function BrandVoiceForm() {
       setAvoid((v.avoid ?? []).join(", "));
       setHasSaved(true);
     }
+    const local = loadBrandVoice();
+    if (local) {
+      apply(local);
+      return;
+    }
+    // No local copy — restore from the server (source of truth) and re-cache it.
+    pullBrandVoice().then((v) => {
+      if (v) {
+        apply(v);
+        saveBrandVoice(v);
+      }
+    });
   }, []);
 
   function toggleTrait(t: string) {
@@ -88,7 +102,7 @@ export default function BrandVoiceForm() {
       setSavedMsg("Give your brand voice a name first.");
       return;
     }
-    saveBrandVoice({
+    const voice: BrandVoice = {
       name: name.trim().slice(0, 60),
       personality: personality.length ? personality : undefined,
       formality: formality || undefined,
@@ -96,9 +110,11 @@ export default function BrandVoiceForm() {
       description: description.trim().slice(0, 500) || undefined,
       keywords: toList(keywords),
       avoid: toList(avoid),
-    });
+    };
+    saveBrandVoice(voice); // localStorage cache
+    pushBrandVoice(voice); // server source of truth (best-effort)
     setHasSaved(true);
-    setSavedMsg("Brand voice saved — enable it on the Generate page.");
+    setSavedMsg("Brand voice saved — synced to your session, enable it on Generate.");
     setTimeout(() => setSavedMsg(null), 2500);
   }
 

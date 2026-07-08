@@ -122,3 +122,15 @@ model Generation {
 
   @@map("generations")
 }
+
+/// A saved brand voice, one per anonymous session — the server-side source of
+/// truth (the client also caches it in localStorage for instant/offline use).
+/// Stored as JSON so the shape can evolve without a migration each time.
+model BrandVoice {
+  sessionId String   @id
+  data      Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@map("brand_voices")
+}

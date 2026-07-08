@@ -30,3 +30,28 @@ export function saveBrandVoice(v: BrandVoice): void {
 export function clearBrandVoice(): void {
   window.localStorage.removeItem(KEY);
 }
+
+/** Fetch the session's server-stored brand voice (the source of truth). */
+export async function pullBrandVoice(): Promise<BrandVoice | null> {
+  try {
+    const res = await fetch("/api/brand-voice");
+    if (!res.ok) return null;
+    const json = await res.json();
+    return (json?.brandVoice as BrandVoice) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Persist the brand voice to the server (best-effort; localStorage stays the cache). */
+export async function pushBrandVoice(v: BrandVoice): Promise<void> {
+  try {
+    await fetch("/api/brand-voice", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(v),
+    });
+  } catch {
+    /* offline — localStorage still holds it */
+  }
+}

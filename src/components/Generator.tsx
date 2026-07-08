@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
-import { loadBrandVoice, type BrandVoice } from "@/lib/brandVoice";
+import {
+  loadBrandVoice,
+  saveBrandVoice,
+  pullBrandVoice,
+  type BrandVoice,
+} from "@/lib/brandVoice";
 import { exportPdf, exportDocx } from "@/lib/export";
 
 const CONTENT_TYPES = [
@@ -42,6 +47,7 @@ type Result = {
   saved: boolean;
   topic: string;
   tone: string;
+  avoided?: string[]; // brand "avoid" words that slipped into the output
 };
 
 export default function Generator() {
@@ -55,15 +61,27 @@ export default function Generator() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [copied, setCopied] = useState(false);
+  const [enforcing, setEnforcing] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState("");
   const [brandVoice, setBrandVoice] = useState<BrandVoice | null>(null);
   const [useVoice, setUseVoice] = useState(false);
 
   useEffect(() => {
-    const v = loadBrandVoice();
-    setBrandVoice(v);
-    setUseVoice(Boolean(v));
+    const local = loadBrandVoice();
+    if (local) {
+      setBrandVoice(local);
+      setUseVoice(true);
+      return;
+    }
+    // Restore from the server (source of truth) on a fresh browser.
+    pullBrandVoice().then((v) => {
+      if (v) {
+        setBrandVoice(v);
+        setUseVoice(true);
+        saveBrandVoice(v);
+      }
+    });
   }, []);
 
   // image state
@@ -130,7 +148,12 @@ export default function Generator() {
 
       const sep = acc.indexOf(SEP);
       const textPart = sep >= 0 ? acc.slice(0, sep) : acc;
-      let meta: { id?: string | null; saved?: boolean; error?: string } = {};
+      let meta: {
+        id?: string | null;
+        saved?: boolean;
+        error?: string;
+        avoided?: string[];
+      } = {};
       if (sep >= 0) {
         try {
           meta = JSON.parse(acc.slice(sep + 1));
@@ -149,6 +172,7 @@ export default function Generator() {
         saved: meta.saved ?? false,
         topic,
         tone,
+        avoided: meta.avoided ?? [],
       });
     } catch {
       setError("Network error. Please check your connection and try again.");
@@ -193,6 +217,32 @@ export default function Generator() {
       setImgError("Network error while generating the image.");
     } finally {
       setImgLoading(false);
+    }
+  }
+
+  async function enforceBrandVoice() {
+    if (!result || !result.avoided?.length) return;
+    setEnforcing(true);
+    try {
+      const res = await fetch("/api/enforce-voice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          generationId: result.id ?? undefined,
+          text: result.outputText,
+          avoid: result.avoided,
+        }),
+      });
+      const json = await res.json();
+      if (res.ok && json.text) {
+        setResult((r) =>
+          r ? { ...r, outputText: json.text, avoided: json.remaining ?? [] } : r,
+        );
+      }
+    } catch {
+      /* best-effort */
+    } finally {
+      setEnforcing(false);
     }
   }
 
@@ -438,6 +488,26 @@ export default function Generator() {
             >
               {result.outputText}
             </div>
+
+            {/* ── Brand-voice hard enforcement ── */}
+            {result.avoided && result.avoided.length > 0 && (
+              <div className="mx-5 mb-1 flex flex-wrap items-center gap-2 rounded-lg border border-[#e7c9c0] bg-[#f7e8e0] px-3 py-2">
+                <span className="text-xs text-[#8a3315]">
+                  Uses {result.avoided.length} word
+                  {result.avoided.length === 1 ? "" : "s"} your brand voice avoids:{" "}
+                  <span className="font-semibold">
+                    {result.avoided.join(", ")}
+                  </span>
+                </span>
+                <button
+                  onClick={enforceBrandVoice}
+                  disabled={enforcing}
+                  className="ml-auto rounded-md border border-[#d9c3b8] bg-white px-3 py-1 text-xs font-semibold text-[#8a3315] transition-colors hover:bg-[#f2ddd0] disabled:opacity-50"
+                >
+                  {enforcing ? "Rewriting…" : "Rewrite to remove"}
+                </button>
+              </div>
+            )}
 
             {/* ── Image pairing (featured) ── */}
             <div className="mt-auto border-t border-[#e7ebe6] px-5 py-4">

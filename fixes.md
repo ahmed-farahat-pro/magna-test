@@ -271,6 +271,41 @@ review and grade the build (`adversarial-review.js`, `grade-assessment.js`,
 `regrade-assessment.js`) — concrete evidence of the AI-native workflow beyond
 `CLAUDE.md` and the commit history.
 
+## Round 4 — brand voice: server-side + hard enforcement
+
+### R4.1 · Persist the brand voice server-side (source of truth)
+The voice was localStorage-only (one browser, lost on clear). Now:
+- a `BrandVoice` Prisma model (`brand_voices`, one row per session, JSON payload)
+  + an **additive migration** applied on deploy;
+- `GET`/`PUT /api/brand-voice` (session-scoped, degrades gracefully if the DB is off);
+- Settings and the Generator **restore from the server** when localStorage is
+  empty and re-cache it — so the voice survives a browser clear or a new tab.
+
+```
+Settings save ──▶ localStorage (cache) + PUT /api/brand-voice (DB, source of truth)
+fresh browser ──▶ localStorage empty ──▶ GET /api/brand-voice ──▶ restore + re-cache
+```
+
+### R4.2 · Hard "avoid" enforcement (detect + one-click fix)
+The avoid-list was a soft prompt instruction. Now the server **checks the output**
+and the user can **guarantee** removal — without breaking the streaming UX:
+
+```
+generate stream done ──▶ findAvoidedWords(output, avoid)
+                              │ any hits?
+                              ▼
+        trailer carries `avoided: [...]`  ──▶  UI banner:
+        "Uses N avoided words: X, Y   [Rewrite to remove]"
+                              │ click
+                              ▼
+        POST /api/enforce-voice ──▶ Claude rewrites them out,
+        updates the stored row, returns { text, remaining }
+```
+
+`enforceVoice()` rewrites the copy to remove the banned words (and close
+variants), preserving meaning/tone/formatting; the response reports any word that
+still `remaining`s, so the guarantee is surfaced honestly rather than assumed.
+
 ---
 
 ## Verification
