@@ -50,7 +50,9 @@ export function formatBrandVoice(
   if (bv.description) lines.push(`Voice & style notes: ${bv.description}`);
   if (bv.keywords?.length) lines.push(`Emphasize: ${bv.keywords.join(", ")}`);
   if (bv.avoid?.length)
-    lines.push(`Avoid these words/phrases: ${bv.avoid.join(", ")}`);
+    lines.push(
+      `NEVER use these words/phrases (hard rule — rephrase to avoid them entirely): ${bv.avoid.join(", ")}`,
+    );
   return lines.join("\n");
 }
 

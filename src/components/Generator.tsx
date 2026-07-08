@@ -158,11 +158,12 @@ export default function Generator() {
     }
   }
 
-  async function generateImage(style: ImageStyle) {
+  async function generateImage(style: ImageStyle, force = false) {
     if (!result) return;
     // No-op when re-clicking the current style on an existing image (avoids a
-    // wasted paid regeneration).
-    if (imgUrl && style === imgStyle && !imgLoading) return;
+    // wasted paid regeneration) — unless the user explicitly asks for a new
+    // variation of the same style (force).
+    if (!force && imgUrl && style === imgStyle && !imgLoading) return;
     setImgLoading(true);
     setImgError(null);
     setImgStyle(style);
@@ -475,7 +476,11 @@ export default function Generator() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={imgUrl}
-                      alt={`AI image for “${result.topic}”`}
+                      alt={
+                        imgScene
+                          ? `AI image — ${imgScene.slice(0, 140)}`
+                          : `AI image for “${result.topic}”`
+                      }
                       className={`w-full animate-fade-in transition-opacity ${imgLoading ? "opacity-40" : "opacity-100"}`}
                     />
                     {imgLoading && (
@@ -508,9 +513,17 @@ export default function Generator() {
                       );
                     })}
                     <button
+                      onClick={() => generateImage(imgStyle, true)}
+                      disabled={imgLoading}
+                      title="Generate a new image in the same style"
+                      className={`${btnGhost} ml-auto disabled:opacity-50`}
+                    >
+                      New variation
+                    </button>
+                    <button
                       onClick={downloadImage}
                       disabled={imgLoading}
-                      className={`${btnGhost} ml-auto disabled:opacity-50`}
+                      className={`${btnGhost} disabled:opacity-50`}
                     >
                       Download image
                     </button>

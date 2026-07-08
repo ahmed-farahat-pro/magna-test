@@ -209,10 +209,59 @@ Route:  session ─▶ rate-limit ─▶ tooLarge? ─▶ zod validate ─▶ co
 
 ---
 
+## Round 2 — minor fixes (after the re-grade)
+
+A second independent re-grade (90/100) surfaced smaller gaps; these close them.
+
+### R2.1 · Count enforcement moved onto the LIVE path (+ a caught regression)
+The re-grade verified the bounded-schema + `hasValidCounts()` machinery lived in
+`generate()`, which is **dead in the request path** — so counts were prompt-only
+in production. `streamedOutputIssue()` now enforces per-type counts on the
+streamed markdown (ad "Variant N", email "Subject N", blog "## H2").
+
+> A live check then caught a **false positive**: LinkedIn hashtags aren't
+> reliably `#`-prefixed in the stream, so the guard rejected a valid post. Fixed
+> by dropping the LinkedIn count guard (kept the three reliable ones). All four
+> types re-verified generating + saving.
+
+### R2.2 · Self-critique steps in the prompts (calibration)
+The ad / email / blog stream prompts now end with a short **self-check** naming
+concrete targets — ad: three genuinely different angles (pain / aspiration /
+social-proof); email: three distinct subject styles (curiosity / benefit /
+personal); blog: ≥3 distinct sections — instead of relying on instructions alone.
+
+### R2.3 · Image — "New variation" + richer alt text
+- A **New variation** button re-rolls the *same style* (bypasses the active-style
+  no-op via a `force` flag) so users can get a fresh take without switching style.
+- Image **alt text** now uses the derived scene (`AI image — <scene>`) instead of
+  just the topic, when available.
+
+### R2.4 · Brand voice — "avoid" is now a hard-worded rule
+`formatBrandVoice()` upgrades the avoid list from *"Avoid these words"* to
+*"NEVER use these words/phrases (hard rule — rephrase to avoid them entirely)"* —
+a firmer instruction (true post-generation enforcement remains future work).
+
+### R2.5 · Client-supplied scene is sanitized
+Before a restyle scene re-enters the image prompt it's stripped of control chars,
+whitespace-collapsed, and capped at 600 chars.
+
+### R2.6 · Legibility & clipboard polish
+Remaining ~10 px labels bumped to ≥ 0.66 rem; History **Copy** buttons now show
+`Copied ✓` and `.catch` clipboard failures.
+
+### R2.7 · Docs
+README health example includes `sessionSecret`; the video script is also rendered
+to **`VIDEO_SCRIPT.pdf`** for recording.
+
+---
+
 ## Verification
 
 Everything above was confirmed on **https://magna-test-ten.vercel.app** after
 deploy:
+
+- all four content types generate + save (blog / LinkedIn / ad / email) — the
+  per-type guard accepts real output and no longer false-rejects LinkedIn
 
 - `sessionSecret: "set"` · db connected · all keys set
 - session cookie mints; **forged cookies rejected** (HMAC verify); sessions are

@@ -289,7 +289,7 @@ const NARRATION: Record<Phase, string> = {
 };
 
 const labelCls =
-  "mb-1.5 block font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]";
+  "mb-1.5 block font-mono text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]";
 
 export default function AutoDemo() {
   const [idx, setIdx] = useState(0);
@@ -510,7 +510,7 @@ export default function AutoDemo() {
                       {BRAND_VOICE.chips.map((c) => (
                         <span
                           key={c}
-                          className="rounded-full border border-[#bfe0d0] bg-white px-2 py-0.5 text-[0.62rem] font-medium text-[#0a5346]"
+                          className="rounded-full border border-[#bfe0d0] bg-white px-2 py-0.5 text-[0.66rem] font-medium text-[#0a5346]"
                         >
                           {c}
                         </span>
@@ -589,7 +589,7 @@ export default function AutoDemo() {
                         >
                           <d.Scene />
                         </div>
-                        <p className="font-mono text-[0.64rem] leading-relaxed text-[#5f6960]">
+                        <p className="font-mono text-[0.66rem] leading-relaxed text-[#5f6960]">
                           <span className="text-[#5c665e]">auto-prompt:</span>{" "}
                           {d.caption}
                         </p>
@@ -629,7 +629,7 @@ export default function AutoDemo() {
                 <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
                   {/* original */}
                   <div className="flex min-h-[120px] flex-col overflow-hidden rounded-lg border border-[#d9dfd8] bg-[#fbfdfb]">
-                    <div className="border-b border-[#e7ebe6] px-3 py-1.5 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#5f6960]">
+                    <div className="border-b border-[#e7ebe6] px-3 py-1.5 font-mono text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-[#5f6960]">
                       Original
                     </div>
                     <div className="flex-1 overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 text-[0.82rem] leading-relaxed text-[#5c665e]">
@@ -639,7 +639,7 @@ export default function AutoDemo() {
                   {/* improved */}
                   <div className="flex min-h-[120px] flex-col overflow-hidden rounded-lg border border-[#bfe0d0] bg-white">
                     <div className="flex items-center gap-2 border-b border-[#e7ebe6] px-3 py-1.5">
-                      <span className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#0a5346]">
+                      <span className="font-mono text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-[#0a5346]">
                         Improved
                       </span>
                       <span className="rounded bg-[#e6f2ec] px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold text-[#0a5346]">
@@ -715,7 +715,7 @@ export default function AutoDemo() {
                     </div>
                   ))}
                 </div>
-                <p className="mt-3 font-mono text-[0.64rem] text-[#5f6960]">
+                <p className="mt-3 font-mono text-[0.66rem] text-[#5f6960]">
                   Every generation &amp; improvement is scoped to your session —
                   copy, export, or refine any of them again.
                 </p>
