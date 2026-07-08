@@ -1,6 +1,6 @@
 import { newRequestId } from "@/lib/http";
 import { getSetting, LANDING_VIDEO_URL } from "@/lib/settings";
-import { parseDriveId, driveEmbedUrl } from "@/lib/drive";
+import { parseYouTubeId, youTubeEmbedUrl } from "@/lib/youtube";
 import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
@@ -12,9 +12,9 @@ export async function GET() {
   const requestId = newRequestId();
   try {
     const url = await getSetting(LANDING_VIDEO_URL);
-    const id = url ? parseDriveId(url) : null;
+    const id = url ? parseYouTubeId(url) : null;
     return Response.json(
-      { videoId: id, embedUrl: id ? driveEmbedUrl(id) : null },
+      { videoId: id, embedUrl: id ? youTubeEmbedUrl(id) : null },
       { headers: { "x-request-id": requestId, "cache-control": "no-store" } },
     );
   } catch (e) {

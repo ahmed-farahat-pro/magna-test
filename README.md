@@ -421,7 +421,7 @@ Returns `{ "user": { "email": "…" } }` or `{ "user": null }`. Sent `no-store` 
 
 ### `GET /api/video` — public landing-video embed
 
-Returns `{ "videoId": "<drive-file-id>" | null, "embedUrl": "https://drive.google.com/file/d/<id>/preview" | null }`. Set by an admin (below) from a Google Drive share link; shows on the landing page when present.
+Returns `{ "videoId": "dQw4…" | null, "embedUrl": "https://www.youtube.com/embed/…" | null }`. Set by an admin (below); shows on the landing page when present.
 
 ---
 
@@ -481,11 +481,11 @@ Deletes the account and all its content in one transaction. Returns
 
 ### `GET /api/admin/video` — read the landing-video setting
 
-Returns `{ "url": "https://drive.google.com/file/d/…/view" | null, "videoId": "<drive-file-id>" | null, "embedUrl": "https://drive.google.com/file/d/<id>/preview" | null }`.
+Returns `{ "url": "https://youtu.be/…" | null, "videoId": "…" | null, "embedUrl": "…" | null }`.
 
 ### `POST /api/admin/video` — set / clear the landing video
 
-**Body**: `{ "url": "https://drive.google.com/file/d/…/view (or empty to clear)" }`. Validates it's a Google Drive link (the file must be shared “Anyone with the link”). Returns the same shape as the GET. Drives the public `/api/video`.
+**Body**: `{ "url": "https://youtu.be/… (or empty to clear)" }`. Validates it's a YouTube link. Returns the same shape as the GET. Drives the public `/api/video`.
 
 ---
 

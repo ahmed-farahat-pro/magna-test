@@ -242,9 +242,8 @@ export default function AdminDashboard() {
                 Video for illustration
               </h2>
               <p className="mt-0.5 text-xs text-[var(--muted)]">
-                Paste a Google Drive share link — it shows on the landing page. The
-                file must be shared “Anyone with the link”. Clear it and the landing
-                page shows “No videos found”.
+                Paste a YouTube link — it shows on the landing page. Clear it and the
+                landing page shows “No videos found”.
               </p>
             </div>
             <span
@@ -262,7 +261,7 @@ export default function AdminDashboard() {
             <input
               value={videoInput}
               onChange={(e) => setVideoInput(e.target.value)}
-              placeholder="https://drive.google.com/file/d/…/view?usp=sharing"
+              placeholder="https://www.youtube.com/watch?v=…"
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
             />
             <div className="flex shrink-0 gap-2">
