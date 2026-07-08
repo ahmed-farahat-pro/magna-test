@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/Skeleton";
+import { toast } from "@/lib/toast";
 
 type Overview = {
   users: number;
@@ -158,8 +160,13 @@ export default function AdminDashboard() {
       if (res.ok) {
         setUsers((prev) => (prev ? prev.filter((u) => u.id !== id) : prev));
         setConfirmId(null);
+        toast.success("User deleted");
         load();
+      } else {
+        toast.error("Could not delete the user.");
       }
+    } catch {
+      toast.error("Network error while deleting the user.");
     } finally {
       setDeleting(null);
     }
@@ -306,9 +313,13 @@ export default function AdminDashboard() {
               <div className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-2)]">
                 {c.label}
               </div>
-              <div className="mt-1 text-2xl font-extrabold tabular-nums text-[var(--ink)]">
-                {c.value ?? (loading ? "…" : 0)}
-              </div>
+              {loading && c.value === undefined ? (
+                <Skeleton className="mt-2 h-7 w-14 rounded-md" />
+              ) : (
+                <div className="mt-1 text-2xl font-extrabold tabular-nums text-[var(--ink)]">
+                  {c.value ?? 0}
+                </div>
+              )}
               {c.sub && (
                 <div className="mt-0.5 text-[0.7rem] text-[var(--muted)]">{c.sub}</div>
               )}

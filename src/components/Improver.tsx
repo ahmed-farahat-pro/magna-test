@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { toast } from "@/lib/toast";
 
 const GOALS = [
   { value: "shorter", label: "Shorter" },
@@ -63,9 +64,14 @@ export default function Improver() {
 
   async function copy() {
     if (!result) return;
-    await navigator.clipboard.writeText(result.improved);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    try {
+      await navigator.clipboard.writeText(result.improved);
+      setCopied(true);
+      toast.success("Copied to clipboard");
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Couldn't copy — clipboard unavailable.");
+    }
   }
 
   const inputCls =

@@ -8,6 +8,7 @@ import {
   deleteVoice,
   type BrandVoice,
 } from "@/lib/brandVoice";
+import { toast } from "@/lib/toast";
 
 const PERSONALITY = [
   "Confident",
@@ -126,10 +127,12 @@ export default function BrandVoiceForm() {
       : await createVoice(voice);
     setBusy(false);
     if (saved) {
+      toast.success(editing?.id ? "Brand voice updated" : "Brand voice saved");
       setEditing(null);
       refresh();
     } else {
       setMsg("Could not save — please try again.");
+      toast.error("Could not save the brand voice.");
     }
   }
 
@@ -146,6 +149,7 @@ export default function BrandVoiceForm() {
     setConfirmId(null);
     setVoices((xs) => xs.filter((x) => x.id !== v.id));
     await deleteVoice(v.id);
+    toast.success(`Deleted “${v.name}”`);
   }
 
   // ── Form view ──

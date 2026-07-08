@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AutoDemo from "@/components/AutoDemo";
+import DemoCapabilities from "@/components/DemoCapabilities";
 import Architecture from "@/components/Architecture";
 import LandingVideo from "@/components/LandingVideo";
 
@@ -143,6 +144,7 @@ export default function Landing() {
             ↑ A live, automated tour of the whole app — generate, improve &amp;
             history. No clicks needed.
           </p>
+          <DemoCapabilities />
         </div>
       </section>
 

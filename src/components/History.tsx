@@ -12,6 +12,8 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { exportPdf, exportDocx, stripMarkdown } from "@/lib/export";
+import { toast } from "@/lib/toast";
+import { CardSkeleton } from "@/components/Skeleton";
 
 const PAGE_SIZE = 12;
 
@@ -145,7 +147,7 @@ function DownloadMenu({ item, up = false }: { item: Item; up?: boolean }) {
     try {
       await fn();
     } catch {
-      /* export is best-effort */
+      toast.error("Export failed — please try again.");
     } finally {
       setBusy(false);
     }
@@ -325,13 +327,14 @@ export default function History() {
       .writeText(text)
       .then(() => {
         setCopiedId(id);
+        toast.success("Copied to clipboard");
         window.setTimeout(
           () => setCopiedId((c) => (c === id ? null : c)),
           1500,
         );
       })
       .catch(() => {
-        /* clipboard unavailable — nothing to do */
+        toast.error("Couldn't copy — clipboard unavailable.");
       });
   }
 
@@ -354,10 +357,7 @@ export default function History() {
       {loading && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-52 animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface-2)]"
-            />
+            <CardSkeleton key={i} />
           ))}
         </div>
       )}

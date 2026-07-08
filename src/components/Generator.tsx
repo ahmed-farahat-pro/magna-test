@@ -8,6 +8,7 @@ import {
   type BrandVoice,
 } from "@/lib/brandVoice";
 import { exportPdf, exportDocx } from "@/lib/export";
+import { toast } from "@/lib/toast";
 
 const CONTENT_TYPES = [
   { value: "blog_post", label: "Blog post" },
@@ -201,13 +202,16 @@ export default function Generator() {
       const json = await res.json();
       if (!res.ok) {
         setImgError(json?.error?.message ?? "Image generation failed.");
+        toast.error(json?.error?.message ?? "Image generation failed.");
         return;
       }
       setImgUrl(json.imageUrl);
       setImgPrompt(json.prompt ?? null);
       if (json.scene) setImgScene(json.scene);
+      toast.success("Image ready");
     } catch {
       setImgError("Network error while generating the image.");
+      toast.error("Network error while generating the image.");
     } finally {
       setImgLoading(false);
     }
@@ -231,9 +235,16 @@ export default function Generator() {
         setResult((r) =>
           r ? { ...r, outputText: json.text, avoided: json.remaining ?? [] } : r,
         );
+        toast.success(
+          json.remaining?.length
+            ? "Rewritten — a couple of words still slipped through."
+            : "Rewritten — banned words removed.",
+        );
+      } else {
+        toast.error("Couldn't rewrite — please try again.");
       }
     } catch {
-      /* best-effort */
+      toast.error("Couldn't rewrite — please try again.");
     } finally {
       setEnforcing(false);
     }
@@ -241,9 +252,14 @@ export default function Generator() {
 
   async function copyText() {
     if (!result) return;
-    await navigator.clipboard.writeText(result.outputText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    try {
+      await navigator.clipboard.writeText(result.outputText);
+      setCopied(true);
+      toast.success("Copied to clipboard");
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Couldn't copy — clipboard unavailable.");
+    }
   }
 
   function downloadText() {
