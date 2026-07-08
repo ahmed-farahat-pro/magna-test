@@ -1,0 +1,221 @@
+# Remediation — what changed and why
+
+After an independent multi-agent grading pass scored the build **89/100**, this
+round closes the concrete gaps the examiners flagged. Every fix below is in the
+code and **verified against the live deployment**.
+
+| # | Area | Fix | Files |
+|---|------|-----|-------|
+| 1 | 🔒 Security | `SESSION_SECRET` **fails closed** in production | `sessionSecret.ts`, `session.ts`, `middleware.ts`, `health/route.ts` |
+| 2 | 🔒 Security | `/api/img` only proxies validated `images/<uuid>.png` | `img/route.ts` |
+| 3 | 🔒 Security | Request **body-size guard** on the AI routes | `http.ts` + `generate/images/improve` |
+| 4 | LLM | **Array counts enforced in code** (schema + runtime) | `ai/generate.ts` |
+| 5 | LLM | **Streaming path guard** — refuse to save junk | `ai/generate.ts`, `generate/route.ts` |
+| 6 | Image | **Scene cached & reused on restyle** (same subject) | `ai/image.ts`, `images/route.ts`, `validation.ts`, `Generator.tsx` |
+| 7 | Image | Art director reads **6000 chars** (was 2400); active-style re-click is a no-op | `ai/image.ts`, `Generator.tsx` |
+| 8 | Operability | **Structured server-side logging** by `requestId` | `log.ts` + every route |
+| 9 | Frontend/a11y | Modal **focus trap + restore**; `next/image` thumbnails; **in-UI delete confirm**; legible labels | `History.tsx`, others |
+| 10 | Docs | Full API docs, `ARCHITECTURE.md`, `/architecture`, `VIDEO_SCRIPT.md`; CLAUDE.md reconciled | `README.md`, docs |
+
+---
+
+## 1 · Session secret fails closed 🔒
+
+**Problem.** `session.ts` and `middleware.ts` fell back to a hardcoded
+`"dev-insecure-secret-change-me"` with no production check. If `SESSION_SECRET`
+were ever unset, cookies would be signed with a **public** secret → **forgeable**
+→ anyone could read/delete another user's content.
+
+**Fix.** A single `resolveSessionSecret()` returns `null` in production when no
+real secret is set. Callers then **fail closed** instead of using a default.
+
+```
+                        request
+                           │
+                           ▼
+                 resolveSessionSecret()
+                     │            │
+              secret set      no secret (prod)
+                     │            │
+        ┌────────────┘            └─────────────┐
+        ▼                                        ▼
+  middleware: mint signed cookie      middleware: SKIP minting
+  session.ts: sign / verify (HMAC)    session.ts: secret() THROWS
+        │                                        │
+        ▼                                        ▼
+  ownership scoping works              pages still render;
+  where { id, sessionId }              API routes reject cleanly
+                                       (no forgeable session ever issued)
+```
+
+Health now reports `sessionSecret: "set" | "missing"` so it's visible.
+**Live check:** `sessionSecret: "set"` — the app is safe *and* unaffected.
+
+## 2 · `/api/img` path validation 🔒
+
+Only ever proxy our own generated images — never an arbitrary blob path:
+
+```
+GET /api/img?p=<path>
+        │
+        ▼
+  /^images\/[a-f0-9-]{16,}\.png$/i  ──✗──▶ 404 (reject arbitrary paths)
+        │ ✓
+        ▼
+  stream the private blob
+```
+
+## 3 · Body-size guard 🔒
+
+`http.ts::tooLarge(req)` rejects oversized bodies by `Content-Length` **before**
+parsing, on `generate` / `images` / `improve` → `PAYLOAD_TOO_LARGE` (413).
+
+---
+
+## 4 · Array counts enforced in code (not just the prompt)
+
+**Problem.** "exactly 3 ad variants / 3 subject lines / 3–5 hashtags" lived only
+in prompt text; schemas were unbounded and nothing checked the count.
+
+**Fix.** Two layers:
+- **Schema:** `strArrN(min, max)` adds `minItems`/`maxItems` (ad variants 3/3,
+  subject lines 3/3, hashtags 3–5, blog sections ≥3) — enforced at decode.
+- **Runtime:** `hasValidCounts(contentType, structured)` re-checks lengths and
+  **retries** on mismatch in the structured `generate()` path.
+
+**Live check:** an ad-copy generation returned **exactly 3 variants**.
+
+## 5 · The streaming path is now guarded
+
+**Problem.** The user-facing route streams markdown prose, which bypassed the
+json-schema decode + degenerate-output retry (those only ran in the non-streamed
+function). So the primary flow had **no** output guard.
+
+**Fix.** `streamedOutputIssue(contentType, full)` runs **after** the stream, before
+persisting.
+
+```
+Claude stream ──▶ full text accumulated
+                        │
+                        ▼
+             streamedOutputIssue(type, full)
+              │                      │
+          issue found            looks good
+              │                      │
+              ▼                      ▼
+   log + error trailer,      persist + save id,
+   DO NOT persist,           normal trailer
+   client shows "retry"
+```
+
+It rejects: too short, stub/placeholder, or (ad copy) fewer than 3 variant
+markers. (Can't re-stream mid-flight, so it's a fail-loud guard, not a retry.)
+
+---
+
+## 6 · Image scene caching (same subject on restyle)
+
+**Problem.** Every restyle re-ran `describeScene`, so switching *style* could
+silently drift the *subject* — and paid a fresh ~8s Claude call each time.
+
+**Fix.** The derived scene is returned to the client, cached, and passed back on
+restyle; the route reuses it and skips the art-director call.
+
+```
+FIRST image (new content)                RESTYLE (same content, new style)
+─────────────────────────                ─────────────────────────────────
+Generator: no cached scene               Generator: sends cached scene
+        │                                        │
+        ▼                                        ▼
+POST /api/images {content}               POST /api/images {scene, style}
+        │                                        │
+        ▼                                        ▼
+describeScene(copy) ──▶ scene            (skip describeScene — reuse scene)
+        │                                        │
+        ▼                                        ▼
+render in style ──▶ image + scene        render SAME scene in new style
+        │                                        │
+        ▼                                        ▼
+client caches scene ◀────────────────────  subject stays fixed, ~8s saved
+```
+
+**Live check:** restyle returned a new image with `sameScene: true`.
+Also: `describeScene` now reads **6000** chars (was 2400) so long blogs are
+illustrated by the whole piece; re-clicking the active style is a no-op (no
+wasted paid call).
+
+---
+
+## 7 · Structured server-side logging
+
+**Problem.** Every catch swallowed the error silently; the `requestId` returned to
+clients was never logged, so 500s were undebuggable.
+
+**Fix.** `log.ts` emits one JSON line per event (Vercel captures it), correlated by
+`requestId`, wired into **every** route catch + the AI-error/guard paths.
+
+```
+route catch ──▶ logError(scope, requestId, err, meta)
+                          │
+                          ▼
+      {"t":…,"level":"error","scope":"images.generate",
+       "requestId":"req_…","msg":"…","reason":"rate_limit"}   ──▶ Vercel logs
+                          │
+                          ▼
+        client still gets the declarative message + the same requestId
+```
+
+---
+
+## 8 · Frontend & accessibility
+
+- **Focus trap + restore:** the History detail modal traps Tab and returns focus
+  to the element that opened it on close.
+- **`next/image` thumbnails:** history cards render sized/optimized images instead
+  of full-resolution 1–2.5 MB PNGs in 144 px slots.
+- **In-UI delete confirm:** a two-step "Delete → Confirm delete" replaces the
+  native `window.confirm`, matching the app's visual language.
+- **Legibility:** sub-10 px labels bumped to ≥ 0.62 rem.
+
+---
+
+## Where the request pipeline stands now
+
+```
+Browser (no keys)
+   │  fetch /api/*
+   ▼
+Edge middleware ── mint signed cookie  (skips if no secret → fail closed)
+   │
+   ▼
+Route:  session ─▶ rate-limit ─▶ tooLarge? ─▶ zod validate ─▶ config check
+   │                                                             │
+   ▼                                                             ▼
+  AI call (Claude / OpenAI)                              declarative errors
+   │   success            failure                         (describeAiError)
+   ▼                        │                                   │
+ output guard              logError(requestId) ─────────────────┘
+ (streamedOutputIssue /                         + typed envelope to client
+  hasValidCounts)
+   │ ok
+   ▼
+ persist (scoped where { id, sessionId }) ─▶ response
+```
+
+---
+
+## Verification
+
+Everything above was confirmed on **https://magna-test-ten.vercel.app** after
+deploy:
+
+- `sessionSecret: "set"` · db connected · all keys set
+- session cookie mints; **forged cookies rejected** (HMAC verify); sessions are
+  isolated (session B cannot read session A's entry → 404)
+- generate: 200, saved, **exactly 3 ad variants**
+- image: enhanced, restyle keeps the **same subject** (`sameScene: true`)
+- improve + history: healthy, session-scoped
+
+**Still outstanding (not a code fix):** record the video walkthrough — it's the
+last required deliverable and the primary evidence for the Claude Code Usage
+dimension. See [`VIDEO_SCRIPT.md`](./VIDEO_SCRIPT.md).
