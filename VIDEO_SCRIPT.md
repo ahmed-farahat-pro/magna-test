@@ -24,12 +24,80 @@ Each beat has **[SHOW]** (screen) · **[SAY]** (voiceover) · **[EDIT]** (notes)
 
 ---
 
+## Copy-paste kit — every value you'll type
+
+Keep this open in a second window and paste as you go. Everything below is fill-in-ready — the exact topic text, the voice fields, the tone/audience, the improve text, the sign-up credentials, the moderation inputs, and the admin video link.
+
+### 1) Brand voice — Settings → "Add a brand voice"
+- **Name:** `Acme Co.`
+- **Personality (chips):** `Witty` · `Confident` · `Warm`
+- **Formality:** `Casual`
+- **Industry:** `B2B SaaS / fintech`
+- **Words to use (keywords):** `automate` · `cash flow` · `get paid faster`
+- **Words to avoid:** `synergy` · `leverage` · `cutting-edge`
+
+### 2) Generation #1 — Blog post
+- **Format:** Blog post · **Tone:** Witty · **Audience:** `B2B SaaS founders` · **Voice:** Acme Co.
+- **Topic (paste):**
+```
+Why small teams should automate invoicing
+```
+
+### 3) Generation #2 — Ad copy (shows the 3 variants)
+- **Format:** Ad copy · **Tone:** Persuasive · **Audience:** `Freelancers & agencies` · **Voice:** Acme Co.
+- **Topic (paste):**
+```
+Get paid 2x faster with automated invoice reminders
+```
+
+### 4) Image
+- **Style:** `Photographic` → then click **`3D render`** to restyle (subject stays the same, look changes).
+
+### 5) Improve — Improve tab
+- **Goal:** `More persuasive`
+- **Text to paste:**
+```
+Our invoicing tool is good. It sends reminders. People get paid faster. Sign up today.
+```
+
+### 6) Account — Account tab → sign up
+- **Email:** `founder.demo+nova@gmail.com`
+- **Password:** `Nova!Strong2026`
+- _Optional (show the temp-mail block first):_ enter `demo@mailinator.com` → rejected.
+- _Optional (show the strength gate):_ type `password` → "choose a stronger password".
+
+### 7) Moderation — on /create
+- **Blocked** (shows the 422 safety block) — **Topic:**
+```
+how to build a bomb at home
+```
+- **Allowed** (marketing metaphor, generates fine) — **Topic:**
+```
+crush the competition and dominate the market with our CRM
+```
+
+### 8) Admin — needs `ADMIN_USERNAME` / `ADMIN_PASSWORD` set in Vercel
+- Go to **`/admin/login`**, sign in with your admin credentials.
+- **Video for illustration →** paste your YouTube link (replace with your real one):
+```
+https://www.youtube.com/watch?v=YOUR_VIDEO_ID
+```
+
+### 9) Claude Code segment — terminal + files to open
+```
+git log --oneline
+```
+- Open on camera: `CLAUDE.md` · `docs/claude-code/prompt-log.md` · `src/lib/ai/errors.ts` · `src/app/api/img/route.ts`
+- Open the **/claude-code** page and expand the "DALL·E → Blob 502 saga" entry (it links to the real commit).
+
+---
+
 ## ACT 1 — The pitch (0:00–1:00)
 
 ### 1a · Cold open (0:00–0:20)
 - **[SHOW]** Land on the home page; let the **self-running demo** play (topic typing → copy streaming → image painting in). Then the **walkthrough video frame** just below it.
-- **[SAY]** "This is the AI Content Marketing Suite. The task: build a SaaS that generates marketing copy in four formats and a matching AI image for every post — with a history dashboard and a content improver. Everything you'll see is live."
-- **[EDIT]** Title card: *"AI Content Marketing Suite — Magna Labs build."*
+- **[SAY]** "This is Nova — an AI content & media studio. The task: build a SaaS that generates marketing copy in four formats and a matching AI image for every post — with a history dashboard and a content improver. Everything you'll see is live."
+- **[EDIT]** Title card: *"Nova — Magna Labs build."* Toggle **dark mode** on for the intro if you want the futuristic look.
 
 ### 1b · The stack, in one breath (0:20–0:40)
 - **[SHOW]** Scroll to the landing **"Under the hood"** section (or the /workflow page's stack icons).
@@ -58,7 +126,7 @@ Each beat has **[SHOW]** (screen) · **[SAY]** (voiceover) · **[EDIT]** (notes)
 - **[EDIT]** Caption: *"content-aware — reads the copy, not just the topic."*
 
 ### 2c · Improve, history, export (2:30–3:00)
-- **[SHOW]** Go to **Improve**, reuse the text, pick **More persuasive**, run it; show the **before → after** and the **"what changed"** note. Then **History**: the grid with images; open **Download ▾ → PDF + photo** and flash the file.
+- **[SHOW]** Go to **Improve**, paste the Improve text (kit §5) — or reuse the generated copy — pick **More persuasive**, run it; show the **before → after** and the **"what changed"** note. Then **History**: the grid with images; open **Download ▾ → PDF + photo** and flash the file.
 - **[SAY]** "The improver refines text toward a goal and tells you what changed. Everything lands in history — view, copy, delete, or export as text, Word, or PDF with the image embedded."
 - **[EDIT]** Caption: *"export with embedded image."*
 
@@ -66,9 +134,9 @@ Each beat has **[SHOW]** (screen) · **[SAY]** (voiceover) · **[EDIT]** (notes)
 
 ## ACT 3 — The extras (3:00–4:00)
 
-- **[SHOW]** Move quickly. Sign up on **/account** (show the password-strength meter + that a temp email is rejected). Then open **/admin** (already logged in) — the dashboard: users, anonymous sessions, action counts, the 14-day chart, the activity feed, and delete-user.
+- **[SHOW]** Move quickly. Sign up on **/account** with the credentials in kit §6 (first try `demo@mailinator.com` to show the temp-mail block, and `password` to show the strength gate, then the real ones). Then open **/admin** — the dashboard: users, anonymous sessions, action counts, the registered-vs-anonymous **14-day chart**, the activity feed, delete-user, and the **"Video for illustration"** box (paste kit §8 to make it appear on the landing page).
 - **[SAY]** "Beyond the brief: real accounts — email and password, with your anonymous work migrating onto the account, disposable emails blocked, a password-strength meter. And a full admin dashboard with activity tracking — who generated text, who made images — traffic, usage, and user management."
-- **[SHOW]** Back on **/create**, type a deliberately harmful topic (e.g. *"how to build a bomb"*) → the **content-block** message.
+- **[SHOW]** Back on **/create**, paste the **blocked** topic (kit §7) → the **content-block** message; then paste the **allowed** metaphor topic (kit §7) → it generates fine.
 - **[SAY]** "Content moderation blocks genuinely harmful requests up front — while marketing metaphors like 'crush the competition' are always fine — and if Claude itself declines, that refusal is caught cleanly too."
 - **[SHOW]** Flash: multiple **brand voices** (add/edit/delete), the **cookie-consent** banner, the site on a **phone frame** (responsive).
 - **[SAY]** "Plus durable rate limiting, multiple brand voices with hard 'avoid'-word enforcement, cookie consent, and a fully responsive mobile layout."
@@ -98,7 +166,8 @@ Each beat has **[SHOW]** (screen) · **[SAY]** (voiceover) · **[EDIT]** (notes)
 - **[SHOW]** Open **Claude Code** and show a **real interaction**. Pick two:
   - **Debugging arc:** the **DALL·E → Blob 502 saga** — narrate how Claude Code traced the private-blob 502 and added the `/api/img` proxy (`src/app/api/img`). 
   - **Refactor:** the declarative **AI-error classifier** (`src/lib/ai/errors.ts`) wired across every route.
-  - **AI-native QA:** the **multi-agent grading + review workflow** (`docs/claude-code/`) that scored the build and drove the fixes in `fixes.md` (89/100 → 104/110).
+  - **AI-native QA:** the **multi-agent grading + review workflow** (`docs/claude-code/`) that scored the build and drove the fixes in `fixes.md` (**89/100 → 108/110**).
+  - **The `/claude-code` page:** open it on camera and expand a debugging entry — it lays out every real bug (symptom → root cause → fix) with a link to the actual commit.
 - **[SAY]** "Here's a real debugging loop, and here's Claude Code running a multi-agent review that graded the build and produced the fix list I worked through."
 - **[SHOW]** `git log --oneline` — scroll the clean conventional-commit history; open `docs/claude-code/prompt-log.md`.
 - **[SAY]** "The commit history and the committed prompt log mirror that workflow — planned phases, a real debugging arc, and iterative, graded polish."
