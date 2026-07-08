@@ -45,9 +45,9 @@ const toList = (s: string) =>
     .slice(0, 20);
 
 const inputCls =
-  "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#5f6960] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
+  "w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15";
 const labelCls =
-  "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[#5c665e]";
+  "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted-2)]";
 
 export default function BrandVoiceForm() {
   const [voices, setVoices] = useState<BrandVoice[]>([]);
@@ -152,14 +152,14 @@ export default function BrandVoiceForm() {
   if (editing) {
     return (
       <div className="mx-auto w-full max-w-2xl px-6 py-8">
-        <div className="animate-fade-up flex flex-col gap-6 rounded-xl border border-[#d9dfd8] bg-white p-6 shadow-sm">
+        <div className="animate-fade-up flex flex-col gap-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-[#141a16]">
+            <h2 className="text-base font-bold text-[var(--ink)]">
               {editing.id ? "Edit brand voice" : "New brand voice"}
             </h2>
             <button
               onClick={() => setEditing(null)}
-              className="rounded-md px-2 py-1 text-sm text-[#5c665e] hover:bg-[#f4f7f3]"
+              className="rounded-md px-2 py-1 text-sm text-[var(--muted-2)] hover:bg-[var(--surface-2)]"
             >
               ← Back
             </button>
@@ -182,7 +182,7 @@ export default function BrandVoiceForm() {
           <div>
             <div className="mb-1.5 flex items-baseline justify-between">
               <span className={labelCls + " mb-0"}>Personality</span>
-              <span className="font-mono text-[0.68rem] text-[#5f6960]">
+              <span className="font-mono text-[0.68rem] text-[var(--muted)]">
                 {personality.length}/6 · tap to choose
               </span>
             </div>
@@ -197,8 +197,8 @@ export default function BrandVoiceForm() {
                     aria-pressed={active}
                     className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150 hover:-translate-y-0.5 ${
                       active
-                        ? "border-[#0e7a63] bg-[#0e7a63] text-white shadow-sm"
-                        : "border-[#d9dfd8] bg-white text-[#3c4a54] hover:border-[#0e7a63]"
+                        ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-sm"
+                        : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)] hover:border-[var(--accent)]"
                     }`}
                   >
                     {active ? "✓ " : ""}
@@ -251,7 +251,7 @@ export default function BrandVoiceForm() {
           <div>
             <label className={labelCls} htmlFor="bv-desc">
               Voice &amp; style notes{" "}
-              <span className="normal-case text-[#5f6960]">(optional)</span>
+              <span className="normal-case text-[var(--muted)]">(optional)</span>
             </label>
             <textarea
               id="bv-desc"
@@ -268,7 +268,7 @@ export default function BrandVoiceForm() {
             <div>
               <label className={labelCls} htmlFor="bv-keywords">
                 Emphasize{" "}
-                <span className="normal-case text-[#5f6960]">(comma-sep)</span>
+                <span className="normal-case text-[var(--muted)]">(comma-sep)</span>
               </label>
               <input
                 id="bv-keywords"
@@ -281,7 +281,7 @@ export default function BrandVoiceForm() {
             <div>
               <label className={labelCls} htmlFor="bv-avoid">
                 Avoid{" "}
-                <span className="normal-case text-[#5f6960]">(comma-sep)</span>
+                <span className="normal-case text-[var(--muted)]">(comma-sep)</span>
               </label>
               <input
                 id="bv-avoid"
@@ -293,21 +293,21 @@ export default function BrandVoiceForm() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 border-t border-[#eef1ed] pt-5">
+          <div className="flex items-center gap-3 border-t border-[var(--bg)] pt-5">
             <button
               onClick={save}
               disabled={busy}
-              className="rounded-lg bg-[#0e7a63] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346] active:translate-y-0 disabled:opacity-50"
+              className="rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] active:translate-y-0 disabled:opacity-50"
             >
               {busy ? "Saving…" : editing.id ? "Update voice" : "Save voice"}
             </button>
             <button
               onClick={() => setEditing(null)}
-              className="rounded-lg border border-[#d9dfd8] bg-white px-4 py-2.5 text-sm font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63]"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)]"
             >
               Cancel
             </button>
-            {msg && <span className="text-sm text-[#8a3315]">{msg}</span>}
+            {msg && <span className="text-sm text-[var(--rust)]">{msg}</span>}
           </div>
         </div>
       </div>
@@ -318,28 +318,28 @@ export default function BrandVoiceForm() {
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-8">
       <div className="mb-4 flex items-center justify-between">
-        <p className="font-mono text-xs text-[#5c665e]">
+        <p className="font-mono text-xs text-[var(--muted-2)]">
           {loading
             ? "loading…"
             : `${voices.length} brand voice${voices.length === 1 ? "" : "s"}`}
         </p>
         <button
           onClick={openNew}
-          className="rounded-lg bg-[#0e7a63] px-4 py-2 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346]"
+          className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
         >
           + Add brand voice
         </button>
       </div>
 
       {!loading && voices.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[#d9dfd8] bg-white py-16 text-center">
-          <p className="text-sm font-medium text-[#3c4a54]">No brand voices yet</p>
-          <p className="max-w-xs text-xs text-[#5f6960]">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] py-16 text-center">
+          <p className="text-sm font-medium text-[var(--body)]">No brand voices yet</p>
+          <p className="max-w-xs text-xs text-[var(--muted)]">
             Create one or more voices; pick which to apply when you generate.
           </p>
           <button
             onClick={openNew}
-            className="mt-1 rounded-lg bg-[#0e7a63] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#0a5346]"
+            className="mt-1 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--accent-strong)]"
           >
             Create your first voice →
           </button>
@@ -350,10 +350,10 @@ export default function BrandVoiceForm() {
         {voices.map((v) => (
           <div
             key={v.id}
-            className="animate-fade-up flex flex-col gap-2 rounded-xl border border-[#d9dfd8] bg-white p-4"
+            className="animate-fade-up flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-bold text-[#141a16]">{v.name}</span>
+              <span className="text-sm font-bold text-[var(--ink)]">{v.name}</span>
               <div className="flex gap-1.5">
                 <button onClick={() => openEdit(v)} className={ghost}>
                   Edit
@@ -362,8 +362,8 @@ export default function BrandVoiceForm() {
                   onClick={() => remove(v)}
                   className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
                     confirmId === v.id
-                      ? "border-[#a62a2a] bg-[#a62a2a] text-white"
-                      : "border-[#e7c9c0] bg-white text-[#a62a2a] hover:bg-[#f7e8e0]"
+                      ? "border-[var(--danger)] bg-[var(--danger)] text-white"
+                      : "border-[var(--rust-border)] bg-[var(--surface)] text-[var(--danger)] hover:bg-[var(--rust-tint)]"
                   }`}
                 >
                   {confirmId === v.id ? "Confirm" : "Delete"}
@@ -374,24 +374,24 @@ export default function BrandVoiceForm() {
               {(v.personality ?? []).map((p) => (
                 <span
                   key={p}
-                  className="rounded-full border border-[#bfe0d0] bg-[#e6f2ec] px-2 py-0.5 text-[0.66rem] font-medium text-[#0a5346]"
+                  className="rounded-full border border-[var(--accent-border)] bg-[var(--accent-tint)] px-2 py-0.5 text-[0.66rem] font-medium text-[var(--accent-strong)]"
                 >
                   {p}
                 </span>
               ))}
               {v.formality && (
-                <span className="rounded-full border border-[#d9dfd8] bg-white px-2 py-0.5 text-[0.66rem] text-[#3c4a54]">
+                <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[0.66rem] text-[var(--body)]">
                   {v.formality}
                 </span>
               )}
               {v.industry && (
-                <span className="rounded-full border border-[#d9dfd8] bg-white px-2 py-0.5 text-[0.66rem] text-[#3c4a54]">
+                <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[0.66rem] text-[var(--body)]">
                   {v.industry}
                 </span>
               )}
             </div>
             {(v.keywords?.length || v.avoid?.length) && (
-              <p className="font-mono text-[0.66rem] leading-relaxed text-[#5f6960]">
+              <p className="font-mono text-[0.66rem] leading-relaxed text-[var(--muted)]">
                 {v.keywords?.length ? `emphasize: ${v.keywords.join(", ")}` : ""}
                 {v.keywords?.length && v.avoid?.length ? " · " : ""}
                 {v.avoid?.length ? `avoid: ${v.avoid.join(", ")}` : ""}
@@ -405,4 +405,4 @@ export default function BrandVoiceForm() {
 }
 
 const ghost =
-  "rounded-md border border-[#d9dfd8] bg-white px-2.5 py-1 text-xs font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]";
+  "rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]";

@@ -289,7 +289,7 @@ const NARRATION: Record<Phase, string> = {
 };
 
 const labelCls =
-  "mb-1.5 block font-mono text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]";
+  "mb-1.5 block font-mono text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-2)]";
 
 export default function AutoDemo() {
   const [idx, setIdx] = useState(0);
@@ -419,14 +419,14 @@ export default function AutoDemo() {
 
       <div
         aria-hidden="true"
-        className="overflow-hidden rounded-2xl border border-[#d9dfd8] bg-white shadow-xl"
+        className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xl"
       >
         {/* window chrome + mode tabs */}
-        <div className="flex items-center gap-3 border-b border-[#e7ebe6] bg-[#f7f9f6] px-4 py-2.5">
+        <div className="flex items-center gap-3 border-b border-[var(--border-2)] bg-[var(--surface-2)] px-4 py-2.5">
           <div className="flex gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-[#e7c9c0]" />
-            <span className="h-3 w-3 rounded-full bg-[#efe0c4]" />
-            <span className="h-3 w-3 rounded-full bg-[#cfe3d3]" />
+            <span className="h-3 w-3 rounded-full bg-[var(--rust-border)]" />
+            <span className="h-3 w-3 rounded-full bg-[var(--amber-tint)]" />
+            <span className="h-3 w-3 rounded-full bg-[var(--accent-border)]" />
           </div>
           <div className="ml-1 hidden items-center gap-1 sm:flex">
             {TABS.map((t) => (
@@ -434,16 +434,16 @@ export default function AutoDemo() {
                 key={t.mode}
                 className={`rounded-md px-2.5 py-1 font-mono text-[0.68rem] font-semibold transition-colors ${
                   t.mode === mode
-                    ? "bg-[#e6f2ec] text-[#0a5346]"
-                    : "text-[#5f6960]"
+                    ? "bg-[var(--accent-tint)] text-[var(--accent-strong)]"
+                    : "text-[var(--muted)]"
                 }`}
               >
                 {t.label}
               </span>
             ))}
           </div>
-          <span className="ml-auto flex items-center gap-1.5 font-mono text-[0.66rem] text-[#5f6960]">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#0e7a63]" />
+          <span className="ml-auto flex items-center gap-1.5 font-mono text-[0.66rem] text-[var(--muted)]">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent)]" />
             {NARRATION[phase]}
           </span>
         </div>
@@ -457,7 +457,7 @@ export default function AutoDemo() {
             {mode === "generate" && (
               <div className="grid grid-cols-1 md:h-full md:min-h-0 md:grid-cols-[minmax(0,270px)_1fr]">
                 {/* form */}
-                <div className="flex flex-col gap-3 border-b border-[#e7ebe6] p-4 md:border-b-0 md:border-r">
+                <div className="flex flex-col gap-3 border-b border-[var(--border-2)] p-4 md:border-b-0 md:border-r">
                   <div>
                     <span className={labelCls}>Content type</span>
                     <div className="grid grid-cols-2 gap-1.5">
@@ -468,8 +468,8 @@ export default function AutoDemo() {
                             key={t}
                             className={`rounded-lg border px-2.5 py-2 text-center text-xs font-medium transition-all ${
                               active
-                                ? "border-[#0e7a63] bg-[#e6f2ec] text-[#0a5346]"
-                                : "border-[#d9dfd8] bg-white text-[#3c4a54]"
+                                ? "border-[var(--accent)] bg-[var(--accent-tint)] text-[var(--accent-strong)]"
+                                : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)]"
                             }`}
                           >
                             {t}
@@ -481,10 +481,10 @@ export default function AutoDemo() {
 
                   <div>
                     <span className={labelCls}>Topic</span>
-                    <div className="min-h-[56px] rounded-lg border border-[#d9dfd8] bg-white px-3 py-2 text-sm leading-relaxed text-[#141a16]">
+                    <div className="min-h-[56px] rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm leading-relaxed text-[var(--ink)]">
                       {topic}
                       {phase === "g-type" && (
-                        <span className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-blink rounded-sm bg-[#0e7a63] align-middle" />
+                        <span className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-blink rounded-sm bg-[var(--accent)] align-middle" />
                       )}
                     </div>
                   </div>
@@ -493,17 +493,17 @@ export default function AutoDemo() {
                   <div
                     className={`rounded-lg border px-3 py-2 transition-all ${
                       phase === "g-select"
-                        ? "border-[#0e7a63] bg-[#e6f2ec] ring-2 ring-[#0e7a63]/20"
-                        : "border-[#d9dfd8] bg-white"
+                        ? "border-[var(--accent)] bg-[var(--accent-tint)] ring-2 ring-[var(--accent)]/20"
+                        : "border-[var(--border)] bg-[var(--surface)]"
                     }`}
                   >
-                    <div className="flex items-center gap-2 text-xs text-[#3c4a54]">
-                      <span className="flex h-4 w-4 items-center justify-center rounded bg-[#0e7a63] text-[0.6rem] font-bold text-white">
+                    <div className="flex items-center gap-2 text-xs text-[var(--body)]">
+                      <span className="flex h-4 w-4 items-center justify-center rounded bg-[var(--accent)] text-[0.6rem] font-bold text-white">
                         ✓
                       </span>
                       <span>
                         Brand voice:{" "}
-                        <span className="font-semibold text-[#0a5346]">
+                        <span className="font-semibold text-[var(--accent-strong)]">
                           {BRAND_VOICE.name}
                         </span>
                       </span>
@@ -512,7 +512,7 @@ export default function AutoDemo() {
                       {BRAND_VOICE.chips.map((c) => (
                         <span
                           key={c}
-                          className="rounded-full border border-[#bfe0d0] bg-white px-2 py-0.5 text-[0.66rem] font-medium text-[#0a5346]"
+                          className="rounded-full border border-[var(--accent-border)] bg-[var(--surface)] px-2 py-0.5 text-[0.66rem] font-medium text-[var(--accent-strong)]"
                         >
                           {c}
                         </span>
@@ -522,7 +522,7 @@ export default function AutoDemo() {
 
                   <div
                     className={`mt-auto inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-all ${
-                      generating ? "bg-[#0a5346]" : "bg-[#0e7a63]"
+                      generating ? "bg-[var(--accent-strong)]" : "bg-[var(--accent)]"
                     }`}
                   >
                     {generating ? (
@@ -538,14 +538,14 @@ export default function AutoDemo() {
 
                 {/* output */}
                 <div className="flex min-w-0 flex-col md:h-full md:min-h-0">
-                  <div className="flex flex-wrap items-center gap-2 border-b border-[#e7ebe6] px-4 py-2.5">
-                    <span className="rounded-md bg-[#e6f2ec] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-[#0a5346]">
+                  <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border-2)] px-4 py-2.5">
+                    <span className="rounded-md bg-[var(--accent-tint)] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-[var(--accent-strong)]">
                       {d.type}
                     </span>
-                    <span className="rounded-md bg-[#f2ede4] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-[#7a5a2e]">
+                    <span className="rounded-md bg-[var(--amber-tint)] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-[var(--amber)]">
                       in {BRAND_VOICE.name}&apos;s voice
                     </span>
-                    <span className="ml-auto font-mono text-[0.66rem] text-[#5f6960]">
+                    <span className="ml-auto font-mono text-[0.66rem] text-[var(--muted)]">
                       {phase === "g-done" ? "✓ saved" : "streaming…"}
                     </span>
                   </div>
@@ -555,31 +555,31 @@ export default function AutoDemo() {
                       <div className="flex flex-col gap-2.5">
                         {generating ? (
                           <>
-                            <div className="shimmer h-3 w-1/3 rounded bg-[#e7ebe6]" />
-                            <div className="shimmer h-3 w-11/12 rounded bg-[#eff2ee]" />
-                            <div className="shimmer h-3 w-full rounded bg-[#eff2ee]" />
-                            <div className="shimmer h-3 w-5/6 rounded bg-[#eff2ee]" />
+                            <div className="shimmer h-3 w-1/3 rounded bg-[var(--border-2)]" />
+                            <div className="shimmer h-3 w-11/12 rounded bg-[var(--bg)]" />
+                            <div className="shimmer h-3 w-full rounded bg-[var(--bg)]" />
+                            <div className="shimmer h-3 w-5/6 rounded bg-[var(--bg)]" />
                           </>
                         ) : (
-                          <p className="pt-6 text-center text-xs text-[#5f6960]">
+                          <p className="pt-6 text-center text-xs text-[var(--muted)]">
                             Your generated content will appear here
                           </p>
                         )}
                       </div>
                     ) : (
-                      <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[#1c241e]">
+                      <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--ink-2)]">
                         {genBody}
                         {phase === "g-stream" && (
-                          <span className="ml-0.5 inline-block h-4 w-[3px] translate-y-0.5 animate-blink rounded-sm bg-[#0e7a63] align-middle" />
+                          <span className="ml-0.5 inline-block h-4 w-[3px] translate-y-0.5 animate-blink rounded-sm bg-[var(--accent)] align-middle" />
                         )}
                       </div>
                     )}
                   </div>
 
-                  <div className="border-t border-[#e7ebe6] p-4">
+                  <div className="border-t border-[var(--border-2)] p-4">
                     {phase === "g-paint" ? (
-                      <div className="shimmer flex aspect-[16/10] w-full items-center justify-center rounded-lg bg-[#f4f7f3] md:w-[300px]">
-                        <span className="font-mono text-xs text-[#5f6960]">
+                      <div className="shimmer flex aspect-[16/10] w-full items-center justify-center rounded-lg bg-[var(--surface-2)] md:w-[300px]">
+                        <span className="font-mono text-xs text-[var(--muted)]">
                           Painting your image…
                         </span>
                       </div>
@@ -587,17 +587,17 @@ export default function AutoDemo() {
                       <div className="flex flex-col gap-2">
                         <div
                           key={idx}
-                          className="animate-paint-in aspect-[16/10] w-full overflow-hidden rounded-lg border border-[#d9dfd8] md:w-[300px]"
+                          className="animate-paint-in aspect-[16/10] w-full overflow-hidden rounded-lg border border-[var(--border)] md:w-[300px]"
                         >
                           <d.Scene />
                         </div>
-                        <p className="font-mono text-[0.66rem] leading-relaxed text-[#5f6960]">
-                          <span className="text-[#5c665e]">auto-prompt:</span>{" "}
+                        <p className="font-mono text-[0.66rem] leading-relaxed text-[var(--muted)]">
+                          <span className="text-[var(--muted-2)]">auto-prompt:</span>{" "}
                           {d.caption}
                         </p>
                       </div>
                     ) : (
-                      <div className="inline-flex items-center gap-2 rounded-lg border border-[#d9c3b8] bg-[#f7e8e0] px-3.5 py-2 text-xs font-semibold text-[#8a3315]">
+                      <div className="inline-flex items-center gap-2 rounded-lg border border-[var(--rust-border)] bg-[var(--rust-tint)] px-3.5 py-2 text-xs font-semibold text-[var(--rust)]">
                         Generate matching image
                       </div>
                     )}
@@ -618,8 +618,8 @@ export default function AutoDemo() {
                         key={g}
                         className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                           active
-                            ? "border-[#b7451e] bg-[#f7e8e0] text-[#8a3315] ring-2 ring-[#b7451e]/15"
-                            : "border-[#d9dfd8] bg-white text-[#3c4a54]"
+                            ? "border-[var(--rust-2)] bg-[var(--rust-tint)] text-[var(--rust)] ring-2 ring-[var(--rust-2)]/15"
+                            : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)]"
                         }`}
                       >
                         {g}
@@ -630,40 +630,40 @@ export default function AutoDemo() {
 
                 <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
                   {/* original */}
-                  <div className="flex min-h-[120px] flex-col overflow-hidden rounded-lg border border-[#d9dfd8] bg-[#fbfdfb]">
-                    <div className="border-b border-[#e7ebe6] px-3 py-1.5 font-mono text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-[#5f6960]">
+                  <div className="flex min-h-[120px] flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface-3)]">
+                    <div className="border-b border-[var(--border-2)] px-3 py-1.5 font-mono text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted)]">
                       Original
                     </div>
-                    <div className="flex-1 overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 text-[0.82rem] leading-relaxed text-[#5c665e]">
+                    <div className="flex-1 overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 text-[0.82rem] leading-relaxed text-[var(--muted-2)]">
                       {d.body}
                     </div>
                   </div>
                   {/* improved */}
-                  <div className="flex min-h-[120px] flex-col overflow-hidden rounded-lg border border-[#bfe0d0] bg-white">
-                    <div className="flex items-center gap-2 border-b border-[#e7ebe6] px-3 py-1.5">
-                      <span className="font-mono text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-[#0a5346]">
+                  <div className="flex min-h-[120px] flex-col overflow-hidden rounded-lg border border-[var(--accent-border)] bg-[var(--surface)]">
+                    <div className="flex items-center gap-2 border-b border-[var(--border-2)] px-3 py-1.5">
+                      <span className="font-mono text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-[var(--accent-strong)]">
                         Improved
                       </span>
-                      <span className="rounded bg-[#e6f2ec] px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold text-[#0a5346]">
+                      <span className="rounded bg-[var(--accent-tint)] px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold text-[var(--accent-strong)]">
                         {d.improveGoal}
                       </span>
                     </div>
-                    <div className="flex-1 overflow-y-auto px-3 py-2 text-[0.82rem] leading-relaxed text-[#1c241e]">
+                    <div className="flex-1 overflow-y-auto px-3 py-2 text-[0.82rem] leading-relaxed text-[var(--ink-2)]">
                       {phase === "i-improve" ? (
                         <div className="flex flex-col gap-2 pt-1">
-                          <div className="shimmer h-2.5 w-2/3 rounded bg-[#eff2ee]" />
-                          <div className="shimmer h-2.5 w-full rounded bg-[#eff2ee]" />
-                          <div className="shimmer h-2.5 w-4/5 rounded bg-[#eff2ee]" />
+                          <div className="shimmer h-2.5 w-2/3 rounded bg-[var(--bg)]" />
+                          <div className="shimmer h-2.5 w-full rounded bg-[var(--bg)]" />
+                          <div className="shimmer h-2.5 w-4/5 rounded bg-[var(--bg)]" />
                         </div>
                       ) : showImpText ? (
                         <div className="whitespace-pre-wrap break-words">
                           {impBody}
                           {phase === "i-stream" && (
-                            <span className="ml-0.5 inline-block h-3.5 w-[3px] translate-y-0.5 animate-blink rounded-sm bg-[#0e7a63] align-middle" />
+                            <span className="ml-0.5 inline-block h-3.5 w-[3px] translate-y-0.5 animate-blink rounded-sm bg-[var(--accent)] align-middle" />
                           )}
                         </div>
                       ) : (
-                        <p className="pt-3 text-center text-xs text-[#5f6960]">
+                        <p className="pt-3 text-center text-xs text-[var(--muted)]">
                           Choose a goal to sharpen this copy
                         </p>
                       )}
@@ -672,14 +672,14 @@ export default function AutoDemo() {
                 </div>
 
                 <div
-                  className={`mt-3 rounded-lg border border-[#e7ebe6] bg-[#f4f7f3] px-3 py-2 transition-opacity ${
+                  className={`mt-3 rounded-lg border border-[var(--border-2)] bg-[var(--surface-2)] px-3 py-2 transition-opacity ${
                     phase === "i-done" ? "opacity-100" : "opacity-0"
                   }`}
                 >
-                  <span className="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
+                  <span className="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-2)]">
                     What changed
                   </span>{" "}
-                  <span className="text-xs text-[#3c4a54]">{d.changed}</span>
+                  <span className="text-xs text-[var(--body)]">{d.changed}</span>
                 </div>
               </div>
             )}
@@ -691,7 +691,7 @@ export default function AutoDemo() {
                   <span className={labelCls + " mb-0"}>
                     Saved this session
                   </span>
-                  <span className="font-mono text-xs text-[#5c665e]">
+                  <span className="font-mono text-xs text-[var(--muted-2)]">
                     {historyItems.length} item
                     {historyItems.length === 1 ? "" : "s"}
                   </span>
@@ -701,23 +701,23 @@ export default function AutoDemo() {
                     <div
                       key={it.type}
                       style={{ animationDelay: `${k * 110}ms` }}
-                      className="animate-fade-up overflow-hidden rounded-xl border border-[#d9dfd8] bg-white"
+                      className="animate-fade-up overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]"
                     >
-                      <div className="aspect-[16/10] w-full overflow-hidden border-b border-[#e7ebe6]">
+                      <div className="aspect-[16/10] w-full overflow-hidden border-b border-[var(--border-2)]">
                         <it.Scene />
                       </div>
                       <div className="p-2.5">
-                        <span className="rounded bg-[#e6f2ec] px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold text-[#0a5346]">
+                        <span className="rounded bg-[var(--accent-tint)] px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold text-[var(--accent-strong)]">
                           {it.type}
                         </span>
-                        <p className="mt-1.5 line-clamp-2 text-[0.72rem] leading-snug text-[#3c4a54]">
+                        <p className="mt-1.5 line-clamp-2 text-[0.72rem] leading-snug text-[var(--body)]">
                           {it.topic}
                         </p>
                       </div>
                     </div>
                   ))}
                 </div>
-                <p className="mt-3 font-mono text-[0.66rem] text-[#5f6960]">
+                <p className="mt-3 font-mono text-[0.66rem] text-[var(--muted)]">
                   Every generation &amp; improvement is scoped to your session —
                   copy, export, or refine any of them again.
                 </p>

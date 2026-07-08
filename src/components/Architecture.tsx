@@ -11,9 +11,9 @@ import { useState } from "react";
 type Tag = "core" | "bonus" | "ext";
 
 const TAG_CLS: Record<Tag, string> = {
-  core: "border-[#bfe0d0] bg-[#e6f2ec] text-[#0a5346]",
-  bonus: "border-[#e3c9bd] bg-[#f7e8e0] text-[#8a3315]",
-  ext: "border-[#c4d3da] bg-[#eef4f6] text-[#2f5563]",
+  core: "border-[var(--accent-border)] bg-[var(--accent-tint)] text-[var(--accent-strong)]",
+  bonus: "border-[var(--rust-border)] bg-[var(--rust-tint)] text-[var(--rust)]",
+  ext: "border-[var(--slate-border)] bg-[var(--slate-tint)] text-[var(--slate)]",
 };
 
 function Chip({ children, tag }: { children: string; tag: Tag }) {
@@ -293,16 +293,16 @@ export default function Architecture() {
   const steps = FLOWS[flow];
 
   return (
-    <section className="border-t border-[#d9dfd8] bg-[#f4f7f3]">
+    <section className="border-t border-[var(--border)] bg-[var(--surface-2)]">
       <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#0a5346]">
+          <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-strong)]">
             Under the hood
           </span>
-          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-[#141a16] sm:text-3xl">
+          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-[var(--ink)] sm:text-3xl">
             How it actually works — what calls what
           </h2>
-          <p className="mt-3 text-[#3c4a54]">
+          <p className="mt-3 text-[var(--body)]">
             Every layer, every hop. The core assessment features and the bonus
             extras, side by side.
           </p>
@@ -317,7 +317,7 @@ export default function Architecture() {
               ["ext", "External service"],
             ] as [Tag, string][]
           ).map(([t, label]) => (
-            <span key={t} className="flex items-center gap-2 text-xs text-[#3c4a54]">
+            <span key={t} className="flex items-center gap-2 text-xs text-[var(--body)]">
               <span
                 className={`h-3.5 w-3.5 rounded border ${TAG_CLS[t]}`}
                 aria-hidden="true"
@@ -329,15 +329,15 @@ export default function Architecture() {
 
         <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_1fr]">
           {/* ── Architecture map ── */}
-          <div className="animate-fade-up rounded-2xl border border-[#d9dfd8] bg-white p-5">
-            <h3 className="mb-4 font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[#5c665e]">
+          <div className="animate-fade-up rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
+            <h3 className="mb-4 font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--muted-2)]">
               Architecture map
             </h3>
             <div className="flex flex-col">
               {LAYERS.map((layer, i) => (
                 <div key={layer.name}>
-                  <div className="rounded-xl border border-[#e2e8e2] bg-[#fbfdfb] p-3">
-                    <div className="mb-2 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
+                  <div className="rounded-xl border border-[var(--border-2)] bg-[var(--surface-3)] p-3">
+                    <div className="mb-2 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-2)]">
                       {layer.name}
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -349,7 +349,7 @@ export default function Architecture() {
                     </div>
                   </div>
                   {i < LAYERS.length - 1 && (
-                    <div className="flex flex-col items-center py-1 text-[#9fb0a5]">
+                    <div className="flex flex-col items-center py-1 text-[var(--accent-border)]">
                       {layer.edge && (
                         <span className="font-mono text-[0.66rem] uppercase tracking-[0.06em]">
                           {layer.edge}
@@ -366,8 +366,8 @@ export default function Architecture() {
           </div>
 
           {/* ── Per-feature call flow ── */}
-          <div className="animate-fade-up rounded-2xl border border-[#d9dfd8] bg-white p-5">
-            <h3 className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[#5c665e]">
+          <div className="animate-fade-up rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
+            <h3 className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--muted-2)]">
               Call flow — step by step
             </h3>
             <div
@@ -385,8 +385,8 @@ export default function Architecture() {
                     onClick={() => setFlow(k)}
                     className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
                       active
-                        ? "border-[#0e7a63] bg-[#e6f2ec] text-[#0a5346]"
-                        : "border-[#d9dfd8] bg-white text-[#3c4a54] hover:border-[#b9c6bd]"
+                        ? "border-[var(--accent)] bg-[var(--accent-tint)] text-[var(--accent-strong)]"
+                        : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)] hover:border-[var(--accent-border)]"
                     }`}
                   >
                     {k}
@@ -397,22 +397,22 @@ export default function Architecture() {
 
             <ol
               key={flow}
-              className="animate-fade-in relative mt-6 ml-3 border-l border-[#d9dfd8]"
+              className="animate-fade-in relative mt-6 ml-3 border-l border-[var(--border)]"
             >
               {steps.map((s, i) => (
                 <li key={i} className="relative mb-5 ml-6 last:mb-0">
-                  <span className="absolute -left-9 top-0 flex h-6 w-6 items-center justify-center rounded-full border border-[#0e7a63] bg-[#e6f2ec] font-mono text-[0.66rem] font-bold text-[#0a5346]">
+                  <span className="absolute -left-9 top-0 flex h-6 w-6 items-center justify-center rounded-full border border-[var(--accent)] bg-[var(--accent-tint)] font-mono text-[0.66rem] font-bold text-[var(--accent-strong)]">
                     {i + 1}
                   </span>
                   <div className="flex flex-wrap items-center gap-2">
-                    <code className="rounded bg-[#f2f5f1] px-1.5 py-0.5 font-mono text-[0.74rem] text-[#1c241e]">
+                    <code className="rounded bg-[var(--surface-2)] px-1.5 py-0.5 font-mono text-[0.74rem] text-[var(--ink-2)]">
                       {s.actor}
                     </code>
                     {s.tag && s.tagLabel && (
                       <TagPill tag={s.tag}>{`★ ${s.tagLabel}`}</TagPill>
                     )}
                   </div>
-                  <p className="mt-1 text-sm leading-relaxed text-[#3c4a54]">
+                  <p className="mt-1 text-sm leading-relaxed text-[var(--body)]">
                     {s.desc}
                   </p>
                 </li>
@@ -423,19 +423,19 @@ export default function Architecture() {
 
         {/* ── Core vs Bonus ── */}
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="animate-fade-up rounded-2xl border border-[#bfe0d0] bg-[#e9f4ee] p-5">
+          <div className="animate-fade-up rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-tint)] p-5">
             <div className="mb-3 flex items-center gap-2">
-              <span className="rounded-md bg-[#0e7a63] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-white">
+              <span className="rounded-md bg-[var(--accent)] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-white">
                 CORE
               </span>
-              <span className="text-sm font-semibold text-[#0a5346]">
+              <span className="text-sm font-semibold text-[var(--accent-strong)]">
                 The graded assessment
               </span>
             </div>
             <ul className="flex flex-col gap-2">
               {CORE_LIST.map((c) => (
-                <li key={c} className="flex gap-2 text-sm text-[#26332b]">
-                  <span className="mt-0.5 text-[#0e7a63]" aria-hidden="true">
+                <li key={c} className="flex gap-2 text-sm text-[var(--accent-strong)]">
+                  <span className="mt-0.5 text-[var(--accent)]" aria-hidden="true">
                     ✓
                   </span>
                   {c}
@@ -443,19 +443,19 @@ export default function Architecture() {
               ))}
             </ul>
           </div>
-          <div className="animate-fade-up rounded-2xl border border-[#e3c9bd] bg-[#f9ede5] p-5">
+          <div className="animate-fade-up rounded-2xl border border-[var(--rust-border)] bg-[var(--rust-tint)] p-5">
             <div className="mb-3 flex items-center gap-2">
-              <span className="rounded-md bg-[#b7451e] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-white">
+              <span className="rounded-md bg-[var(--rust-2)] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-white">
                 BONUS
               </span>
-              <span className="text-sm font-semibold text-[#8a3315]">
+              <span className="text-sm font-semibold text-[var(--rust)]">
                 The extras, layered on top
               </span>
             </div>
             <ul className="flex flex-col gap-2">
               {BONUS_LIST.map((b) => (
-                <li key={b} className="flex gap-2 text-sm text-[#3d2318]">
-                  <span className="mt-0.5 text-[#b7451e]" aria-hidden="true">
+                <li key={b} className="flex gap-2 text-sm text-[var(--rust)]">
+                  <span className="mt-0.5 text-[var(--rust-2)]" aria-hidden="true">
                     ★
                   </span>
                   {b}

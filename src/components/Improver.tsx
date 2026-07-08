@@ -69,9 +69,9 @@ export default function Improver() {
   }
 
   const inputCls =
-    "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#5f6960] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
+    "w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15";
   const labelCls =
-    "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[#5c665e]";
+    "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted-2)]";
 
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-8">
@@ -89,7 +89,7 @@ export default function Improver() {
             placeholder="Paste the marketing copy you want to improve…"
             className={`${inputCls} resize-y`}
           />
-          <p className="mt-1 text-right font-mono text-xs text-[#5f6960]">
+          <p className="mt-1 text-right font-mono text-xs text-[var(--muted)]">
             {text.length} / 12,000
           </p>
         </div>
@@ -107,8 +107,8 @@ export default function Improver() {
                   aria-pressed={active}
                   className={`rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors ${
                     active
-                      ? "border-[#0e7a63] bg-[#e6f2ec] text-[#0a5346]"
-                      : "border-[#d9dfd8] bg-white text-[#3c4a54] hover:border-[#b9c6bd]"
+                      ? "border-[var(--accent)] bg-[var(--accent-tint)] text-[var(--accent-strong)]"
+                      : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)] hover:border-[var(--accent-border)]"
                   }`}
                 >
                   {g.label}
@@ -137,52 +137,52 @@ export default function Improver() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="inline-flex w-fit items-center justify-center gap-2 rounded-lg bg-[#0e7a63] px-5 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346] active:translate-y-0 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex w-fit items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] active:translate-y-0 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45"
         >
           {loading ? "Improving…" : "Improve content"}
         </button>
       </form>
 
       {error && (
-        <div className="mt-6 rounded-lg border border-[#e7c9c0] bg-[#f7e8e0] p-4" role="alert">
-          <p className="text-sm text-[#8a3315]">{error}</p>
+        <div className="mt-6 rounded-lg border border-[var(--rust-border)] bg-[var(--rust-tint)] p-4" role="alert">
+          <p className="text-sm text-[var(--rust)]">{error}</p>
         </div>
       )}
 
       {result && (
         <div className="animate-fade-up mt-8 flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-[#d9dfd8] bg-[#f4f7f3] p-4">
-              <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[#5f6960]">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+              <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[var(--muted)]">
                 Before
               </div>
-              <div className="max-h-[40vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[#5c665e]">
+              <div className="max-h-[40vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--muted-2)]">
                 {result.original}
               </div>
             </div>
-            <div className="rounded-xl border border-[#cfe0d8] bg-white p-4">
+            <div className="rounded-xl border border-[var(--accent-border)] bg-[var(--surface)] p-4">
               <div className="mb-2 flex items-center justify-between">
-                <span className="font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[#0a5346]">
+                <span className="font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[var(--accent-strong)]">
                   After
                 </span>
                 <button
                   onClick={copy}
-                  className="rounded-md border border-[#d9dfd8] bg-white px-3 py-1 text-xs font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+                  className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
                 >
                   {copied ? "Copied ✓" : "Copy"}
                 </button>
               </div>
-              <div className="max-h-[40vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[#1c241e]">
+              <div className="max-h-[40vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--ink-2)]">
                 {result.improved}
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#d9dfd8] bg-white p-4">
-            <div className="mb-1.5 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+            <div className="mb-1.5 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-[var(--muted-2)]">
               What changed
             </div>
-            <p className="text-sm leading-relaxed text-[#3c4a54]">
+            <p className="text-sm leading-relaxed text-[var(--body)]">
               {result.changeSummary}
             </p>
           </div>

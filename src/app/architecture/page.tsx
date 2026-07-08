@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Architecture Note — AI Content Marketing Suite",
+  title: "Architecture Note — Nova",
   description:
     "Design choices, trade-offs, and what I'd build next — a one-page architecture note.",
 };
@@ -97,17 +97,17 @@ function Section({
 }) {
   return (
     <section className="mt-10">
-      <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#0a5346]">
+      <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-strong)]">
         {eyebrow}
       </h2>
       <ul className="mt-4 flex flex-col gap-4">
         {items.map(([title, body]) => (
           <li
             key={title}
-            className="rounded-xl border border-[#d9dfd8] bg-white p-4"
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
           >
-            <h3 className="text-sm font-bold text-[#141a16]">{title}</h3>
-            <p className="mt-1 text-sm leading-relaxed text-[#3c4a54]">{body}</p>
+            <h3 className="text-sm font-bold text-[var(--ink)]">{title}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-[var(--body)]">{body}</p>
           </li>
         ))}
       </ul>
@@ -121,17 +121,17 @@ export default function ArchitecturePage() {
       <div className="mx-auto max-w-3xl px-6 py-12">
         <div className="animate-fade-up">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#0a5346]">
+            <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-strong)]">
               Architecture note
             </span>
-            <span className="rounded-full border border-[#d9c3b8] bg-[#f7e8e0] px-2 py-0.5 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.06em] text-[#8a3315]">
+            <span className="rounded-full border border-[var(--rust-border)] bg-[var(--rust-tint)] px-2 py-0.5 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.06em] text-[var(--rust)]">
               optional
             </span>
           </div>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[#141a16]">
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink)]">
             Design choices, trade-offs & what&apos;s next
           </h1>
-          <p className="mt-3 text-[#3c4a54]">
+          <p className="mt-3 text-[var(--body)]">
             A one-page look under the hood — why the app is built the way it is,
             the compromises made in a 48-hour window, and where it would go next.
           </p>
@@ -140,13 +140,13 @@ export default function ArchitecturePage() {
               href={REPO_FILE}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2 text-sm font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-sm font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               View ARCHITECTURE.md on GitHub ↗
             </a>
             <Link
               href="/"
-              className="rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2 text-sm font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-sm font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               ← Back to home
             </Link>
@@ -158,7 +158,7 @@ export default function ArchitecturePage() {
 
         {/* What's next */}
         <section className="mt-10">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#0a5346]">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-strong)]">
             What I&apos;d build next
           </h2>
           <ul className="mt-4 flex flex-col gap-4">
@@ -167,19 +167,19 @@ export default function ArchitecturePage() {
                 key={n.title}
                 className={`rounded-xl border p-4 ${
                   n.starred
-                    ? "border-[#e3c9bd] bg-[#f9ede5]"
-                    : "border-[#d9dfd8] bg-white"
+                    ? "border-[var(--rust-border)] bg-[var(--rust-tint)]"
+                    : "border-[var(--border)] bg-[var(--surface)]"
                 }`}
               >
-                <h3 className="flex items-center gap-2 text-sm font-bold text-[#141a16]">
+                <h3 className="flex items-center gap-2 text-sm font-bold text-[var(--ink)]">
                   {n.starred && (
-                    <span className="text-[#b7451e]" aria-hidden="true">
+                    <span className="text-[var(--rust-2)]" aria-hidden="true">
                       ★
                     </span>
                   )}
                   {n.title}
                 </h3>
-                <p className="mt-1 text-sm leading-relaxed text-[#3c4a54]">
+                <p className="mt-1 text-sm leading-relaxed text-[var(--body)]">
                   {n.body}
                 </p>
               </li>
@@ -190,7 +190,7 @@ export default function ArchitecturePage() {
         <div className="mt-12 flex justify-center">
           <Link
             href="/create"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#0e7a63] px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
           >
             Try the app →
           </Link>

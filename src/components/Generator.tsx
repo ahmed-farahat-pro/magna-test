@@ -270,11 +270,11 @@ export default function Generator() {
   }
 
   const inputCls =
-    "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#5f6960] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
+    "w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15";
   const labelCls =
-    "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[#5c665e]";
+    "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted-2)]";
   const btnGhost =
-    "rounded-md border border-[#d9dfd8] bg-white px-3 py-1.5 text-xs font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]";
+    "rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]";
 
   return (
     <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 px-6 py-10 lg:grid-cols-[minmax(0,380px)_1fr]">
@@ -293,8 +293,8 @@ export default function Generator() {
                   aria-pressed={active}
                   className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
                     active
-                      ? "border-[#0e7a63] bg-[#e6f2ec] text-[#0a5346]"
-                      : "border-[#d9dfd8] bg-white text-[#3c4a54] hover:border-[#b9c6bd]"
+                      ? "border-[var(--accent)] bg-[var(--accent-tint)] text-[var(--accent-strong)]"
+                      : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)] hover:border-[var(--accent-border)]"
                   }`}
                 >
                   {t.label}
@@ -375,7 +375,7 @@ export default function Generator() {
             </select>
             <a
               href="/settings"
-              className="mt-1 inline-block text-xs text-[#5f6960] transition-colors hover:text-[#0a5346]"
+              className="mt-1 inline-block text-xs text-[var(--muted)] transition-colors hover:text-[var(--accent-strong)]"
             >
               Manage brand voices →
             </a>
@@ -383,7 +383,7 @@ export default function Generator() {
         ) : (
           <a
             href="/settings"
-            className="rounded-lg border border-dashed border-[#d9dfd8] bg-white px-3.5 py-2.5 text-center text-xs text-[#5f6960] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+            className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-center text-xs text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
           >
             + Add a brand voice in Settings
           </a>
@@ -392,20 +392,20 @@ export default function Generator() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-[#0e7a63] px-4 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346] active:translate-y-0 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45"
+          className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] active:translate-y-0 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45"
         >
           {loading ? "Generating…" : "Generate content"}
         </button>
       </form>
 
       {/* ── Result ── */}
-      <section className="min-h-[420px] rounded-xl border border-[#d9dfd8] bg-white">
+      <section className="min-h-[420px] rounded-xl border border-[var(--border)] bg-[var(--surface)]">
         {!result && !streaming && !error && (
           <div className="flex h-full min-h-[420px] flex-col items-center justify-center gap-2 px-6 text-center">
-            <p className="text-sm font-medium text-[#3c4a54]">
+            <p className="text-sm font-medium text-[var(--body)]">
               Your generated content will appear here
             </p>
-            <p className="max-w-xs text-xs text-[#5f6960]">
+            <p className="max-w-xs text-xs text-[var(--muted)]">
               Pick a format, describe the topic, tone, and audience, then hit
               generate — then create a matching image in one click.
             </p>
@@ -419,19 +419,19 @@ export default function Generator() {
             aria-live="polite"
           >
             {streamText ? (
-              <div className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[#1c241e]">
+              <div className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--ink-2)]">
                 {streamText}
                 <span
-                  className="ml-0.5 inline-block h-4 w-[3px] translate-y-0.5 animate-pulse rounded-sm bg-[#0e7a63] align-middle"
+                  className="ml-0.5 inline-block h-4 w-[3px] translate-y-0.5 animate-pulse rounded-sm bg-[var(--accent)] align-middle"
                   aria-hidden="true"
                 />
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                <div className="h-3 w-1/3 animate-pulse rounded bg-[#e7ebe6]" />
-                <div className="h-3 w-full animate-pulse rounded bg-[#eff2ee]" />
-                <div className="h-3 w-11/12 animate-pulse rounded bg-[#eff2ee]" />
-                <p className="mt-2 font-mono text-xs text-[#5f6960]">
+                <div className="h-3 w-1/3 animate-pulse rounded bg-[var(--border-2)]" />
+                <div className="h-3 w-full animate-pulse rounded bg-[var(--bg)]" />
+                <div className="h-3 w-11/12 animate-pulse rounded bg-[var(--bg)]" />
+                <p className="mt-2 font-mono text-xs text-[var(--muted)]">
                   Writing with Claude…
                 </p>
               </div>
@@ -440,21 +440,21 @@ export default function Generator() {
         )}
 
         {error && !streaming && (
-          <div className="m-6 rounded-lg border border-[#e7c9c0] bg-[#f7e8e0] p-4" role="alert">
-            <p className="text-sm font-semibold text-[#8a3315]">
+          <div className="m-6 rounded-lg border border-[var(--rust-border)] bg-[var(--rust-tint)] p-4" role="alert">
+            <p className="text-sm font-semibold text-[var(--rust)]">
               Couldn&apos;t generate content
             </p>
-            <p className="mt-1 text-sm text-[#8a3315]/90">{error}</p>
+            <p className="mt-1 text-sm text-[var(--rust)]/90">{error}</p>
           </div>
         )}
 
         {result && !streaming && (
           <div className="animate-fade-up flex h-full flex-col">
-            <div className="flex flex-wrap items-center gap-2 border-b border-[#e7ebe6] px-5 py-3">
-              <span className="rounded-md bg-[#e6f2ec] px-2.5 py-1 font-mono text-xs font-semibold text-[#0a5346]">
+            <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border-2)] px-5 py-3">
+              <span className="rounded-md bg-[var(--accent-tint)] px-2.5 py-1 font-mono text-xs font-semibold text-[var(--accent-strong)]">
                 {TYPE_LABEL[result.contentType] ?? result.contentType}
               </span>
-              <span className="font-mono text-xs text-[#5f6960]">
+              <span className="font-mono text-xs text-[var(--muted)]">
                 {result.saved ? "✓ saved to history" : "not saved (DB offline)"}
               </span>
               <div className="ml-auto flex flex-wrap gap-2">
@@ -491,15 +491,15 @@ export default function Generator() {
 
             <div
               aria-live="polite"
-              className="max-h-[46vh] overflow-y-auto whitespace-pre-wrap break-words px-5 py-4 text-sm leading-relaxed text-[#1c241e]"
+              className="max-h-[46vh] overflow-y-auto whitespace-pre-wrap break-words px-5 py-4 text-sm leading-relaxed text-[var(--ink-2)]"
             >
               {result.outputText}
             </div>
 
             {/* ── Brand-voice hard enforcement ── */}
             {result.avoided && result.avoided.length > 0 && (
-              <div className="mx-5 mb-1 flex flex-wrap items-center gap-2 rounded-lg border border-[#e7c9c0] bg-[#f7e8e0] px-3 py-2">
-                <span className="text-xs text-[#8a3315]">
+              <div className="mx-5 mb-1 flex flex-wrap items-center gap-2 rounded-lg border border-[var(--rust-border)] bg-[var(--rust-tint)] px-3 py-2">
+                <span className="text-xs text-[var(--rust)]">
                   Uses {result.avoided.length} word
                   {result.avoided.length === 1 ? "" : "s"} your brand voice avoids:{" "}
                   <span className="font-semibold">
@@ -509,7 +509,7 @@ export default function Generator() {
                 <button
                   onClick={enforceBrandVoice}
                   disabled={enforcing}
-                  className="ml-auto rounded-md border border-[#d9c3b8] bg-white px-3 py-1 text-xs font-semibold text-[#8a3315] transition-colors hover:bg-[#f2ddd0] disabled:opacity-50"
+                  className="ml-auto rounded-md border border-[var(--rust-border)] bg-[var(--surface)] px-3 py-1 text-xs font-semibold text-[var(--rust)] transition-colors hover:bg-[var(--rust-tint)] disabled:opacity-50"
                 >
                   {enforcing ? "Rewriting…" : "Rewrite to remove"}
                 </button>
@@ -517,30 +517,30 @@ export default function Generator() {
             )}
 
             {/* ── Image pairing (featured) ── */}
-            <div className="mt-auto border-t border-[#e7ebe6] px-5 py-4">
+            <div className="mt-auto border-t border-[var(--border-2)] px-5 py-4">
               {!imgUrl && !imgLoading && !imgError && (
                 <button
                   onClick={() => generateImage(imgStyle)}
-                  className="inline-flex items-center gap-2 rounded-lg border border-[#d9c3b8] bg-[#f7e8e0] px-4 py-2.5 text-sm font-semibold text-[#8a3315] transition-colors hover:bg-[#f2ddd0]"
+                  className="inline-flex items-center gap-2 rounded-lg border border-[var(--rust-border)] bg-[var(--rust-tint)] px-4 py-2.5 text-sm font-semibold text-[var(--rust)] transition-colors hover:bg-[var(--rust-tint)]"
                 >
                   Generate matching image
                 </button>
               )}
 
               {imgLoading && !imgUrl && (
-                <div className="flex aspect-video max-w-md animate-pulse items-center justify-center rounded-lg bg-[#f4f7f3]">
-                  <span className="font-mono text-xs text-[#5f6960]">
+                <div className="flex aspect-video max-w-md animate-pulse items-center justify-center rounded-lg bg-[var(--surface-2)]">
+                  <span className="font-mono text-xs text-[var(--muted)]">
                     Painting your image…
                   </span>
                 </div>
               )}
 
               {imgError && !imgLoading && (
-                <div className="rounded-lg border border-[#e7c9c0] bg-[#f7e8e0] p-3" role="alert">
-                  <p className="text-sm text-[#8a3315]">{imgError}</p>
+                <div className="rounded-lg border border-[var(--rust-border)] bg-[var(--rust-tint)] p-3" role="alert">
+                  <p className="text-sm text-[var(--rust)]">{imgError}</p>
                   <button
                     onClick={() => generateImage(imgStyle)}
-                    className="mt-2 rounded-md border border-[#d9c3b8] bg-white px-3 py-1.5 text-xs font-medium text-[#8a3315]"
+                    className="mt-2 rounded-md border border-[var(--rust-border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--rust)]"
                   >
                     Try again
                   </button>
@@ -549,7 +549,7 @@ export default function Generator() {
 
               {imgUrl && (
                 <div className="flex flex-col gap-3">
-                  <div className="relative max-w-md overflow-hidden rounded-lg border border-[#d9dfd8]">
+                  <div className="relative max-w-md overflow-hidden rounded-lg border border-[var(--border)]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={imgUrl}
@@ -562,7 +562,7 @@ export default function Generator() {
                     />
                     {imgLoading && (
                       <div className="absolute inset-0 flex items-center justify-center bg-white/30">
-                        <span className="rounded-md bg-white/90 px-2 py-1 font-mono text-xs text-[#5c665e]">
+                        <span className="rounded-md bg-white/90 px-2 py-1 font-mono text-xs text-[var(--muted-2)]">
                           Regenerating…
                         </span>
                       </div>
@@ -581,8 +581,8 @@ export default function Generator() {
                           aria-pressed={active}
                           className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
                             active
-                              ? "border-[#b7451e] bg-[#f7e8e0] text-[#8a3315]"
-                              : "border-[#d9dfd8] bg-white text-[#3c4a54] hover:border-[#b9c6bd]"
+                              ? "border-[var(--rust-2)] bg-[var(--rust-tint)] text-[var(--rust)]"
+                              : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)] hover:border-[var(--accent-border)]"
                           }`}
                         >
                           {s.label}
@@ -607,8 +607,8 @@ export default function Generator() {
                   </div>
 
                   {imgPrompt && (
-                    <p className="break-words font-mono text-[0.68rem] leading-relaxed text-[#5f6960]">
-                      <span className="text-[#5c665e]">auto-prompt:</span>{" "}
+                    <p className="break-words font-mono text-[0.68rem] leading-relaxed text-[var(--muted)]">
+                      <span className="text-[var(--muted-2)]">auto-prompt:</span>{" "}
                       {imgPrompt}
                     </p>
                   )}

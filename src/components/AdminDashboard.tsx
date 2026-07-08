@@ -169,31 +169,31 @@ export default function AdminDashboard() {
   const maxDay = Math.max(1, ...(stats?.perDay ?? []).map((d) => d.count));
 
   return (
-    <main className="flex-1 bg-[#eff2ee]">
+    <main className="flex-1 bg-[var(--bg)]">
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         {/* header */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#8a3315]" />
-              <span className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[#8a3315]">
+              <span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--rust)]" />
+              <span className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--rust)]">
                 Admin
               </span>
             </div>
-            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-[#141a16]">
+            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-[var(--ink)]">
               Traffic &amp; usage
             </h1>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={load}
-              className="rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2 text-sm font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-sm font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               {loading ? "Refreshing…" : "Refresh"}
             </button>
             <button
               onClick={signOut}
-              className="rounded-lg bg-[#8a3315] px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#6f2810]"
+              className="rounded-lg bg-[var(--rust)] px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--rust)]"
             >
               Sign out
             </button>
@@ -201,19 +201,19 @@ export default function AdminDashboard() {
         </div>
 
         {error && (
-          <p className="mb-4 rounded-lg border border-[#e7c9c0] bg-[#f7e8e0] px-3 py-2 text-sm text-[#8a3315]">
+          <p className="mb-4 rounded-lg border border-[var(--rust-border)] bg-[var(--rust-tint)] px-3 py-2 text-sm text-[var(--rust)]">
             {error}
           </p>
         )}
 
         {/* landing video for illustration */}
-        <div className="mb-6 rounded-2xl border border-[#d9dfd8] bg-white p-5 shadow-sm">
+        <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="text-sm font-bold text-[#141a16]">
+              <h2 className="text-sm font-bold text-[var(--ink)]">
                 Video for illustration
               </h2>
-              <p className="mt-0.5 text-xs text-[#5f6960]">
+              <p className="mt-0.5 text-xs text-[var(--muted)]">
                 Paste a YouTube link — it shows on the landing page. Clear it and the
                 landing page shows “No videos found”.
               </p>
@@ -221,8 +221,8 @@ export default function AdminDashboard() {
             <span
               className={`rounded-md px-2 py-1 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.06em] ${
                 videoEmbed
-                  ? "border border-[#bfe0d0] bg-[#e6f2ec] text-[#0a5346]"
-                  : "border border-[#d9dfd8] bg-[#f4f6f3] text-[#5f6960]"
+                  ? "border border-[var(--accent-border)] bg-[var(--accent-tint)] text-[var(--accent-strong)]"
+                  : "border border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]"
               }`}
             >
               {videoEmbed ? "live" : "no video"}
@@ -234,30 +234,30 @@ export default function AdminDashboard() {
               value={videoInput}
               onChange={(e) => setVideoInput(e.target.value)}
               placeholder="https://www.youtube.com/watch?v=…"
-              className="w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#5f6960] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
             />
             <div className="flex shrink-0 gap-2">
               <button
                 onClick={() => saveVideo(false)}
                 disabled={videoBusy || !videoInput.trim()}
-                className="rounded-lg bg-[#0e7a63] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0a5346] disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {videoBusy ? "Saving…" : "Save"}
               </button>
               <button
                 onClick={() => saveVideo(true)}
                 disabled={videoBusy || !videoEmbed}
-                className="rounded-lg border border-[#e7c9c0] px-3.5 py-2.5 text-sm font-medium text-[#8a3315] transition-colors hover:bg-[#f7e8e0] disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg border border-[var(--rust-border)] px-3.5 py-2.5 text-sm font-medium text-[var(--rust)] transition-colors hover:bg-[var(--rust-tint)] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Clear
               </button>
             </div>
           </div>
           {videoNote && (
-            <p className="mt-2 text-xs text-[#0a5346]">{videoNote}</p>
+            <p className="mt-2 text-xs text-[var(--accent-strong)]">{videoNote}</p>
           )}
           {videoEmbed && (
-            <div className="mt-3 aspect-video w-full max-w-md overflow-hidden rounded-xl border border-[#d9dfd8] bg-black">
+            <div className="mt-3 aspect-video w-full max-w-md overflow-hidden rounded-xl border border-[var(--border)] bg-black">
               <iframe
                 className="h-full w-full"
                 src={videoEmbed}
@@ -283,14 +283,14 @@ export default function AdminDashboard() {
           ].map((c) => (
             <div
               key={c.label}
-              className={`rounded-xl border bg-white p-4 shadow-sm ${
-                c.accent ? "border-[#0e7a63]/40" : "border-[#d9dfd8]"
+              className={`rounded-xl border bg-[var(--surface)] p-4 shadow-sm ${
+                c.accent ? "border-[var(--accent)]/40" : "border-[var(--border)]"
               }`}
             >
-              <div className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
+              <div className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-2)]">
                 {c.label}
               </div>
-              <div className="mt-1 text-2xl font-extrabold tabular-nums text-[#141a16]">
+              <div className="mt-1 text-2xl font-extrabold tabular-nums text-[var(--ink)]">
                 {c.value ?? (loading ? "…" : 0)}
               </div>
             </div>
@@ -299,23 +299,23 @@ export default function AdminDashboard() {
 
         {/* activity chart + actor split */}
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          <div className="rounded-xl border border-[#d9dfd8] bg-white p-5 shadow-sm lg:col-span-2">
-            <h2 className="text-sm font-bold text-[#141a16]">Activity — last 14 days</h2>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm lg:col-span-2">
+            <h2 className="text-sm font-bold text-[var(--ink)]">Activity — last 14 days</h2>
             <div className="mt-4 flex h-32 items-end gap-1.5">
               {(stats?.perDay ?? []).length === 0 && (
-                <p className="text-sm text-[#5f6960]">No activity yet.</p>
+                <p className="text-sm text-[var(--muted)]">No activity yet.</p>
               )}
               {(stats?.perDay ?? []).map((d) => (
                 <div key={d.day} className="group flex h-full flex-1 flex-col items-center justify-end">
-                  <span className="mb-0.5 font-mono text-[0.6rem] tabular-nums text-[#5f6960]">
+                  <span className="mb-0.5 font-mono text-[0.6rem] tabular-nums text-[var(--muted)]">
                     {d.count}
                   </span>
                   <div
-                    className="w-full rounded-t bg-[#0e7a63] transition-all group-hover:bg-[#0a5346]"
+                    className="w-full rounded-t bg-[var(--accent)] transition-all group-hover:bg-[var(--accent-strong)]"
                     style={{ height: `${Math.max(4, (d.count / maxDay) * 100)}%` }}
                     title={`${d.day}: ${d.count}`}
                   />
-                  <span className="mt-1 font-mono text-[0.55rem] text-[#5f6960]">
+                  <span className="mt-1 font-mono text-[0.55rem] text-[var(--muted)]">
                     {d.day.slice(5)}
                   </span>
                 </div>
@@ -323,13 +323,13 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#d9dfd8] bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-[#141a16]">Who&apos;s acting</h2>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+            <h2 className="text-sm font-bold text-[var(--ink)]">Who&apos;s acting</h2>
             <ActorSplit
               user={stats?.actionsByActor.user ?? 0}
               anon={stats?.actionsByActor.anon ?? 0}
             />
-            <h3 className="mt-5 text-xs font-semibold uppercase tracking-[0.06em] text-[#5c665e]">
+            <h3 className="mt-5 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--muted-2)]">
               By action type
             </h3>
             <ul className="mt-2 space-y-1.5">
@@ -337,8 +337,8 @@ export default function AdminDashboard() {
                 .sort((a, b) => b[1] - a[1])
                 .map(([type, n]) => (
                   <li key={type} className="flex items-center justify-between text-sm">
-                    <span className="text-[#3c4a54]">{TYPE_LABEL[type] ?? type}</span>
-                    <span className="font-mono tabular-nums text-[#141a16]">{n}</span>
+                    <span className="text-[var(--body)]">{TYPE_LABEL[type] ?? type}</span>
+                    <span className="font-mono tabular-nums text-[var(--ink)]">{n}</span>
                   </li>
                 ))}
             </ul>
@@ -346,16 +346,16 @@ export default function AdminDashboard() {
         </div>
 
         {/* users table */}
-        <div className="mt-6 rounded-xl border border-[#d9dfd8] bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-[#e7ebe6] px-5 py-3.5">
-            <h2 className="text-sm font-bold text-[#141a16]">
+        <div className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[var(--border-2)] px-5 py-3.5">
+            <h2 className="text-sm font-bold text-[var(--ink)]">
               Users {users ? `(${users.length})` : ""}
             </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-left text-sm">
               <thead>
-                <tr className="border-b border-[#e7ebe6] font-mono text-[0.62rem] uppercase tracking-[0.06em] text-[#5c665e]">
+                <tr className="border-b border-[var(--border-2)] font-mono text-[0.62rem] uppercase tracking-[0.06em] text-[var(--muted-2)]">
                   <th className="px-5 py-2.5 font-semibold">Email</th>
                   <th className="px-3 py-2.5 font-semibold">Joined</th>
                   <th className="px-3 py-2.5 text-right font-semibold">Content</th>
@@ -366,23 +366,23 @@ export default function AdminDashboard() {
               <tbody>
                 {(users ?? []).length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-5 py-6 text-center text-[#5f6960]">
+                    <td colSpan={5} className="px-5 py-6 text-center text-[var(--muted)]">
                       {loading ? "Loading…" : "No registered users yet."}
                     </td>
                   </tr>
                 )}
                 {(users ?? []).map((u) => (
-                  <tr key={u.id} className="border-b border-[#f0f2ef] last:border-0">
-                    <td className="max-w-[220px] truncate px-5 py-3 font-medium text-[#141a16]" title={u.email}>
+                  <tr key={u.id} className="border-b border-[var(--border-2)] last:border-0">
+                    <td className="max-w-[220px] truncate px-5 py-3 font-medium text-[var(--ink)]" title={u.email}>
                       {u.email}
                     </td>
-                    <td className="px-3 py-3 text-[#3c4a54]">
+                    <td className="px-3 py-3 text-[var(--body)]">
                       {new Date(u.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-3 py-3 text-right font-mono tabular-nums text-[#3c4a54]">
+                    <td className="px-3 py-3 text-right font-mono tabular-nums text-[var(--body)]">
                       {u.generations}
                     </td>
-                    <td className="px-3 py-3 text-right font-mono tabular-nums text-[#3c4a54]">
+                    <td className="px-3 py-3 text-right font-mono tabular-nums text-[var(--body)]">
                       {u.actions}
                     </td>
                     <td className="px-5 py-3 text-right">
@@ -391,13 +391,13 @@ export default function AdminDashboard() {
                           <button
                             onClick={() => deleteUser(u.id)}
                             disabled={deleting === u.id}
-                            className="rounded-md bg-[#a62a2a] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#872020] disabled:opacity-50"
+                            className="rounded-md bg-[var(--danger)] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[var(--danger-strong)] disabled:opacity-50"
                           >
                             {deleting === u.id ? "Deleting…" : "Confirm delete"}
                           </button>
                           <button
                             onClick={() => setConfirmId(null)}
-                            className="rounded-md border border-[#d9dfd8] px-2.5 py-1 text-xs text-[#3c4a54] hover:bg-[#f4f6f3]"
+                            className="rounded-md border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--body)] hover:bg-[var(--surface-2)]"
                           >
                             Cancel
                           </button>
@@ -405,7 +405,7 @@ export default function AdminDashboard() {
                       ) : (
                         <button
                           onClick={() => setConfirmId(u.id)}
-                          className="rounded-md border border-[#e7c9c0] px-2.5 py-1 text-xs font-medium text-[#8a3315] hover:bg-[#f7e8e0]"
+                          className="rounded-md border border-[var(--rust-border)] px-2.5 py-1 text-xs font-medium text-[var(--rust)] hover:bg-[var(--rust-tint)]"
                         >
                           Delete
                         </button>
@@ -419,33 +419,33 @@ export default function AdminDashboard() {
         </div>
 
         {/* recent activity feed */}
-        <div className="mt-6 rounded-xl border border-[#d9dfd8] bg-white shadow-sm">
-          <div className="border-b border-[#e7ebe6] px-5 py-3.5">
-            <h2 className="text-sm font-bold text-[#141a16]">Recent activity</h2>
+        <div className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
+          <div className="border-b border-[var(--border-2)] px-5 py-3.5">
+            <h2 className="text-sm font-bold text-[var(--ink)]">Recent activity</h2>
           </div>
-          <ul className="divide-y divide-[#f0f2ef]">
+          <ul className="divide-y divide-[var(--border-2)]">
             {(stats?.recent ?? []).length === 0 && (
-              <li className="px-5 py-6 text-center text-sm text-[#5f6960]">Nothing yet.</li>
+              <li className="px-5 py-6 text-center text-sm text-[var(--muted)]">Nothing yet.</li>
             )}
             {(stats?.recent ?? []).map((e) => (
               <li key={e.id} className="flex items-center gap-3 px-5 py-2.5 text-sm">
                 <span
                   className={`inline-block h-2 w-2 shrink-0 rounded-full ${
-                    e.isUser ? "bg-[#0e7a63]" : "bg-[#b7451e]"
+                    e.isUser ? "bg-[var(--accent)]" : "bg-[var(--rust-2)]"
                   }`}
                   title={e.isUser ? "registered user" : "anonymous"}
                 />
-                <span className="font-medium text-[#141a16]">
+                <span className="font-medium text-[var(--ink)]">
                   {TYPE_LABEL[e.type] ?? e.type}
                 </span>
                 {e.meta && Object.keys(e.meta).length > 0 && (
-                  <span className="truncate font-mono text-xs text-[#5f6960]">
+                  <span className="truncate font-mono text-xs text-[var(--muted)]">
                     {Object.entries(e.meta)
                       .map(([k, v]) => `${k}=${String(v)}`)
                       .join("  ")}
                   </span>
                 )}
-                <span className="ml-auto shrink-0 font-mono text-xs text-[#5f6960]">
+                <span className="ml-auto shrink-0 font-mono text-xs text-[var(--muted)]">
                   {e.isUser ? "user" : "anon"}·{e.actor} · {timeAgo(e.createdAt)}
                 </span>
               </li>
@@ -462,16 +462,16 @@ function ActorSplit({ user, anon }: { user: number; anon: number }) {
   const userPct = Math.round((user / total) * 100);
   return (
     <div className="mt-3">
-      <div className="flex h-3 overflow-hidden rounded-full bg-[#e7ebe6]">
-        <div className="bg-[#0e7a63]" style={{ width: `${userPct}%` }} />
-        <div className="bg-[#b7451e]" style={{ width: `${100 - userPct}%` }} />
+      <div className="flex h-3 overflow-hidden rounded-full bg-[var(--border-2)]">
+        <div className="bg-[var(--accent)]" style={{ width: `${userPct}%` }} />
+        <div className="bg-[var(--rust-2)]" style={{ width: `${100 - userPct}%` }} />
       </div>
       <div className="mt-2 flex justify-between text-xs">
-        <span className="flex items-center gap-1.5 text-[#3c4a54]">
-          <span className="inline-block h-2 w-2 rounded-full bg-[#0e7a63]" /> Users {user}
+        <span className="flex items-center gap-1.5 text-[var(--body)]">
+          <span className="inline-block h-2 w-2 rounded-full bg-[var(--accent)]" /> Users {user}
         </span>
-        <span className="flex items-center gap-1.5 text-[#3c4a54]">
-          <span className="inline-block h-2 w-2 rounded-full bg-[#b7451e]" /> Anonymous {anon}
+        <span className="flex items-center gap-1.5 text-[var(--body)]">
+          <span className="inline-block h-2 w-2 rounded-full bg-[var(--rust-2)]" /> Anonymous {anon}
         </span>
       </div>
     </div>

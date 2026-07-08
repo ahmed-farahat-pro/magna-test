@@ -11,33 +11,33 @@ const TYPE: Record<
 > = {
   user: {
     label: "You",
-    box: "border-[#bfe0d0] bg-[#eaf5ef]",
-    badge: "bg-[#0e7a63] text-white",
-    dot: "bg-[#0e7a63]",
+    box: "border-[var(--accent-border)] bg-[var(--accent-tint)]",
+    badge: "bg-[var(--accent)] text-white",
+    dot: "bg-[var(--accent)]",
   },
   system: {
     label: "Server",
-    box: "border-[#c4d3da] bg-[#eef4f6]",
-    badge: "bg-[#2f5563] text-white",
-    dot: "bg-[#2f5563]",
+    box: "border-[var(--slate-border)] bg-[var(--slate-tint)]",
+    badge: "bg-[var(--slate)] text-white",
+    dot: "bg-[var(--slate)]",
   },
   ai: {
     label: "Claude / OpenAI",
-    box: "border-[#d5c9e8] bg-[#f2eefa]",
-    badge: "bg-[#5b3f8a] text-white",
-    dot: "bg-[#5b3f8a]",
+    box: "border-[var(--violet-border)] bg-[var(--violet-tint)]",
+    badge: "bg-[var(--violet)] text-white",
+    dot: "bg-[var(--violet)]",
   },
   data: {
     label: "Database / Storage",
-    box: "border-[#e6d3ad] bg-[#f9f2e4]",
-    badge: "bg-[#7a5a2e] text-white",
-    dot: "bg-[#7a5a2e]",
+    box: "border-[var(--amber-border)] bg-[var(--amber-tint)]",
+    badge: "bg-[var(--amber)] text-white",
+    dot: "bg-[var(--amber)]",
   },
   success: {
     label: "Done",
-    box: "border-[#0e7a63] bg-[#e6f2ec]",
-    badge: "bg-[#0e7a63] text-white",
-    dot: "bg-[#0e7a63]",
+    box: "border-[var(--accent)] bg-[var(--accent-tint)]",
+    badge: "bg-[var(--accent)] text-white",
+    dot: "bg-[var(--accent)]",
   },
 };
 
@@ -254,7 +254,7 @@ export default function WorkflowFlows() {
         <div
           role="tablist"
           aria-label="Workflow views"
-          className="inline-flex rounded-xl border border-[#d9dfd8] bg-white p-1"
+          className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface)] p-1"
         >
           {FLOWS.map((f) => {
             const active = f.key === flowKey;
@@ -266,8 +266,8 @@ export default function WorkflowFlows() {
                 onClick={() => pick(f.key)}
                 className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
                   active
-                    ? "bg-[#0e7a63] text-white"
-                    : "text-[#3c4a54] hover:bg-[#f2f5f1]"
+                    ? "bg-[var(--accent)] text-white"
+                    : "text-[var(--body)] hover:bg-[var(--surface-2)]"
                 }`}
               >
                 {f.tab}
@@ -275,28 +275,28 @@ export default function WorkflowFlows() {
             );
           })}
         </div>
-        <p className="max-w-xl text-center text-sm text-[#3c4a54]">
-          <span className="font-semibold text-[#141a16]">{flow.audience}.</span>{" "}
+        <p className="max-w-xl text-center text-sm text-[var(--body)]">
+          <span className="font-semibold text-[var(--ink)]">{flow.audience}.</span>{" "}
           {flow.blurb}
         </p>
       </div>
 
       {/* progress + controls */}
       <div className="mx-auto mt-6 flex max-w-lg items-center justify-between gap-3">
-        <span className="font-mono text-xs text-[#5f6960]">
+        <span className="font-mono text-xs text-[var(--muted)]">
           Step {Math.min(revealed, total)} / {total}
         </span>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setRevealed(total)}
             disabled={complete}
-            className="rounded-lg border border-[#d9dfd8] bg-white px-3 py-1.5 text-xs font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346] disabled:opacity-40"
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:opacity-40"
           >
             Reveal all
           </button>
           <button
             onClick={() => setRevealed(1)}
-            className="rounded-lg border border-[#d9dfd8] bg-white px-3 py-1.5 text-xs font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
           >
             Restart
           </button>
@@ -315,7 +315,7 @@ export default function WorkflowFlows() {
               {i > 0 && (
                 <span
                   aria-hidden="true"
-                  className="animate-grow-down my-1 h-6 w-px bg-[#c7d2c9]"
+                  className="animate-grow-down my-1 h-6 w-px bg-[var(--accent-border)]"
                 />
               )}
 
@@ -337,26 +337,26 @@ export default function WorkflowFlows() {
                   </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
+                      <span className="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-2)]">
                         {String(i + 1).padStart(2, "0")} · {t.label}
                       </span>
                     </div>
-                    <h3 className="text-[0.95rem] font-bold leading-tight text-[#141a16]">
+                    <h3 className="text-[0.95rem] font-bold leading-tight text-[var(--ink)]">
                       {n.title}
                     </h3>
                   </div>
                 </div>
-                <p className="mt-2 text-sm leading-relaxed text-[#3c4a54]">
+                <p className="mt-2 text-sm leading-relaxed text-[var(--body)]">
                   {n.body}
                 </p>
 
                 {/* error branch (technical flow) */}
                 {n.onError && (
-                  <div className="mt-3 flex gap-2 rounded-lg border border-[#e3c9bd] bg-[#f9ede5] px-3 py-2">
-                    <span className="mt-0.5 shrink-0 font-mono text-[0.6rem] font-bold uppercase tracking-[0.06em] text-[#8a3315]">
+                  <div className="mt-3 flex gap-2 rounded-lg border border-[var(--rust-border)] bg-[var(--rust-tint)] px-3 py-2">
+                    <span className="mt-0.5 shrink-0 font-mono text-[0.6rem] font-bold uppercase tracking-[0.06em] text-[var(--rust)]">
                       on error
                     </span>
-                    <span className="text-xs leading-relaxed text-[#7a3618]">
+                    <span className="text-xs leading-relaxed text-[var(--rust)]">
                       {n.onError}
                     </span>
                   </div>
@@ -364,10 +364,10 @@ export default function WorkflowFlows() {
 
                 {/* click affordance on the frontier node */}
                 {clickable && (
-                  <div className="mt-3 flex items-center gap-1.5 border-t border-black/5 pt-2.5 text-xs font-semibold text-[#0a5346]">
+                  <div className="mt-3 flex items-center gap-1.5 border-t border-black/5 pt-2.5 text-xs font-semibold text-[var(--accent-strong)]">
                     <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0e7a63] opacity-60" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#0e7a63]" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--accent)] opacity-60" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
                     </span>
                     {i === 0 ? "Click to start — see what happens next" : "Click to reveal the next step →"}
                   </div>
@@ -380,11 +380,11 @@ export default function WorkflowFlows() {
 
       {/* completion note */}
       {complete && (
-        <div className="animate-fade-up mx-auto mt-4 max-w-lg rounded-xl border border-[#bfe0d0] bg-[#e9f4ee] px-4 py-3 text-center">
-          <p className="text-sm font-semibold text-[#0a5346]">
+        <div className="animate-fade-up mx-auto mt-4 max-w-lg rounded-xl border border-[var(--accent-border)] bg-[var(--accent-tint)] px-4 py-3 text-center">
+          <p className="text-sm font-semibold text-[var(--accent-strong)]">
             That&apos;s the whole {flowKey === "simple" ? "journey" : "pipeline"}.
           </p>
-          <p className="mt-1 text-xs text-[#26332b]">
+          <p className="mt-1 text-xs text-[var(--accent-strong)]">
             {flowKey === "simple"
               ? "Switch to “Under the hood” to see the engineering behind it."
               : "Every failure mode above returns the one typed error envelope — nothing 500s silently."}
@@ -395,10 +395,10 @@ export default function WorkflowFlows() {
       {/* the rest of the system — only on the technical view */}
       {flowKey === "technical" && (
         <div className="mx-auto mt-10 max-w-lg">
-          <h3 className="text-center font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[#5c665e]">
+          <h3 className="text-center font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--muted-2)]">
             The same pipeline backs every endpoint
           </h3>
-          <p className="mx-auto mt-1.5 max-w-md text-center text-xs text-[#5f6960]">
+          <p className="mx-auto mt-1.5 max-w-md text-center text-xs text-[var(--muted)]">
             session → rate limit → zod → (moderation) → AI → one typed error
             envelope. The improver, images, brand voices, auth, and admin all reuse
             this shape.
@@ -407,16 +407,16 @@ export default function WorkflowFlows() {
             {SIBLINGS.map((s) => (
               <div
                 key={s.endpoint}
-                className="rounded-xl border border-[#d9dfd8] bg-white p-3.5"
+                className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3.5"
               >
-                <code className="font-mono text-[0.72rem] font-semibold text-[#0a5346]">
+                <code className="font-mono text-[0.72rem] font-semibold text-[var(--accent-strong)]">
                   {s.endpoint}
                 </code>
-                <p className="mt-1.5 text-xs leading-relaxed text-[#3c4a54]">
+                <p className="mt-1.5 text-xs leading-relaxed text-[var(--body)]">
                   {s.what}
                 </p>
-                <p className="mt-1.5 flex gap-1.5 text-[0.7rem] leading-relaxed text-[#5c665e]">
-                  <span className="shrink-0 font-mono font-semibold uppercase tracking-[0.05em] text-[#2f5563]">
+                <p className="mt-1.5 flex gap-1.5 text-[0.7rem] leading-relaxed text-[var(--muted-2)]">
+                  <span className="shrink-0 font-mono font-semibold uppercase tracking-[0.05em] text-[var(--slate)]">
                     guard
                   </span>
                   {s.guard}

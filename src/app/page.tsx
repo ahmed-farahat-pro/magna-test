@@ -6,7 +6,7 @@ import LandingVideo from "@/components/LandingVideo";
 const REPO_URL = "https://github.com/ahmed-farahat-pro/magna-test";
 
 export const metadata = {
-  title: "AI Content Marketing Suite — watch it work",
+  title: "Nova — watch it work",
   description:
     "See it live: type a topic, watch Claude write finished marketing copy, and get a matching AI image — then copy, save, or export. Try the automated demo, then start creating.",
 };
@@ -73,27 +73,27 @@ export default function Landing() {
         {/* ambient accents */}
         <div
           aria-hidden="true"
-          className="animate-float-slow pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#cfe6d6] opacity-50 blur-3xl"
+          className="animate-float-slow pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[var(--accent-border)] opacity-50 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="animate-float-slow pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full bg-[#f7e0d2] opacity-50 blur-3xl"
+          className="animate-aurora pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full bg-[var(--accent-2)] opacity-30 blur-3xl"
           style={{ animationDelay: "1.5s" }}
         />
 
         <div className="relative mx-auto max-w-6xl px-6 pb-6 pt-14 text-center sm:pt-20">
-          <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-[#cfe3d3] bg-white/70 px-3 py-1 font-mono text-xs font-medium text-[#0a5346] backdrop-blur">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#0e7a63]" />
+          <span className="animate-fade-up glass inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-xs font-medium text-[var(--accent-strong)]">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent)]" />
             Copy + image, in one workflow
           </span>
           <h1
-            className="animate-fade-up mx-auto mt-5 max-w-3xl text-balance text-4xl font-extrabold tracking-tight text-[#141a16] sm:text-5xl"
+            className="animate-fade-up mx-auto mt-5 max-w-3xl text-balance text-4xl font-extrabold tracking-tight text-[var(--ink)] sm:text-5xl"
             style={{ animationDelay: "60ms" }}
           >
             Marketing content that writes itself — and brings its own picture.
           </h1>
           <p
-            className="animate-fade-up mx-auto mt-4 max-w-2xl text-pretty text-lg text-[#3c4a54]"
+            className="animate-fade-up mx-auto mt-4 max-w-2xl text-pretty text-lg text-[var(--body)]"
             style={{ animationDelay: "120ms" }}
           >
             Describe a topic, apply your brand voice, and watch Claude write
@@ -107,13 +107,13 @@ export default function Landing() {
           >
             <Link
               href="/create"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#0e7a63] px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346]"
+              className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
             >
               Get started — it&apos;s free →
             </Link>
             <a
               href="#how"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#d9dfd8] bg-white px-6 py-3 text-sm font-semibold text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm font-semibold text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               How it works
             </a>
@@ -121,7 +121,7 @@ export default function Landing() {
               href={REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#d9dfd8] bg-white px-6 py-3 text-sm font-semibold text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm font-semibold text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               <GitHubIcon />
               View on GitHub
@@ -135,7 +135,7 @@ export default function Landing() {
           style={{ animationDelay: "240ms" }}
         >
           <AutoDemo />
-          <p className="mt-3 text-center font-mono text-xs text-[#5f6960]">
+          <p className="mt-3 text-center font-mono text-xs text-[var(--muted)]">
             ↑ A live, automated tour of the whole app — generate, improve &amp;
             history. No clicks needed.
           </p>
@@ -146,13 +146,13 @@ export default function Landing() {
       <LandingVideo />
 
       {/* ── How it works ── */}
-      <section id="how" className="border-t border-[#d9dfd8] bg-white">
+      <section id="how" className="border-t border-[var(--border)] bg-[var(--surface)]">
         <div className="mx-auto max-w-6xl px-6 py-16">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#0a5346]">
+            <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-strong)]">
               How it works
             </span>
-            <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-[#141a16] sm:text-3xl">
+            <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-[var(--ink)] sm:text-3xl">
               From blank page to publish-ready in four steps
             </h2>
           </div>
@@ -164,29 +164,29 @@ export default function Landing() {
                 <li
                   key={s.n}
                   style={{ animationDelay: `${i * 90}ms` }}
-                  className="animate-fade-up relative flex flex-col rounded-xl border border-[#d9dfd8] bg-[#fbfdfb] p-5"
+                  className="animate-fade-up relative flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface-3)] p-5"
                 >
                   {/* connector arrow (desktop) */}
                   {i < STEPS.length - 1 && (
                     <span
                       aria-hidden="true"
-                      className="absolute -right-2.5 top-1/2 z-10 hidden h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-[#d9dfd8] bg-white text-[#0e7a63] md:flex"
+                      className="absolute -right-2.5 top-1/2 z-10 hidden h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--accent)] md:flex"
                     >
                       ›
                     </span>
                   )}
                   <div className="flex items-center gap-2.5">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e6f2ec] text-[#0a5346]">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--accent-tint)] text-[var(--accent-strong)]">
                       <Icon />
                     </span>
-                    <span className="font-mono text-xs font-semibold text-[#5f6960]">
+                    <span className="font-mono text-xs font-semibold text-[var(--muted)]">
                       Step {s.n}
                     </span>
                   </div>
-                  <h3 className="mt-3 text-base font-bold text-[#141a16]">
+                  <h3 className="mt-3 text-base font-bold text-[var(--ink)]">
                     {s.title}
                   </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-[#3c4a54]">
+                  <p className="mt-1.5 text-sm leading-relaxed text-[var(--body)]">
                     {s.body}
                   </p>
                 </li>
@@ -197,13 +197,13 @@ export default function Landing() {
       </section>
 
       {/* ── Features ── */}
-      <section className="border-t border-[#d9dfd8]">
+      <section className="border-t border-[var(--border)]">
         <div className="mx-auto max-w-6xl px-6 py-16">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#0a5346]">
+            <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-strong)]">
               What&apos;s inside
             </span>
-            <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-[#141a16] sm:text-3xl">
+            <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-[var(--ink)] sm:text-3xl">
               Everything you need to ship content, faster
             </h2>
           </div>
@@ -212,11 +212,11 @@ export default function Landing() {
               <div
                 key={f.title}
                 style={{ animationDelay: `${i * 60}ms` }}
-                className="animate-fade-up rounded-xl border border-[#d9dfd8] bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="animate-fade-up rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className="mb-3 h-1.5 w-8 rounded-full bg-[#0e7a63]" />
-                <h3 className="text-base font-bold text-[#141a16]">{f.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-[#3c4a54]">
+                <div className="mb-3 h-1.5 w-8 rounded-full bg-[var(--accent)]" />
+                <h3 className="text-base font-bold text-[var(--ink)]">{f.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-[var(--body)]">
                   {f.body}
                 </p>
               </div>
@@ -229,18 +229,18 @@ export default function Landing() {
       <Architecture />
 
       {/* ── Final CTA ── */}
-      <section className="border-t border-[#d9dfd8] bg-white">
+      <section className="border-t border-[var(--border)] bg-[var(--surface)]">
         <div className="mx-auto max-w-4xl px-6 py-16 text-center">
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#141a16] sm:text-3xl">
+          <h2 className="text-2xl font-extrabold tracking-tight text-[var(--ink)] sm:text-3xl">
             Ready to see your topic come to life?
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-[#3c4a54]">
+          <p className="mx-auto mt-3 max-w-xl text-[var(--body)]">
             No sign-up hoops. Pick a format, describe your idea, and get finished
             copy plus a matching image in one pass.
           </p>
           <Link
             href="/create"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#0e7a63] px-7 py-3.5 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346]"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-7 py-3.5 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
           >
             Start creating →
           </Link>
@@ -248,16 +248,16 @@ export default function Landing() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-[#d9dfd8] bg-[#f4f7f3]">
+      <footer className="border-t border-[var(--border)] bg-[var(--surface-2)]">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-6 sm:flex-row">
-          <p className="font-mono text-xs text-[#5f6960]">
-            AI Content Marketing Suite · Magna Labs assessment
+          <p className="font-mono text-xs text-[var(--muted)]">
+            Nova · Magna Labs assessment
           </p>
           <a
             href={REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2 text-sm font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+            className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-sm font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
           >
             <GitHubIcon />
             View the source on GitHub

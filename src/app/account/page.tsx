@@ -56,18 +56,18 @@ export default function AccountPage() {
   }
 
   const inputCls =
-    "w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#5f6960] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15";
+    "w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15";
   const labelCls =
-    "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[#5c665e]";
+    "mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted-2)]";
 
   return (
     <main className="flex-1">
       <div className="mx-auto w-full max-w-md px-6 py-14">
-        <div className="animate-fade-up rounded-xl border border-[#d9dfd8] bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-extrabold tracking-tight text-[#141a16]">
+        <div className="animate-fade-up rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h1 className="text-xl font-extrabold tracking-tight text-[var(--ink)]">
             {mode === "signup" ? "Create your account" : "Welcome back"}
           </h1>
-          <p className="mt-1.5 text-sm text-[#3c4a54]">
+          <p className="mt-1.5 text-sm text-[var(--body)]">
             {mode === "signup"
               ? "Sign up to keep your content across devices. Anything you made anonymously moves to your account."
               : "Sign in to access your saved content and brand voices."}
@@ -116,14 +116,14 @@ export default function AccountPage() {
                             : true;
                       const color =
                         strength.label === "weak"
-                          ? "bg-[#a62a2a]"
+                          ? "bg-[var(--danger)]"
                           : strength.label === "medium"
-                            ? "bg-[#b7451e]"
-                            : "bg-[#0e7a63]";
+                            ? "bg-[var(--rust-2)]"
+                            : "bg-[var(--accent)]";
                       return (
                         <span
                           key={i}
-                          className={`h-1.5 flex-1 rounded ${filled ? color : "bg-[#e7ebe6]"}`}
+                          className={`h-1.5 flex-1 rounded ${filled ? color : "bg-[var(--border-2)]"}`}
                         />
                       );
                     })}
@@ -131,10 +131,10 @@ export default function AccountPage() {
                   <p
                     className={`mt-1 text-xs ${
                       strength.label === "weak"
-                        ? "text-[#a62a2a]"
+                        ? "text-[var(--danger)]"
                         : strength.label === "medium"
-                          ? "text-[#8a3315]"
-                          : "text-[#0a5346]"
+                          ? "text-[var(--rust)]"
+                          : "text-[var(--accent-strong)]"
                     }`}
                     aria-live="polite"
                   >
@@ -146,7 +146,7 @@ export default function AccountPage() {
             </div>
 
             {error && (
-              <p className="rounded-lg border border-[#e7c9c0] bg-[#f7e8e0] px-3 py-2 text-sm text-[#8a3315]" role="alert">
+              <p className="rounded-lg border border-[var(--rust-border)] bg-[var(--rust-tint)] px-3 py-2 text-sm text-[var(--rust)]" role="alert">
                 {error}
               </p>
             )}
@@ -154,7 +154,7 @@ export default function AccountPage() {
             <button
               type="submit"
               disabled={busy || blockedOnSignup}
-              className="mt-1 rounded-lg bg-[#0e7a63] px-4 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-1 rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy
                 ? "Please wait…"
@@ -164,23 +164,23 @@ export default function AccountPage() {
             </button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-[#5f6960]">
+          <p className="mt-4 text-center text-sm text-[var(--muted)]">
             {mode === "signup" ? "Already have an account? " : "New here? "}
             <button
               onClick={() => {
                 setMode(mode === "signup" ? "login" : "signup");
                 setError(null);
               }}
-              className="font-semibold text-[#0a5346] hover:underline"
+              className="font-semibold text-[var(--accent-strong)] hover:underline"
             >
               {mode === "signup" ? "Sign in" : "Create one"}
             </button>
           </p>
         </div>
 
-        <p className="mt-4 text-center text-xs text-[#5f6960]">
+        <p className="mt-4 text-center text-xs text-[var(--muted)]">
           Or keep{" "}
-          <Link href="/create" className="text-[#0a5346] hover:underline">
+          <Link href="/create" className="text-[var(--accent-strong)] hover:underline">
             using it anonymously
           </Link>{" "}
           — no account needed.

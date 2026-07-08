@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Fixes & improvements — AI Content Marketing Suite",
+  title: "Fixes & improvements — Nova",
   description:
     "The full remediation log: every fix, hardening pass, and feature added after each independent grading round.",
 };
@@ -11,9 +11,9 @@ const REPO_FILE =
 
 type Tag = "security" | "bug" | "feature";
 const TAG_CLS: Record<Tag, string> = {
-  security: "border-[#c4d3da] bg-[#eef4f6] text-[#2f5563]",
-  bug: "border-[#e3c9bd] bg-[#f7e8e0] text-[#8a3315]",
-  feature: "border-[#bfe0d0] bg-[#e6f2ec] text-[#0a5346]",
+  security: "border-[var(--slate-border)] bg-[var(--slate-tint)] text-[var(--slate)]",
+  bug: "border-[var(--rust-border)] bg-[var(--rust-tint)] text-[var(--rust)]",
+  feature: "border-[var(--accent-border)] bg-[var(--accent-tint)] text-[var(--accent-strong)]",
 };
 const TAG_LABEL: Record<Tag, string> = {
   security: "hardening",
@@ -127,13 +127,13 @@ export default function FixesPage() {
     <main className="flex-1">
       <div className="mx-auto max-w-3xl px-5 py-12 sm:px-6">
         <div className="animate-fade-up">
-          <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#0a5346]">
+          <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-strong)]">
             Fixes &amp; improvements
           </span>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[#141a16] sm:text-4xl">
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink)] sm:text-4xl">
             Every fix, hardening pass &amp; feature — in order
           </h1>
-          <p className="mt-3 max-w-2xl text-pretty text-[#3c4a54]">
+          <p className="mt-3 max-w-2xl text-pretty text-[var(--body)]">
             This project was graded by an independent multi-agent panel, then
             iterated on across ten rounds. Here&apos;s the full log — what changed,
             why, and how it was verified. The score moved from 89/100 to 104/110.
@@ -143,13 +143,13 @@ export default function FixesPage() {
               href={REPO_FILE}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2 text-sm font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-sm font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               Read the full fixes.md on GitHub ↗
             </a>
             <Link
               href="/workflow"
-              className="rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2 text-sm font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-sm font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               See the workflow →
             </Link>
@@ -162,15 +162,15 @@ export default function FixesPage() {
             <li
               key={r.n}
               style={{ animationDelay: `${i * 45}ms` }}
-              className="animate-fade-up rounded-2xl border border-[#d9dfd8] bg-white p-5"
+              className="animate-fade-up rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5"
             >
               <div className="flex items-start gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e6f2ec] font-mono text-sm font-bold text-[#0a5346]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-tint)] font-mono text-sm font-bold text-[var(--accent-strong)]">
                   {r.n}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-base font-bold text-[#141a16]">
+                    <h2 className="text-base font-bold text-[var(--ink)]">
                       {r.title}
                     </h2>
                     {r.tags.map((t) => (
@@ -184,8 +184,8 @@ export default function FixesPage() {
                   </div>
                   <ul className="mt-2.5 flex flex-col gap-1.5">
                     {r.points.map((p) => (
-                      <li key={p} className="flex gap-2 text-sm leading-relaxed text-[#3c4a54]">
-                        <span className="mt-0.5 shrink-0 text-[#0e7a63]" aria-hidden="true">
+                      <li key={p} className="flex gap-2 text-sm leading-relaxed text-[var(--body)]">
+                        <span className="mt-0.5 shrink-0 text-[var(--accent)]" aria-hidden="true">
                           ✓
                         </span>
                         {p}
@@ -201,7 +201,7 @@ export default function FixesPage() {
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           <Link
             href="/create"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#0e7a63] px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
           >
             Try the app →
           </Link>

@@ -5,9 +5,98 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   NOVA — emerald→teal theme tokens. Light is default; [data-theme="dark"] on the
+   <html> element flips every surface. Components reference these via Tailwind
+   arbitrary values, e.g. bg-[var(--surface)] / text-[var(--ink)].
+   ───────────────────────────────────────────────────────────────────────────── */
 :root {
-  --paper: #eff2ee;
-  --ink: #141a16;
+  /* neutrals */
+  --bg: #eef1ec;
+  --surface: #ffffff;
+  --surface-2: #f4f7f3;
+  --surface-3: #fbfdfb;
+  --ink: #101613;
+  --ink-2: #1c241e;
+  --body: #3c4a54;
+  --muted: #5f6960;
+  --muted-2: #5c665e;
+  --border: #dde3dc;
+  --border-2: #e7ebe6;
+  /* emerald→teal accent */
+  --accent: #0e7a63;
+  --accent-strong: #0a5346;
+  --accent-tint: #e6f2ec;
+  --accent-border: #bfe0d0;
+  --accent-2: #0d9488;
+  /* semantic — rust (admin), danger (delete), amber (data), slate (server), violet (AI) */
+  --rust: #8a3315;
+  --rust-2: #b7451e;
+  --rust-tint: #f7e8e0;
+  --rust-border: #e7c9c0;
+  --danger: #a62a2a;
+  --danger-strong: #872020;
+  --amber: #7a5a2e;
+  --amber-tint: #f9f2e4;
+  --amber-border: #e6d3ad;
+  --slate: #2f5563;
+  --slate-tint: #eef4f6;
+  --slate-border: #c4d3da;
+  --violet: #5b3f8a;
+  --violet-tint: #f2eefa;
+  --violet-border: #d5c9e8;
+  /* effects */
+  --grad: linear-gradient(120deg, #0e7a63 0%, #0d9488 45%, #14b8a6 100%);
+  --grad-soft: linear-gradient(120deg, #0e7a6322, #14b8a622);
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glow: 0 0 0 1px #0e7a6318, 0 8px 30px -12px #0d948855;
+  --ring: #0e7a63;
+  --shadow: 0 1px 2px rgba(16, 22, 19, 0.04), 0 8px 24px -14px rgba(16, 22, 19, 0.14);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #080b0a;
+  --surface: #10161300;
+  --surface: #111815;
+  --surface-2: #0d1310;
+  --surface-3: #151d18;
+  --ink: #eef3ef;
+  --ink-2: #dce6df;
+  --body: #aab7ae;
+  --muted: #7f8c83;
+  --muted-2: #8a978d;
+  --border: #232c27;
+  --border-2: #1c241f;
+  --accent: #17b697;
+  --accent-strong: #43e3c0;
+  --accent-tint: #0e2620;
+  --accent-border: #1e4638;
+  --accent-2: #2dd4bf;
+  --rust: #e8895f;
+  --rust-2: #f0995f;
+  --rust-tint: #2a1913;
+  --rust-border: #45352a;
+  --danger: #f26d6d;
+  --danger-strong: #ff8585;
+  --amber: #d9b06a;
+  --amber-tint: #221c10;
+  --amber-border: #46381f;
+  --slate: #86b6cb;
+  --slate-tint: #10201f;
+  --slate-border: #2a3a40;
+  --violet: #bda3e6;
+  --violet-tint: #191527;
+  --violet-border: #362f57;
+  --grad: linear-gradient(120deg, #17b697 0%, #2dd4bf 50%, #34e3c8 100%);
+  --grad-soft: linear-gradient(120deg, #17b69722, #2dd4bf22);
+  --glass: rgba(17, 24, 21, 0.66);
+  --glass-border: rgba(60, 78, 70, 0.5);
+  --glow: 0 0 0 1px #2dd4bf22, 0 10px 40px -12px #17b69766;
+  --ring: #2dd4bf;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 34px -16px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
 }
 
 html,
@@ -16,152 +105,117 @@ body {
 }
 
 body {
-  background: var(--paper);
+  background: var(--bg);
   color: var(--ink);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
+/* Smooth the theme flip (but not layout-affecting props). */
+:root:not(.no-transition) * {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 220ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Gradient + glow helpers ─────────────────────────────────────────────── */
+.text-gradient {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.bg-grad {
+  background-image: var(--grad);
+}
+.glow {
+  box-shadow: var(--glow);
+}
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border-color: var(--glass-border);
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
 @keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: none; }
 }
-.animate-fade-up {
-  animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+.animate-fade-up { animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-in { animation: fade-in 0.35s ease both; }
+.animate-scale-in { animation: scale-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Aurora drift for hero accents. */
+@keyframes aurora {
+  0%, 100% { transform: translate3d(0,0,0) scale(1); }
+  33% { transform: translate3d(3%, -4%, 0) scale(1.08); }
+  66% { transform: translate3d(-3%, 3%, 0) scale(0.96); }
 }
-.animate-fade-in {
-  animation: fade-in 0.3s ease both;
+.animate-aurora { animation: aurora 16s ease-in-out infinite; }
+
+/* Slow gradient pan for the wordmark / accents. */
+@keyframes grad-pan {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
-.animate-scale-in {
-  animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+.animate-grad {
+  background-size: 200% 200%;
+  animation: grad-pan 6s ease infinite;
 }
 
-/* Demo: a generated image "painting" into focus. */
+/* Logo mark pulse. */
+@keyframes mark-pulse {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); transform: rotate(0deg); }
+  50% { filter: drop-shadow(0 0 6px var(--accent-2)); }
+}
+.animate-mark { animation: mark-pulse 4s ease-in-out infinite; }
+
+/* Demo: image "painting" into focus. */
 @keyframes paint-in {
-  from {
-    opacity: 0;
-    filter: blur(14px) saturate(1.4);
-    transform: scale(1.04);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0) saturate(1);
-    transform: none;
-  }
+  from { opacity: 0; filter: blur(14px) saturate(1.4); transform: scale(1.04); }
+  to { opacity: 1; filter: blur(0) saturate(1); transform: none; }
 }
-.animate-paint-in {
-  animation: paint-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
+.animate-paint-in { animation: paint-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
-/* Demo: blinking type caret. */
-@keyframes blink {
-  0%,
-  49% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0;
-  }
-}
-.animate-blink {
-  animation: blink 1s steps(1) infinite;
-}
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.animate-blink { animation: blink 1s steps(1) infinite; }
 
-/* Demo: skeleton shimmer sweep. */
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-.shimmer {
-  position: relative;
-  overflow: hidden;
-}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.shimmer { position: relative; overflow: hidden; }
 .shimmer::after {
   content: "";
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.55),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
   animation: shimmer 1.4s ease-in-out infinite;
 }
 
-/* Landing: slow ambient drift for hero accents. */
 @keyframes float-slow {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-14px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
 }
-.animate-float-slow {
-  animation: float-slow 7s ease-in-out infinite;
-}
+.animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
 
-/* Workflow: a soft pulsing ring inviting a click on the next flow node. */
+/* Workflow node click affordance. */
 @keyframes soft-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(14, 122, 99, 0);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(14, 122, 99, 0.14);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(14, 122, 99, 0); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 16%, transparent); }
 }
-.animate-soft-pulse {
-  animation: soft-pulse 1.9s ease-in-out infinite;
-}
+.animate-soft-pulse { animation: soft-pulse 1.9s ease-in-out infinite; }
 
-/* Workflow: a connector line drawing downward as the next node reveals. */
-@keyframes grow-down {
-  from {
-    transform: scaleY(0);
-  }
-  to {
-    transform: scaleY(1);
-  }
-}
-.animate-grow-down {
-  transform-origin: top;
-  animation: grow-down 0.35s ease both;
-}
+@keyframes grow-down { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.animate-grow-down { transform-origin: top; animation: grow-down 0.35s ease both; }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  ::before,
-  ::after {
+  *, ::before, ::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;

@@ -78,7 +78,7 @@ function MenuItem({
     <button
       role="menuitem"
       onClick={onClick}
-      className="block w-full whitespace-nowrap px-3.5 py-2 text-left text-xs font-medium text-[#3c4a54] transition-colors hover:bg-[#f0f5f1] hover:text-[#0a5346]"
+      className="block w-full whitespace-nowrap px-3.5 py-2 text-left text-xs font-medium text-[var(--body)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--accent-strong)]"
     >
       {children}
     </button>
@@ -176,7 +176,7 @@ function DownloadMenu({ item, up = false }: { item: Item; up?: boolean }) {
               right: pos.right,
               zIndex: 9999,
             }}
-            className="w-44 overflow-hidden rounded-lg border border-[#d9dfd8] bg-white py-1 shadow-xl"
+            className="w-44 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] py-1 shadow-xl"
           >
             <MenuItem
               onClick={() => run(() => triggerDownload(item.outputText, `${base}.txt`))}
@@ -191,8 +191,8 @@ function DownloadMenu({ item, up = false }: { item: Item; up?: boolean }) {
             </MenuItem>
             {hasImg && (
               <>
-                <div className="my-1 border-t border-[#e7ebe6]" />
-                <div className="px-3.5 pb-1 pt-0.5 font-mono text-[0.66rem] uppercase tracking-[0.08em] text-[#5f6960]">
+                <div className="my-1 border-t border-[var(--border-2)]" />
+                <div className="px-3.5 pb-1 pt-0.5 font-mono text-[0.66rem] uppercase tracking-[0.08em] text-[var(--muted)]">
                   With photo
                 </div>
                 <MenuItem
@@ -339,14 +339,14 @@ export default function History() {
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <p className="font-mono text-xs text-[#5c665e]">
+        <p className="font-mono text-xs text-[var(--muted-2)]">
           {loading ? "loading…" : `${total} item${total === 1 ? "" : "s"}`}
         </p>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-[#e7c9c0] bg-[#f7e8e0] p-4" role="alert">
-          <p className="text-sm text-[#8a3315]">{error}</p>
+        <div className="rounded-lg border border-[var(--rust-border)] bg-[var(--rust-tint)] p-4" role="alert">
+          <p className="text-sm text-[var(--rust)]">{error}</p>
         </div>
       )}
 
@@ -355,21 +355,21 @@ export default function History() {
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="h-52 animate-pulse rounded-xl border border-[#d9dfd8] bg-[#f4f7f3]"
+              className="h-52 animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface-2)]"
             />
           ))}
         </div>
       )}
 
       {!loading && !error && items.length === 0 && (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#d9dfd8] bg-white py-20 text-center">
-          <p className="text-sm font-medium text-[#3c4a54]">No content yet</p>
-          <p className="max-w-xs text-xs text-[#5f6960]">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] py-20 text-center">
+          <p className="text-sm font-medium text-[var(--body)]">No content yet</p>
+          <p className="max-w-xs text-xs text-[var(--muted)]">
             Everything you generate or improve is saved here per session.
           </p>
           <Link
             href="/create"
-            className="mt-1 rounded-lg bg-[#0e7a63] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#0a5346]"
+            className="mt-1 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--accent-strong)]"
           >
             Create your first piece →
           </Link>
@@ -383,7 +383,7 @@ export default function History() {
               <article
                 key={item.id}
                 style={{ animationDelay: `${i * 40}ms` }}
-                className="animate-fade-up flex flex-col overflow-hidden rounded-xl border border-[#d9dfd8] bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="animate-fade-up flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 {item.imageUrl && (
                   <div className="relative h-36 w-full">
@@ -401,22 +401,22 @@ export default function History() {
                     <span
                       className={`rounded-md px-2 py-0.5 font-mono text-[0.68rem] font-semibold ${
                         item.kind === "IMPROVE"
-                          ? "bg-[#f7e8e0] text-[#8a3315]"
-                          : "bg-[#e6f2ec] text-[#0a5346]"
+                          ? "bg-[var(--rust-tint)] text-[var(--rust)]"
+                          : "bg-[var(--accent-tint)] text-[var(--accent-strong)]"
                       }`}
                     >
                       {label(item)}
                     </span>
-                    <span className="font-mono text-[0.68rem] text-[#5f6960]">
+                    <span className="font-mono text-[0.68rem] text-[var(--muted)]">
                       {fmtDate(item.createdAt)}
                     </span>
                   </div>
                   {item.topic && (
-                    <p className="mt-2 line-clamp-1 text-sm font-semibold text-[#141a16]">
+                    <p className="mt-2 line-clamp-1 text-sm font-semibold text-[var(--ink)]">
                       {item.topic}
                     </p>
                   )}
-                  <p className="mt-1 line-clamp-3 whitespace-pre-wrap break-words text-xs leading-relaxed text-[#5c665e]">
+                  <p className="mt-1 line-clamp-3 whitespace-pre-wrap break-words text-xs leading-relaxed text-[var(--muted-2)]">
                     {item.outputText}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-1.5 pt-1">
@@ -434,8 +434,8 @@ export default function History() {
                       onClick={() => remove(item.id)}
                       className={`ml-auto rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
                         confirmId === item.id
-                          ? "border-[#a62a2a] bg-[#a62a2a] text-white"
-                          : "border-[#e7c9c0] bg-white text-[#a62a2a] hover:bg-[#f7e8e0]"
+                          ? "border-[var(--danger)] bg-[var(--danger)] text-white"
+                          : "border-[var(--rust-border)] bg-[var(--surface)] text-[var(--danger)] hover:bg-[var(--rust-tint)]"
                       }`}
                     >
                       {confirmId === item.id ? "Confirm delete" : "Delete"}
@@ -455,7 +455,7 @@ export default function History() {
               >
                 ‹ Prev
               </button>
-              <span className="font-mono text-xs text-[#5c665e]">
+              <span className="font-mono text-xs text-[var(--muted-2)]">
                 Page {page} of {totalPages}
               </span>
               <button
@@ -482,20 +482,20 @@ export default function History() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="hist-modal-title"
-            className="animate-scale-in flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#d9dfd8] bg-white shadow-xl outline-none"
+            className="animate-scale-in flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-xl outline-none"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={trapFocus}
           >
-            <div className="flex items-center justify-between border-b border-[#e7ebe6] px-5 py-3">
+            <div className="flex items-center justify-between border-b border-[var(--border-2)] px-5 py-3">
               <span
                 id="hist-modal-title"
-                className="font-mono text-xs font-semibold text-[#3c4a54]"
+                className="font-mono text-xs font-semibold text-[var(--body)]"
               >
                 {label(selected)} · {fmtDate(selected.createdAt)}
               </span>
               <button
                 onClick={() => setSelected(null)}
-                className="rounded-md px-2 py-1 text-sm text-[#5c665e] hover:bg-[#f4f7f3]"
+                className="rounded-md px-2 py-1 text-sm text-[var(--muted-2)] hover:bg-[var(--surface-2)]"
                 aria-label="Close"
               >
                 ✕
@@ -507,22 +507,22 @@ export default function History() {
                 <img
                   src={selected.imageUrl}
                   alt={selected.topic ?? "Generated image"}
-                  className="mb-4 w-full rounded-lg border border-[#d9dfd8]"
+                  className="mb-4 w-full rounded-lg border border-[var(--border)]"
                 />
               )}
-              <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[#1c241e]">
+              <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--ink-2)]">
                 {selected.outputText}
               </div>
               {selected.explanation && (
-                <div className="mt-4 rounded-lg bg-[#f4f7f3] p-3">
-                  <div className="mb-1 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#5c665e]">
+                <div className="mt-4 rounded-lg bg-[var(--surface-2)] p-3">
+                  <div className="mb-1 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-2)]">
                     What changed
                   </div>
-                  <p className="text-sm text-[#3c4a54]">{selected.explanation}</p>
+                  <p className="text-sm text-[var(--body)]">{selected.explanation}</p>
                 </div>
               )}
             </div>
-            <div className="flex gap-2 border-t border-[#e7ebe6] px-5 py-3">
+            <div className="flex gap-2 border-t border-[var(--border-2)] px-5 py-3">
               <button
                 onClick={() => copy(selected.outputText, selected.id)}
                 className={ghost}
@@ -534,8 +534,8 @@ export default function History() {
                 onClick={() => remove(selected.id)}
                 className={`ml-auto rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
                   confirmId === selected.id
-                    ? "border-[#a62a2a] bg-[#a62a2a] text-white"
-                    : "border-[#e7c9c0] bg-white text-[#a62a2a] hover:bg-[#f7e8e0]"
+                    ? "border-[var(--danger)] bg-[var(--danger)] text-white"
+                    : "border-[var(--rust-border)] bg-[var(--surface)] text-[var(--danger)] hover:bg-[var(--rust-tint)]"
                 }`}
               >
                 {confirmId === selected.id ? "Confirm delete" : "Delete"}
@@ -549,6 +549,6 @@ export default function History() {
 }
 
 const ghost =
-  "rounded-md border border-[#d9dfd8] bg-white px-2.5 py-1 text-xs font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]";
+  "rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]";
 const pager =
-  "rounded-md border border-[#d9dfd8] bg-white px-3 py-1.5 text-sm font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] disabled:cursor-not-allowed disabled:opacity-40";
+  "rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-40";
