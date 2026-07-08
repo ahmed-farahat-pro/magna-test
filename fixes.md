@@ -109,10 +109,12 @@ Claude stream ──▶ full text accumulated
 ```
 
 It rejects: too short, stub/placeholder, or a **per-type count miss on the live
-markdown** — blog < 3 sections, ad < 3 variants, email < 3 subject lines, or
-LinkedIn < 3 hashtags. So the count invariants are enforced on the path users
-actually hit, not only in the structured helper. (Can't re-stream mid-flight, so
-it's a fail-loud guard, not a retry.)
+markdown** for the counts we can detect reliably — ad < 3 variants ("Variant N"),
+email < 3 subject lines ("Subject N"), blog < 3 sections ("## H2"). (LinkedIn
+hashtags aren't reliably marked in the stream, so they're not guarded — counting
+them would false-positive on valid posts.) So the count invariants are enforced
+on the path users actually hit, not only in the structured helper. (Can't
+re-stream mid-flight, so it's a fail-loud guard, not a retry.)
 
 ---
 
