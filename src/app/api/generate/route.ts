@@ -9,6 +9,7 @@ import {
 } from "@/lib/validation";
 import { aiEnabled, anthropic, MODEL } from "@/lib/ai/config";
 import { getStreamConfig } from "@/lib/ai/generate";
+import { describeAiError } from "@/lib/ai/errors";
 import { dbEnabled, getPrisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -80,13 +81,15 @@ export async function POST(req: Request) {
               controller.enqueue(encoder.encode(event.delta.text));
             }
           }
-        } catch {
+        } catch (e) {
+          const ai = describeAiError(e, "text");
           controller.enqueue(
             encoder.encode(
               SEP +
                 JSON.stringify({
-                  error:
-                    "The AI service failed while generating. Please try again.",
+                  error: ai.message,
+                  code: ai.reason,
+                  retryable: ai.retryable,
                 }),
             ),
           );

@@ -4,6 +4,7 @@ import { ok, fail, newRequestId } from "@/lib/http";
 import { improveSchema, zodDetails, IMPROVE_GOAL_DB } from "@/lib/validation";
 import { aiEnabled, MODEL } from "@/lib/ai/config";
 import { improve } from "@/lib/ai/improve";
+import { describeAiError } from "@/lib/ai/errors";
 import { dbEnabled, getPrisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -37,8 +38,12 @@ export async function POST(req: Request) {
     let result;
     try {
       result = await improve(goal, text, targetAudience);
-    } catch {
-      return fail("UPSTREAM_LLM_ERROR", "The AI service could not improve the text just now. Please try again.", requestId);
+    } catch (e) {
+      const ai = describeAiError(e, "text");
+      return fail(ai.code, ai.message, requestId, {
+        details: [{ path: "ai", message: ai.reason }],
+        headers: ai.retryable ? { "retry-after": "5" } : undefined,
+      });
     }
 
     let id: string | null = null;

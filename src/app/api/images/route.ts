@@ -8,6 +8,7 @@ import {
   generateImageB64,
   isWide,
 } from "@/lib/ai/image";
+import { describeAiError } from "@/lib/ai/errors";
 import { blobEnabled, uploadPngFromBase64, deleteBlob } from "@/lib/blob";
 import { dbEnabled, getPrisma } from "@/lib/db";
 
@@ -97,14 +98,12 @@ export async function POST(req: Request) {
     try {
       b64 = await generateImageB64(prompt, isWide(contentType));
     } catch (e) {
-      const detail = (e instanceof Error ? e.message : String(e)).slice(0, 300);
-      await markFailed(`image_generation_failed: ${detail}`.slice(0, 300));
-      return fail(
-        "UPSTREAM_IMAGE_ERROR",
-        "The image service could not create an image. Try a different style or topic.",
-        requestId,
-        { details: [{ path: "image", message: detail }] },
-      );
+      const ai = describeAiError(e, "image");
+      await markFailed(`image_generation_failed: ${ai.reason}`);
+      return fail(ai.code, ai.message, requestId, {
+        details: [{ path: "image", message: ai.reason }],
+        headers: ai.retryable ? { "retry-after": "5" } : undefined,
+      });
     }
 
     let imageUrl: string;
