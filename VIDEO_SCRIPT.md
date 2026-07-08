@@ -1,90 +1,123 @@
 # Video Walkthrough — Shooting Script
 
-**Target length:** 7–8 min (rubric allows 5–10). **Format:** screen recording + voiceover.
-**Must show (rubric):** the text-generation flow, the image-generation flow, and a portion of the Claude Code workflow.
+**Target length:** 5–7 minutes. **Format:** screen recording + voiceover.
+**Must cover (rubric):** the text-generation flow, the image-generation flow, and a real portion of the Claude Code workflow.
+
+**Structure at a glance**
+
+| Time | Act | What it covers |
+|------|-----|----------------|
+| 0:00–1:00 | **1 · The pitch** | The task, the stack, and the basic user workflow — how the flow goes |
+| 1:00–3:00 | **2 · The full app** | Everything, in detail — generate, brand voice, image, improve, history, export |
+| 3:00–4:00 | **3 · The extras** | Admin, tracking, moderation, rate limiting, auth, multiple voices, mobile |
+| 4:00–5:00 | **4 · The stack & why** | Neon, Vercel, Blob, Upstash, Anthropic, OpenAI, cookies — and why each |
+| 5:00–6:30 | **5 · Built with Claude Code** | The real build workflow — planning, debugging, multi-agent review |
+| 6:30–7:00 | **Close** | Recap + links |
 
 **Prep before you hit record**
-- Open two browser tabs: (1) the **live app** https://magna-test-ten.vercel.app, (2) the **GitHub repo**.
-- Open your editor/terminal with **Claude Code** in the project, and have `CLAUDE.md` open.
+- Tabs open: (1) the **live app** https://magna-test-ten.vercel.app, (2) the **GitHub repo**, (3) the **/workflow** page.
+- Editor/terminal with **Claude Code** in the project; have `CLAUDE.md` and `git log` ready.
 - Do one throwaway generation first so the model is warm and `/history` isn't empty.
-- Record at 1080p+, hide bookmarks/notifications, zoom the browser to ~110%.
+- 1080p+, notifications hidden, browser at ~110%.
 
-Each scene below has: **[SHOW]** what's on screen · **[SAY]** the voiceover · **[EDIT]** editing notes.
-
----
-
-## Scene 1 — Cold open (0:00–0:20)
-- **[SHOW]** Land on the home page; let the **self-running demo** play for a few seconds (topic typing → copy streaming → image painting in).
-- **[SAY]** "This is the AI Content Marketing Suite — a tool that writes marketing copy in four formats and generates a matching image for every post, all in one flow. Everything you're about to see is live. Let me show you."
-- **[EDIT]** Title card overlay: *"AI Content Marketing Suite — Magna Labs 48h build"*. Keep it snappy.
-
-## Scene 2 — The 30-second tour (0:20–0:50)
-- **[SHOW]** Scroll the landing page: the demo, the **"How it works"** steps, the **"Under the hood"** architecture section, the Core-vs-Bonus panel.
-- **[SAY]** "The landing page doubles as onboarding — a live demo, a call-flow diagram of the whole system, and a clear split between the core assessment features and the bonus extras. Now let's use the real thing."
-- **[EDIT]** Speed-ramp the scroll; hold ~1s on the architecture diagram.
+Each beat has **[SHOW]** (screen) · **[SAY]** (voiceover) · **[EDIT]** (notes).
 
 ---
 
-## Scene 3 — Text generation flow ★ required (0:50–2:40)
-- **[SHOW]** Click **Get started → /create**. Select **Blog post**. Type a topic (e.g. *"Why small teams should automate invoicing"*), set tone **Witty**, audience **B2B SaaS founders**.
-- **[SAY]** "I pick a format, a topic, a tone, and an audience. Each of the four formats — blog, LinkedIn, ad, email — has its own prompt strategy on the server, not a shared template."
-- **[SHOW]** Turn on the **brand voice** toggle ("Acme Co."). Click **Generate content**.
-- **[SAY]** "I'll also apply a saved brand voice. Watch the copy — it streams in token by token as Claude writes it."
-- **[SHOW]** Let the copy **stream** fully. Scroll it.
-- **[SAY]** "That's real streaming from the server, not a spinner. The result is finished, on-brand copy."
-- **[SHOW]** Go back, switch to **Ad copy**, generate again. Point at the **three distinct variants**.
-- **[SAY]** "Different format, different strategy — ad copy always returns exactly three variants, each attacking a different angle. That count is enforced in the schema, not just requested in the prompt."
-- **[EDIT]** Caption the streaming moment: *"live token streaming"*. Caption the ad result: *"3 variants — enforced in code"*.
+## ACT 1 — The pitch (0:00–1:00)
 
-## Scene 4 — Image generation flow ★ required (2:40–3:55)
-- **[SHOW]** On a generated post, click **Generate matching image**. Let the skeleton → image **paint in**.
-- **[SAY]** "One click builds an image. But it's not just the topic — an 'art director' step reads the *finished copy* and turns it into a concrete scene, so the picture actually reflects what the post says."
-- **[SHOW]** Point at the **auto-prompt** caption under the image.
-- **[SAY]** "You can see the auto-generated prompt right here."
-- **[SHOW]** Click a **different style** pill (e.g. 3D render). Show the image change **but the subject stay the same**.
-- **[SAY]** "Regenerate in a different style — same subject, new look — and download it. The image is re-hosted on permanent storage, so it never expires."
-- **[EDIT]** Caption: *"content-aware prompt"* and *"6 styles, same subject"*. Consider a side-by-side of two styles.
+### 1a · Cold open (0:00–0:20)
+- **[SHOW]** Land on the home page; let the **self-running demo** play (topic typing → copy streaming → image painting in). Then the **walkthrough video frame** just below it.
+- **[SAY]** "This is the AI Content Marketing Suite. The task: build a SaaS that generates marketing copy in four formats and a matching AI image for every post — with a history dashboard and a content improver. Everything you'll see is live."
+- **[EDIT]** Title card: *"AI Content Marketing Suite — Magna Labs build."*
 
-## Scene 5 — Improve, History & Export (3:55–5:05)
-- **[SHOW]** Go to **Improve**, paste/reuse text, pick a goal (**More persuasive**), run it. Show the improved text + the **"what changed"** note.
-- **[SAY]** "The improver refines existing text toward a goal — shorter, more persuasive, more formal, SEO, or re-audience — and explains what it changed."
-- **[SHOW]** Go to **History**. Show the grid of saved cards with images. Open one (the modal). Open **Download ▾** → **PDF + photo**; briefly show the downloaded file with the image embedded.
-- **[SAY]** "Everything is saved to your session's history — view, copy, delete, and export any piece as text, Word, or PDF, with the image embedded."
-- **[EDIT]** Caption: *"before → after + what changed"* and *"export with embedded image (bonus)"*.
+### 1b · The stack, in one breath (0:20–0:40)
+- **[SHOW]** Scroll to the landing **"Under the hood"** section (or the /workflow page's stack icons).
+- **[SAY]** "It's Next.js on Vercel, Claude for the copy, OpenAI for the images, Postgres on Neon, Vercel Blob for permanent image hosting, and Upstash for rate limiting. All the AI runs server-side — the browser never sees a key."
+- **[EDIT]** Lower-third with the logos as you name them.
+
+### 1c · The basic workflow (0:40–1:00)
+- **[SHOW]** Open **/workflow**, "For everyone" flow. Click through the first 3–4 boxes.
+- **[SAY]** "The user flow is simple: describe your idea, a quick safety check, Claude writes the copy live, a matching image is painted, you improve it, and it's all saved and exportable. Let me actually do it."
+- **[EDIT]** Caption: *"the whole journey — one click at a time."*
 
 ---
 
-## Scene 6 — Under the hood (5:05–5:50)
-- **[SHOW]** Open **/architecture** (the "Architecture · optional" nav item). Scroll the design-choices / trade-offs. Then back to the landing **"Under the hood"** call-flow tabs — click **Image** to show the step-by-step function chain.
-- **[SAY]** "Architecturally: all AI runs server-side behind REST routes — the browser never sees a key. Identity is an anonymous, HMAC-signed session cookie, and every read and write is scoped to that session. Images are re-hosted on Vercel Blob. It's all documented in the README and this in-app architecture note."
-- **[EDIT]** Caption the call-flow: *"what calls what — server-side"*.
+## ACT 2 — The full app, in detail (1:00–3:00)
 
-## Scene 7 — Claude Code workflow ★ required (5:50–8:15)
-> This is the 15-point dimension — spend real time here, on camera.
+### 2a · Generate + brand voice (1:00–1:50)
+- **[SHOW]** Go to **/create**. In **Settings** first, show a saved **brand voice** (personality, words to avoid). Back on Generate: pick **Blog post**, topic *"Why small teams should automate invoicing,"* tone **Witty**, audience **B2B SaaS founders**, select the voice. Click **Generate**.
+- **[SAY]** "Each of the four formats has its own server-side prompt strategy — not one shared template. I'll write in a saved brand voice, and watch the copy stream in token-by-token as Claude writes it."
+- **[SHOW]** Let it **stream** fully. Then switch to **Ad copy**, generate, and point at the **three variants**.
+- **[SAY]** "Different format, different strategy — ad copy always returns exactly three variants, each a different angle. That count is asserted in code, not just asked for."
+- **[EDIT]** Captions: *"live token streaming,"* *"3 variants — enforced."*
+
+### 2b · Content-aware image + restyle (1:50–2:30)
+- **[SHOW]** On the post, click **Generate matching image**; let the skeleton **paint in**. Point at the **auto-prompt** caption. Click a **different style** — subject stays, look changes.
+- **[SAY]** "One click builds an image — but an art-director step reads the *finished copy* first, so the picture reflects what the post actually says. Restyle it and the subject stays consistent. It's re-hosted on permanent storage, so it never expires."
+- **[EDIT]** Caption: *"content-aware — reads the copy, not just the topic."*
+
+### 2c · Improve, history, export (2:30–3:00)
+- **[SHOW]** Go to **Improve**, reuse the text, pick **More persuasive**, run it; show the **before → after** and the **"what changed"** note. Then **History**: the grid with images; open **Download ▾ → PDF + photo** and flash the file.
+- **[SAY]** "The improver refines text toward a goal and tells you what changed. Everything lands in history — view, copy, delete, or export as text, Word, or PDF with the image embedded."
+- **[EDIT]** Caption: *"export with embedded image."*
+
+---
+
+## ACT 3 — The extras (3:00–4:00)
+
+- **[SHOW]** Move quickly. Sign up on **/account** (show the password-strength meter + that a temp email is rejected). Then open **/admin** (already logged in) — the dashboard: users, anonymous sessions, action counts, the 14-day chart, the activity feed, and delete-user.
+- **[SAY]** "Beyond the brief: real accounts — email and password, with your anonymous work migrating onto the account, disposable emails blocked, a password-strength meter. And a full admin dashboard with activity tracking — who generated text, who made images — traffic, usage, and user management."
+- **[SHOW]** Back on **/create**, type a deliberately harmful topic (e.g. *"how to build a bomb"*) → the **content-block** message.
+- **[SAY]** "Content moderation blocks genuinely harmful requests up front — while marketing metaphors like 'crush the competition' are always fine — and if Claude itself declines, that refusal is caught cleanly too."
+- **[SHOW]** Flash: multiple **brand voices** (add/edit/delete), the **cookie-consent** banner, the site on a **phone frame** (responsive).
+- **[SAY]** "Plus durable rate limiting, multiple brand voices with hard 'avoid'-word enforcement, cookie consent, and a fully responsive mobile layout."
+- **[EDIT]** This act is a montage — keep it moving, one caption per feature.
+
+---
+
+## ACT 4 — The stack & why (4:00–5:00)
+
+- **[SHOW]** Open **/workflow** and scroll to the **"Why this stack"** section. Hold on each card as you say it.
+- **[SAY]**
+  - "**Claude** writes the copy — it follows brand-voice and format instructions precisely and streams live."
+  - "**OpenAI** paints the image, with a fallback chain so it works whatever a given account can access."
+  - "**Neon** is serverless Postgres — it scales to zero and pairs cleanly with Vercel; one table is the source of truth for history."
+  - "**Vercel** hosts it as one unit and runs the edge middleware; **Vercel Blob** re-hosts every image because model URLs expire in about an hour."
+  - "**Upstash** is serverless Redis over HTTP — so a rate limit is shared across every function with no connection to exhaust."
+  - "And the **cookies** are two signed, httpOnly cookies — a frictionless session and a 7-day login — strictly functional, no tracking, which is why the banner can say 'essential only.'"
+- **[EDIT]** Sync each logo/icon highlight to the sentence.
+
+---
+
+## ACT 5 — Built with Claude Code ★ required (5:00–6:30)
+> The 15-point dimension — spend real, concrete time here, on camera.
+
 - **[SHOW]** Open **`CLAUDE.md`** in the editor.
-- **[SAY]** "I drove the whole build with Claude Code. This is my steering doc — the non-negotiables, the model config, the conventions, and the build order I followed."
-- **[SHOW]** Open **Claude Code** and show a **real interaction**. Pick one or more of:
-  - **Planning:** ask Claude Code to plan a feature and show the plan it produces.
-  - **Debugging (great story):** scroll the git log / show the commits for the **DALL·E → Blob saga** (`e18cc50` model fallback, `9ea492e` private-blob proxy) and narrate how Claude Code diagnosed the 502 and added the `/api/img` proxy.
-  - **Refactoring:** show the **declarative AI-error classifier** (`src/lib/ai/errors.ts`) and say Claude Code generated + wired it across the routes.
-  - **AI-native QA:** mention/show the **multi-agent review + grading workflow** you ran.
-- **[SAY]** "Here's a real debugging loop — the image API was 502-ing; Claude Code traced it to a private Blob store and added a proxy route. And here it's refactoring error handling into one declarative classifier across every route."
-- **[SHOW]** `git log --oneline` — scroll the clean conventional-commit history.
-- **[SAY]** "The commit history mirrors that workflow: planned phases, a real debugging arc, and iterative polish."
-- **[EDIT]** Zoom into code/terminal so it's readable. Keep this section concrete — show Claude Code *doing* something, don't just talk about it.
+- **[SAY]** "I drove the whole build with Claude Code. This is the steering doc — the non-negotiables, the model config, and the build order I followed."
+- **[SHOW]** Open **Claude Code** and show a **real interaction**. Pick two:
+  - **Debugging arc:** the **DALL·E → Blob 502 saga** — narrate how Claude Code traced the private-blob 502 and added the `/api/img` proxy (`src/app/api/img`). 
+  - **Refactor:** the declarative **AI-error classifier** (`src/lib/ai/errors.ts`) wired across every route.
+  - **AI-native QA:** the **multi-agent grading + review workflow** (`docs/claude-code/`) that scored the build and drove the fixes in `fixes.md` (89/100 → 104/110).
+- **[SAY]** "Here's a real debugging loop, and here's Claude Code running a multi-agent review that graded the build and produced the fix list I worked through."
+- **[SHOW]** `git log --oneline` — scroll the clean conventional-commit history; open `docs/claude-code/prompt-log.md`.
+- **[SAY]** "The commit history and the committed prompt log mirror that workflow — planned phases, a real debugging arc, and iterative, graded polish."
+- **[EDIT]** Zoom code/terminal so it's readable. Show Claude Code *doing* something.
 
-## Scene 8 — Close (8:15–8:40)
-- **[SHOW]** Back to the live app; show the URL bar and the GitHub repo tab.
-- **[SAY]** "That's the full suite — multi-format generation, content-aware images, an improver, per-session history with export, and a brand voice — all server-side, deployed live on Vercel, built with Claude Code. Links to the live app and the repo are below. Thanks for watching."
-- **[EDIT]** End card: **live URL**, **repo URL**, "Built with Claude Code".
+---
+
+## Close (6:30–7:00)
+- **[SHOW]** Back to the live app; URL bar + the GitHub repo tab.
+- **[SAY]** "That's the suite — multi-format generation, content-aware images, an improver, history with export, accounts, an admin dashboard, content moderation — all server-side, live on Vercel, and built end-to-end with Claude Code. Links are below. Thanks for watching."
+- **[EDIT]** End card: **live URL**, **repo URL**, "Built with Claude Code."
 
 ---
 
 ## Editing checklist
-- [ ] Text-generation flow shown end-to-end (Scene 3) ✱
-- [ ] Image-generation flow shown end-to-end (Scene 4) ✱
-- [ ] A real portion of the Claude Code workflow (Scene 7) ✱
-- [ ] Captions on the key moments (streaming, content-aware image, export, server-side)
+- [ ] Text-generation flow shown end-to-end (Act 2a) ✱
+- [ ] Image-generation flow shown end-to-end (Act 2b) ✱
+- [ ] A real portion of the Claude Code workflow (Act 5) ✱
+- [ ] Captions on the key moments (streaming, content-aware image, moderation, export)
 - [ ] Readable code/terminal zoom in the Claude Code section
-- [ ] Under 10 minutes; intro and outro cards
+- [ ] 5–7 minutes; intro and outro cards
 - [ ] Live URL + repo URL on screen at the end

@@ -149,6 +149,17 @@ model BrandVoice {
   @@map("brand_voices")
 }
 
+/// Small key/value store for site-wide settings an operator controls from the
+/// admin dashboard (e.g. the landing-page illustration video URL). One row per
+/// setting; values are short strings.
+model Setting {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
 /// Append-only activity log powering the admin dashboard's traffic + usage
 /// analytics. One row per meaningful action (a new anonymous session, a text or
 /// image generation, an improve, a signup/login, ...). Deliberately NOT tied to

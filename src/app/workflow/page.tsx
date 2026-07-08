@@ -71,6 +71,14 @@ export default function WorkflowPage() {
           >
             Read the architecture note
           </Link>
+          <a
+            href="https://github.com/ahmed-farahat-pro/magna-test/blob/main/VIDEO_SCRIPT.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg border border-[#d9dfd8] bg-white px-6 py-3 text-sm font-semibold text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+          >
+            Video shooting script ↗
+          </a>
         </div>
       </div>
     </main>

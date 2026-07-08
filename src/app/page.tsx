@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AutoDemo from "@/components/AutoDemo";
 import Architecture from "@/components/Architecture";
+import LandingVideo from "@/components/LandingVideo";
 
 const REPO_URL = "https://github.com/ahmed-farahat-pro/magna-test";
 
@@ -140,6 +141,9 @@ export default function Landing() {
           </p>
         </div>
       </section>
+
+      {/* ── Walkthrough video (admin-managed) ── */}
+      <LandingVideo />
 
       {/* ── How it works ── */}
       <section id="how" className="border-t border-[#d9dfd8] bg-white">

@@ -66,6 +66,52 @@ export default function AdminDashboard() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
+  // Landing-page illustration video
+  const [videoInput, setVideoInput] = useState("");
+  const [videoEmbed, setVideoEmbed] = useState<string | null>(null);
+  const [videoBusy, setVideoBusy] = useState(false);
+  const [videoNote, setVideoNote] = useState<string | null>(null);
+
+  const loadVideo = useCallback(async () => {
+    try {
+      const r = await fetch("/api/admin/video", { cache: "no-store" });
+      if (r.status === 401) return;
+      const j = await r.json();
+      setVideoInput(j?.url ?? "");
+      setVideoEmbed(j?.embedUrl ?? null);
+    } catch {
+      /* non-fatal */
+    }
+  }, []);
+
+  async function saveVideo(clear = false) {
+    setVideoBusy(true);
+    setVideoNote(null);
+    try {
+      const r = await fetch("/api/admin/video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: clear ? "" : videoInput }),
+      });
+      const j = await r.json().catch(() => null);
+      if (r.status === 401) {
+        router.push("/admin/login");
+        return;
+      }
+      if (!r.ok) {
+        setVideoNote(j?.error?.message ?? "Could not save.");
+        return;
+      }
+      setVideoInput(j?.url ?? "");
+      setVideoEmbed(j?.embedUrl ?? null);
+      setVideoNote(clear ? "Cleared — the landing page shows “No videos found”." : j?.embedUrl ? "Saved — it's live on the landing page." : "Saved.");
+    } catch {
+      setVideoNote("Network error.");
+    } finally {
+      setVideoBusy(false);
+    }
+  }
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -92,7 +138,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     load();
-  }, [load]);
+    loadVideo();
+  }, [load, loadVideo]);
 
   async function signOut() {
     await fetch("/api/admin/logout", { method: "POST" }).catch(() => {});
@@ -158,6 +205,69 @@ export default function AdminDashboard() {
             {error}
           </p>
         )}
+
+        {/* landing video for illustration */}
+        <div className="mb-6 rounded-2xl border border-[#d9dfd8] bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-bold text-[#141a16]">
+                Video for illustration
+              </h2>
+              <p className="mt-0.5 text-xs text-[#5f6960]">
+                Paste a YouTube link — it shows on the landing page. Clear it and the
+                landing page shows “No videos found”.
+              </p>
+            </div>
+            <span
+              className={`rounded-md px-2 py-1 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.06em] ${
+                videoEmbed
+                  ? "border border-[#bfe0d0] bg-[#e6f2ec] text-[#0a5346]"
+                  : "border border-[#d9dfd8] bg-[#f4f6f3] text-[#5f6960]"
+              }`}
+            >
+              {videoEmbed ? "live" : "no video"}
+            </span>
+          </div>
+
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input
+              value={videoInput}
+              onChange={(e) => setVideoInput(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=…"
+              className="w-full rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#141a16] outline-none transition-colors placeholder:text-[#5f6960] focus:border-[#0e7a63] focus:ring-2 focus:ring-[#0e7a63]/15"
+            />
+            <div className="flex shrink-0 gap-2">
+              <button
+                onClick={() => saveVideo(false)}
+                disabled={videoBusy || !videoInput.trim()}
+                className="rounded-lg bg-[#0e7a63] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0a5346] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {videoBusy ? "Saving…" : "Save"}
+              </button>
+              <button
+                onClick={() => saveVideo(true)}
+                disabled={videoBusy || !videoEmbed}
+                className="rounded-lg border border-[#e7c9c0] px-3.5 py-2.5 text-sm font-medium text-[#8a3315] transition-colors hover:bg-[#f7e8e0] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+          {videoNote && (
+            <p className="mt-2 text-xs text-[#0a5346]">{videoNote}</p>
+          )}
+          {videoEmbed && (
+            <div className="mt-3 aspect-video w-full max-w-md overflow-hidden rounded-xl border border-[#d9dfd8] bg-black">
+              <iframe
+                className="h-full w-full"
+                src={videoEmbed}
+                title="Landing video preview"
+                loading="lazy"
+                allowFullScreen
+              />
+            </div>
+          )}
+        </div>
 
         {/* overview cards */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
