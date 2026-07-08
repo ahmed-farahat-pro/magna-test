@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const LINKS = [
+const LINKS: { href: string; label: string; optional?: boolean }[] = [
   { href: "/create", label: "Generate" },
   { href: "/improve", label: "Improve" },
   { href: "/history", label: "History" },
   { href: "/settings", label: "Settings" },
+  { href: "/architecture", label: "Architecture", optional: true },
 ];
 
 export default function TopNav() {
@@ -37,6 +38,11 @@ export default function TopNav() {
                 }`}
               >
                 {l.label}
+                {l.optional && (
+                  <span className="ml-1 rounded border border-[#d9c3b8] bg-[#f7e8e0] px-1 py-0.5 font-mono text-[0.55rem] font-semibold uppercase tracking-[0.04em] text-[#8a3315]">
+                    optional
+                  </span>
+                )}
               </Link>
             );
           })}
