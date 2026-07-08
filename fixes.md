@@ -357,6 +357,111 @@ Fixes from the adversarial security review folded in:
 
 ---
 
+## Round 8 — admin dashboard, activity tracking & the stale-header fix
+
+### R8.1 · Header showed "Sign in" after signing in 🐛
+
+The nav kept showing **Sign in** even after a successful login. Root cause: the
+browser **cached** `GET /api/auth/me`, so the post-login re-check served the stale
+pre-login `{ user: null }`. Fixed three ways: `cache: "no-store"` on the fetch, a
+`cache-control: no-store` header on the `/me` response, and an `auth-changed`
+event dispatched on login/signup/logout so the header re-checks **instantly**.
+
+### R8.2 · Full activity tracking
+
+A new append-only `ActivityEvent` model + migration. A best-effort `track()` writes
+one row per meaningful action, tagged user-vs-anonymous via a new `getActor()`:
+
+```
+generate ─┐
+images   ─┤
+improve  ─┼─▶ track(type, actor, isUser, meta)  ──▶  activity_events  (best-effort,
+enforce  ─┤        never blocks the response             never throws)
+signup   ─┤
+login    ─┘
+visit  ──▶ /api/track/visit ──▶ one session_start per new anonymous browser
+                                 (deduped by a dedicated cookie, because Edge
+                                  middleware pre-mints the session id)
+```
+
+### R8.3 · Admin dashboard (`/admin`)
+
+A single env-configured operator (`ADMIN_USERNAME` / `ADMIN_PASSWORD`) — no admin
+table, nothing to seed or leak. Constant-time credential check, IP-rate-limited
+login, an HMAC-signed admin cookie, and a server-guarded page.
+
+```
+/admin/login ─▶ POST /api/admin/login ─(constant-time check, rate-limited)─▶ acms_admin cookie
+   /admin (server guard: isAdmin() else redirect) ─▶ AdminDashboard
+        ├─ GET /api/admin/stats  → users · anon sessions · totals-by-type · 14-day chart · user/anon split
+        ├─ GET /api/admin/users  → per-user content + action counts
+        └─ DELETE /api/admin/users/[id] → cascades generations + brand voices + activity, in one txn
+```
+
+Verified **27/27** end-to-end against a throwaway local Postgres (every aggregate,
+the delete cascade, the visit-dedup, and all guards) plus a live smoke test.
+
+---
+
+## Round 9 — modern disposable-email hardening 🔒
+
+The base `disposable-email-domains` list (121k domains) lagged behind the temp-mail
+services in use **today** — 19 popular ones slipped through (`mail.tm`, `mail.gw`,
+`tempmail.com`, `temp-mail.io`, `emailondeck.com`, `minuteinbox.com`,
+`disposablemail.com`, the `tempmail.plus` alias domains, `1secmail`'s random
+receiving domains…). `isDisposableEmail` is now hardened three ways:
+
+```
+email domain
+   │
+   ├─▶ exact match in base list OR curated supplement (88 current providers/aliases)  ─▶ block
+   ├─▶ parent-domain match (so inbox.tempmail.plus is caught)                          ─▶ block
+   └─▶ brand-token heuristic (tempmail / mailinator / guerrillamail / …)               ─▶ block
+                                                                       else ─▶ allow
+```
+
+Verified: all 19 previously-open domains blocked, subdomain + heuristic coverage
+holds, and **0 false positives** across 20 legit domains — including the deliberate
+traps `mailtemplate.com`, `tempranillo-wines.com`, `temple.edu`, and `mailchimp.com`
+(a risky `"mailtemp"` token was removed to keep `mailtemplate.com` valid). Live:
+10/10 modern temp domains rejected, a real `@gmail.com` still signs up.
+
+---
+
+## Round 10 — mobile responsiveness & the interactive Workflow page
+
+### R10.1 · Landing demo no longer scroll-jacks the page 🐛
+
+On mobile the self-running demo had **no fixed height**, so as it cycled through
+acts its height swung **339px → 800px** — shoving everything below it and making
+the page appear to auto-scroll up and down. Fixed by giving the demo a **fixed
+height with internal scroll** on mobile (`h-[70vh] max-h-[600px]`), so the outer
+box stays a constant ~607px and the page never shifts. Confirmed stable across all
+three acts.
+
+### R10.2 · Navigation no longer overflows on mobile 🐛
+
+With 7 links, the mobile nav overflowed horizontally and pushed **"Sign in"
+off-screen** — unreachable without scrolling the nav. Rebuilt as a proper
+responsive header: brand + an always-visible auth button + a **hamburger menu**
+that drops down the full link list. Nothing runs past the screen edge; sign-in is
+always one tap away.
+
+### R10.3 · A new interactive Workflow page (`/workflow`)
+
+Two click-through flowcharts built for the walkthrough video:
+
+- **"For everyone"** — the 6-step user journey, plain-language, no jargon.
+- **"Under the hood"** — the full 9-step `/api/generate` pipeline, with a red
+  **"on error"** branch on each step showing exactly how that failure is caught and
+  turned into the one typed error envelope.
+
+Each box is revealed on click (with a pulsing "click to start" nudge on the first),
+distinct colors per node type (you / server / AI / storage), and animated
+connectors. Fully responsive.
+
+---
+
 ## Verification
 
 Everything above was confirmed on **https://magna-test-ten.vercel.app** after

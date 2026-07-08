@@ -448,12 +448,14 @@ export default function AutoDemo() {
           </span>
         </div>
 
-        {/* body — a panel per mode, crossfading on mode change */}
-        <div className="md:h-[470px]">
-          <div key={mode} className="animate-fade-in h-full">
+        {/* body — a panel per mode, crossfading on mode change. A FIXED height on
+            mobile (with internal scroll) keeps the demo from resizing as it cycles
+            through acts, which otherwise shoves the whole page up and down. */}
+        <div className="h-[70vh] max-h-[600px] min-h-[440px] md:h-[470px] md:max-h-none md:min-h-0">
+          <div key={mode} className="animate-fade-in h-full overflow-y-auto">
             {/* ── GENERATE ── */}
             {mode === "generate" && (
-              <div className="grid h-full grid-cols-1 md:min-h-0 md:grid-cols-[minmax(0,270px)_1fr]">
+              <div className="grid grid-cols-1 md:h-full md:min-h-0 md:grid-cols-[minmax(0,270px)_1fr]">
                 {/* form */}
                 <div className="flex flex-col gap-3 border-b border-[#e7ebe6] p-4 md:border-b-0 md:border-r">
                   <div>
