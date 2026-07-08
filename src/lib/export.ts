@@ -80,6 +80,59 @@ function fitWidth(natW: number, natH: number, maxW: number) {
   return { w, h };
 }
 
+// ── Emoji-aware PDF text ─────────────────────────────────────────────────────
+// jsPDF's built-in fonts (Helvetica et al.) can't encode emoji — they drop or
+// mojibake them (you get boxes / raw codes). So we keep text as real, selectable
+// jsPDF text and rasterize each emoji grapheme to a small inline COLOR image
+// using the browser's own emoji font. Word/.docx handles emoji natively, so only
+// the PDF path needs this.
+const EMOJI_RE = /\p{Extended_Pictographic}/u;
+
+// Grapheme-aware split so multi-codepoint emoji (ZWJ families, skin tones, flags)
+// stay whole; falls back to codepoint split on engines without Intl.Segmenter.
+function toGraphemes(s: string): string[] {
+  const Seg = (
+    Intl as unknown as {
+      Segmenter?: new (
+        l?: string,
+        o?: { granularity: string },
+      ) => { segment(x: string): Iterable<{ segment: string }> };
+    }
+  ).Segmenter;
+  if (typeof Seg === "function") {
+    const seg = new Seg(undefined, { granularity: "grapheme" });
+    return Array.from(seg.segment(s), (x) => x.segment);
+  }
+  return Array.from(s);
+}
+
+// Rasterize one emoji glyph to a crisp color PNG via the browser's emoji font.
+// Cached by glyph so repeats are free.
+const emojiPngCache = new Map<string, string>();
+function emojiPng(glyph: string): string {
+  const hit = emojiPngCache.get(glyph);
+  if (hit !== undefined) return hit;
+  let url = "";
+  try {
+    const px = 128;
+    const canvas = document.createElement("canvas");
+    canvas.width = px;
+    canvas.height = px;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = `${Math.round(px * 0.8)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif`;
+      ctx.fillText(glyph, px / 2, px / 2);
+      url = canvas.toDataURL("image/png");
+    }
+  } catch {
+    url = "";
+  }
+  emojiPngCache.set(glyph, url);
+  return url;
+}
+
 export async function exportPdf(
   text: string,
   filename: string,
@@ -112,19 +165,97 @@ export async function exportPdf(
     }
   }
 
+  // Body text — selectable jsPDF text, emoji drawn as inline color images.
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  const lines = doc.splitTextToSize(stripMarkdown(text), maxWidth) as string[];
+  const fontSize = 11;
+  doc.setFontSize(fontSize);
   const lineHeight = 16;
-  for (const line of lines) {
+  const emW = fontSize; // square advance for one emoji glyph
+
+  type Piece = { emoji: boolean; s: string; w: number };
+  const drawPieces = (pieces: Piece[]) => {
     if (y > pageHeight - margin) {
       doc.addPage();
       y = margin;
     }
-    doc.text(line, margin, y);
+    let x = margin;
+    for (const p of pieces) {
+      if (p.emoji) {
+        const url = emojiPng(p.s);
+        if (url) doc.addImage(url, "PNG", x, y - fontSize + 2.5, emW, emW);
+      } else {
+        doc.text(p.s, x, y);
+      }
+      x += p.w;
+    }
     y += lineHeight;
+  };
+
+  for (const para of stripMarkdown(text).split("\n")) {
+    if (para === "") {
+      if (y > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+      y += lineHeight;
+      continue;
+    }
+    // Width-annotated graphemes (emoji count as a square advance), then a greedy
+    // wrap that breaks at the last space that fit.
+    const gs = toGraphemes(para).map((g) => {
+      const emoji = EMOJI_RE.test(g);
+      return {
+        emoji,
+        s: g,
+        w: emoji ? emW : doc.getTextWidth(g),
+        space: !emoji && /\s/.test(g),
+      };
+    });
+    let line: typeof gs = [];
+    let lineW = 0;
+    let lastSpace = -1;
+    const flush = (arr: typeof gs) => {
+      const pieces: Piece[] = [];
+      for (const g of arr) {
+        const last = pieces[pieces.length - 1];
+        if (!g.emoji && last && !last.emoji) {
+          last.s += g.s;
+          last.w += g.w;
+        } else {
+          pieces.push({ emoji: g.emoji, s: g.s, w: g.w });
+        }
+      }
+      drawPieces(pieces);
+    };
+    for (const g of gs) {
+      if (lineW + g.w > maxWidth && line.length > 0) {
+        if (lastSpace > 0) {
+          flush(line.slice(0, lastSpace));
+          line = line.slice(lastSpace + 1);
+          lineW = line.reduce((a, p) => a + p.w, 0);
+          lastSpace = -1;
+        } else {
+          flush(line);
+          line = [];
+          lineW = 0;
+          lastSpace = -1;
+        }
+      }
+      line.push(g);
+      lineW += g.w;
+      if (g.space) lastSpace = line.length - 1;
+    }
+    if (line.length > 0) flush(line);
   }
   doc.save(filename.endsWith(".pdf") ? filename : `${filename}.pdf`);
+}
+
+/** Plain-text download (faithful copy — no markdown stripping). */
+export function exportTxt(text: string, filename: string): void {
+  triggerBlob(
+    new Blob([text], { type: "text/plain;charset=utf-8" }),
+    filename.endsWith(".txt") ? filename : `${filename}.txt`,
+  );
 }
 
 // Real OOXML .docx (not HTML-in-.doc): the image is stored as a proper media

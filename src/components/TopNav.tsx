@@ -63,9 +63,31 @@ export default function TopNav() {
     setMenuOpen(false);
   }, [path]);
 
+  // Anonymous visit counter — gated on cookie consent. Declining opts out
+  // entirely; an undecided visitor is counted only once they Accept. Per-action
+  // metrics (text/image/improve) are separate and always recorded server-side.
   useEffect(() => {
     if (path.startsWith("/admin")) return;
-    fetch("/api/track/visit", { method: "POST" }).catch(() => {});
+    const countVisit = () =>
+      fetch("/api/track/visit", { method: "POST" }).catch(() => {});
+    let consent: string | null = null;
+    try {
+      consent = window.localStorage.getItem("acms_cookie_consent");
+    } catch {
+      /* private mode — treat as undecided */
+    }
+    if (consent === "declined") return; // opted out — never count this visit
+    if (consent === "accepted") {
+      countVisit();
+      return;
+    }
+    // Undecided: wait for the banner choice, then honor it.
+    const onDecision = (e: Event) => {
+      if ((e as CustomEvent).detail === "accepted") countVisit();
+      window.removeEventListener("cookie-consent", onDecision);
+    };
+    window.addEventListener("cookie-consent", onDecision);
+    return () => window.removeEventListener("cookie-consent", onDecision);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

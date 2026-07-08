@@ -21,6 +21,9 @@ export default function CookieConsent() {
     } catch {
       /* private mode — nothing to persist */
     }
+    // Let the app react to the choice immediately. Declining opts out of the
+    // anonymous visit counter (TopNav listens); per-action metrics are unaffected.
+    window.dispatchEvent(new CustomEvent("cookie-consent", { detail: value }));
     setShow(false);
   }
 
@@ -31,7 +34,10 @@ export default function CookieConsent() {
       <div className="mx-auto flex max-w-6xl flex-col items-start gap-3 px-6 py-4 sm:flex-row sm:items-center">
         <p className="text-sm leading-relaxed text-[var(--body)]">
           We use <span className="font-semibold">essential cookies</span> to keep
-          you signed in and remember your session. No tracking, no ads.
+          you signed in and remember your session — no ads, no third parties.{" "}
+          <span className="text-[var(--muted-2)]">
+            Decline to opt out of the anonymous visit count.
+          </span>
         </p>
         <div className="ml-auto flex shrink-0 gap-2">
           <button

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toast } from "@/lib/toast";
 import { fmtUsd } from "@/lib/pricing";
 import { useInFlight } from "@/lib/useInFlight";
+import { exportPdf, exportDocx, exportTxt } from "@/lib/export";
 
 const GOALS = [
   { value: "shorter", label: "Shorter" },
@@ -136,6 +137,21 @@ export default function Improver() {
     }
   }
 
+  // Download the improved text as PDF / Word / plain text (same exporters the
+  // Generate tab uses — emoji render correctly in all three).
+  async function download(fmt: "pdf" | "docx" | "txt") {
+    if (!result) return;
+    const name = `nova-improved-${goal}`;
+    try {
+      if (fmt === "pdf") await exportPdf(result.improved, name);
+      else if (fmt === "docx") await exportDocx(result.improved, name);
+      else exportTxt(result.improved, name);
+      toast.success(`Downloaded ${fmt === "docx" ? "Word" : fmt.toUpperCase()}`);
+    } catch {
+      toast.error("Download failed — please try again.");
+    }
+  }
+
   const inputCls =
     "w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15";
   const labelCls =
@@ -253,6 +269,22 @@ export default function Improver() {
             <p className="text-sm leading-relaxed text-[var(--body)]">
               {result.changeSummary}
             </p>
+          </div>
+
+          {/* Export the improved text (emoji-safe PDF / Word / plain text) */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-xs uppercase tracking-[0.08em] text-[var(--muted-2)]">
+              Download
+            </span>
+            <button onClick={() => download("pdf")} className={recentBtn}>
+              PDF
+            </button>
+            <button onClick={() => download("docx")} className={recentBtn}>
+              Word
+            </button>
+            <button onClick={() => download("txt")} className={recentBtn}>
+              Text
+            </button>
           </div>
         </div>
       )}
