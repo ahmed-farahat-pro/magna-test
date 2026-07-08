@@ -77,13 +77,23 @@ export async function POST(req: Request) {
       return fail("CONFIG_ERROR", "Image storage is not configured (missing BLOB_READ_WRITE_TOKEN).", requestId);
     }
 
+    // Sanitize a client-supplied scene before it re-enters the image prompt:
+    // strip control chars, collapse whitespace, and cap length.
+    const sceneInput = parsed.data.scene
+      ? parsed.data.scene
+          .replace(/[\x00-\x1F]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 600)
+      : undefined;
+
     const { prompt, enhanced, scene } = await buildImagePromptFromContent({
       topic,
       tone,
       contentType,
       style,
       content,
-      scene: parsed.data.scene,
+      scene: sceneInput,
     });
     const canAttach = Boolean(generationId) && dbEnabled();
 

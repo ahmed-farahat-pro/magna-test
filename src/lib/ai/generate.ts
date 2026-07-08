@@ -326,11 +326,18 @@ export function streamedOutputIssue(
   const t = text.trim();
   if (t.length < 40) return "too_short";
   if (/^\s*(placeholder|lorem ipsum|tbd|n\/?a|todo)\s*$/i.test(t)) return "stub";
-  // Ad copy must ship exactly the three variants the prompt promises.
-  if (contentType === "ad_copy") {
-    const variants = (t.match(/variant\s*\d/gi) || []).length;
-    if (variants < 3) return "too_few_ad_variants";
-  }
+  // Enforce the per-type count invariants on the STREAMED markdown (the live
+  // path can't use json_schema), matching the structured schemas: ad = 3
+  // variants, email = 3 subject lines, blog ≥ 3 H2 sections, LinkedIn ≥ 3 tags.
+  const count = (re: RegExp) => (t.match(re) || []).length;
+  if (contentType === "ad_copy" && count(/variant\s*\d/gi) < 3)
+    return "too_few_ad_variants";
+  if (contentType === "email" && count(/subject\s*\d/gi) < 3)
+    return "too_few_subject_lines";
+  if (contentType === "blog_post" && count(/^#{2,3}\s+/gm) < 3)
+    return "too_few_sections";
+  if (contentType === "linkedin_post" && count(/#[a-z0-9]/gi) < 3)
+    return "too_few_hashtags";
   return null;
 }
 

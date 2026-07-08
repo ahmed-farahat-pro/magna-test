@@ -108,8 +108,11 @@ Claude stream ──▶ full text accumulated
    client shows "retry"
 ```
 
-It rejects: too short, stub/placeholder, or (ad copy) fewer than 3 variant
-markers. (Can't re-stream mid-flight, so it's a fail-loud guard, not a retry.)
+It rejects: too short, stub/placeholder, or a **per-type count miss on the live
+markdown** — blog < 3 sections, ad < 3 variants, email < 3 subject lines, or
+LinkedIn < 3 hashtags. So the count invariants are enforced on the path users
+actually hit, not only in the structured helper. (Can't re-stream mid-flight, so
+it's a fail-loud guard, not a retry.)
 
 ---
 

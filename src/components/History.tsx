@@ -192,7 +192,7 @@ function DownloadMenu({ item, up = false }: { item: Item; up?: boolean }) {
             {hasImg && (
               <>
                 <div className="my-1 border-t border-[#e7ebe6]" />
-                <div className="px-3.5 pb-1 pt-0.5 font-mono text-[0.6rem] uppercase tracking-[0.08em] text-[#5f6960]">
+                <div className="px-3.5 pb-1 pt-0.5 font-mono text-[0.66rem] uppercase tracking-[0.08em] text-[#5f6960]">
                   With photo
                 </div>
                 <MenuItem
@@ -226,6 +226,7 @@ export default function History() {
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Item | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
 
@@ -318,6 +319,21 @@ export default function History() {
     }
   }
 
+  function copy(text: string, id: string) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        setCopiedId(id);
+        window.setTimeout(
+          () => setCopiedId((c) => (c === id ? null : c)),
+          1500,
+        );
+      })
+      .catch(() => {
+        /* clipboard unavailable — nothing to do */
+      });
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
@@ -408,10 +424,10 @@ export default function History() {
                       View
                     </button>
                     <button
-                      onClick={() => navigator.clipboard.writeText(item.outputText)}
+                      onClick={() => copy(item.outputText, item.id)}
                       className={ghost}
                     >
-                      Copy
+                      {copiedId === item.id ? "Copied ✓" : "Copy"}
                     </button>
                     <DownloadMenu item={item} />
                     <button
@@ -508,10 +524,10 @@ export default function History() {
             </div>
             <div className="flex gap-2 border-t border-[#e7ebe6] px-5 py-3">
               <button
-                onClick={() => navigator.clipboard.writeText(selected.outputText)}
+                onClick={() => copy(selected.outputText, selected.id)}
                 className={ghost}
               >
-                Copy
+                {copiedId === selected.id ? "Copied ✓" : "Copy"}
               </button>
               <DownloadMenu item={selected} up />
               <button

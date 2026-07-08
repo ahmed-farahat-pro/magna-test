@@ -274,7 +274,7 @@ Never throws — safe to hit before env vars exist.
 
 ```jsonc
 { "ok": true, "service": "ai-content-marketing-suite", "db": "connected",
-  "env": { "anthropic": "set", "openai": "set", "blob": "set", "database": "set" },
+  "env": { "anthropic": "set", "openai": "set", "blob": "set", "database": "set", "sessionSecret": "set" },
   "timestamp": "2026-…" }
 ```
 
