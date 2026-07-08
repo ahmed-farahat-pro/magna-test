@@ -123,6 +123,18 @@ model Generation {
   @@map("generations")
 }
 
+/// A registered account. Optional — the app works anonymously (per-session);
+/// signing up gives a durable owner id so data follows the user across devices.
+/// On signup the visitor's anonymous rows are re-owned to the user id.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  @@map("users")
+}
+
 /// A saved brand voice. A session can have MANY (add / edit / delete, then pick
 /// one per generation). Server-side source of truth. Stored as JSON so the shape
 /// can evolve without a migration each time.

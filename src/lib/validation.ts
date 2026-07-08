@@ -148,6 +148,16 @@ export function findAvoidedWords(text: string, avoid: string[]): string[] {
   ];
 }
 
+// ── Auth ─────────────────────────────────────────────────────────────────────
+export const credentialsSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address.").max(200),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters.")
+    .max(200),
+});
+export type Credentials = z.infer<typeof credentialsSchema>;
+
 export const enforceSchema = z.object({
   generationId: z.string().trim().min(1).optional(),
   text: z.string().trim().min(1).max(12000),

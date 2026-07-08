@@ -325,6 +325,25 @@ fixed — the in-memory rate limiter (→ durable Upstash) and the soft brand-vo
 instruction (→ server-side, multiple, hard-enforced) — and "what's next" no longer
 lists hard enforcement.
 
+## Round 6 — user authentication (email + password)
+
+Real accounts layered over the anonymous sessions (full flow in
+[`auth/session.md`](./auth/session.md)):
+
+- `User` model + migration; `POST /api/auth/{signup,login,logout}` and
+  `GET /api/auth/me`; scrypt password hashing; a 7-day HMAC-signed `acms_auth`
+  token; `getSessionId()` resolves to the account id when logged in, else the
+  anonymous session. Anonymous work is **migrated to the account** on signup (and
+  login), so it follows the user across devices. `/account` page + TopNav auth state.
+
+Fixes from the adversarial security review folded in:
+- `verifyPassword` pins the scrypt length (a malformed hash can't authenticate);
+- login & signup **rate-limited by client IP** before the scrypt work;
+- concurrent duplicate signup (P2002) returns "email exists," not a 500;
+- **logout clears the anonymous cookie too** (shared-browser safety);
+- documented trade-offs (signup email-existence signal; login claiming a shared
+  device's anonymous work).
+
 ---
 
 ## Verification

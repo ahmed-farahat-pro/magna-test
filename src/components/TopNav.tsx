@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -13,6 +14,23 @@ const LINKS: { href: string; label: string; optional?: boolean }[] = [
 
 export default function TopNav() {
   const path = usePathname();
+  const [email, setEmail] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((j) => setEmail(j?.user?.email ?? null))
+      .catch(() => setEmail(null))
+      .finally(() => setReady(true));
+  }, [path]);
+
+  async function signOut() {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    setEmail(null);
+    window.location.href = "/";
+  }
+
   return (
     <header className="sticky top-0 z-10 border-b border-[#d9dfd8] bg-[#eff2ee]/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-3.5">
@@ -52,6 +70,30 @@ export default function TopNav() {
           >
             status
           </a>
+          {ready &&
+            (email ? (
+              <span className="ml-2 flex shrink-0 items-center gap-2">
+                <span
+                  className="hidden max-w-[160px] truncate font-mono text-xs text-[#5f6960] sm:inline"
+                  title={email}
+                >
+                  {email}
+                </span>
+                <button
+                  onClick={signOut}
+                  className="rounded-md border border-[#d9dfd8] bg-white px-2.5 py-1 text-xs font-medium text-[#3c4a54] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
+                >
+                  Sign out
+                </button>
+              </span>
+            ) : (
+              <Link
+                href="/account"
+                className="ml-2 shrink-0 rounded-md bg-[#0e7a63] px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#0a5346]"
+              >
+                Sign in
+              </Link>
+            ))}
         </nav>
       </div>
     </header>

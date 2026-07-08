@@ -11,6 +11,9 @@ import { Redis } from "@upstash/redis";
 const LIMITS = {
   generate: { max: 20, window: "60 s" as const, windowMs: 60_000 },
   image: { max: 12, window: "60 s" as const, windowMs: 60_000 },
+  // Auth is keyed by client IP (not session) so it can't be bypassed by dropping
+  // the cookie — throttles password brute-force / credential-stuffing.
+  auth: { max: 10, window: "60 s" as const, windowMs: 60_000 },
 } as const;
 
 type BucketKey = keyof typeof LIMITS;
@@ -39,6 +42,11 @@ function getLimiters(): Record<BucketKey, Ratelimit> | null {
         redis,
         limiter: Ratelimit.slidingWindow(LIMITS.image.max, LIMITS.image.window),
         prefix: "rl:image",
+      }),
+      auth: new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(LIMITS.auth.max, LIMITS.auth.window),
+        prefix: "rl:auth",
       }),
     };
   } catch {

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { createHmac, randomUUID, timingSafeEqual } from "crypto";
 import { resolveSessionSecret } from "@/lib/sessionSecret";
+import { getUserId } from "@/lib/auth";
 
 const COOKIE = process.env.SESSION_COOKIE_NAME || "acms_sid";
 const MAX_AGE = 60 * 60 * 24 * 90; // 90 days
@@ -32,11 +33,11 @@ function verify(value: string): string | null {
 }
 
 /**
- * Resolve the caller's anonymous session id, minting + setting a signed httpOnly
- * cookie on first visit. Every DB read/write is scoped to this id — the only
- * identity in the app (no login).
+ * The caller's ANONYMOUS session id, minting + setting a signed httpOnly cookie
+ * on first visit. Always device-local; used when logged out, and as the source
+ * of rows to migrate when a visitor signs up.
  */
-export async function getSessionId(): Promise<string> {
+export async function getAnonSessionId(): Promise<string> {
   const jar = await cookies();
   const existing = jar.get(COOKIE)?.value;
   if (existing) {
@@ -53,4 +54,26 @@ export async function getSessionId(): Promise<string> {
     maxAge: MAX_AGE,
   });
   return id;
+}
+
+/**
+ * Clear the anonymous session cookie — used on logout so a shared browser doesn't
+ * hand the next person the previous user's anonymous session. Middleware mints a
+ * fresh one on the next navigation.
+ */
+export async function clearAnonCookie(): Promise<void> {
+  const jar = await cookies();
+  jar.set(COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
+}
+
+/**
+ * The OWNER id used to scope every DB read/write. When the user is logged in it
+ * is their durable account id (data follows them across devices); otherwise it
+ * is the device-local anonymous session id. All existing `where { id, sessionId }`
+ * scoping keeps working unchanged.
+ */
+export async function getSessionId(): Promise<string> {
+  const userId = await getUserId();
+  if (userId) return userId;
+  return getAnonSessionId();
 }

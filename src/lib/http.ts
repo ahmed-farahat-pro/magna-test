@@ -35,6 +35,12 @@ export function tooLarge(req: Request, maxBytes = 256_000): boolean {
   return Number.isFinite(len) && len > maxBytes;
 }
 
+/** Best-effort client IP (Vercel sets x-forwarded-for) for IP-keyed rate limits. */
+export function clientIp(req: Request): string {
+  const fwd = req.headers.get("x-forwarded-for");
+  return (fwd ? fwd.split(",")[0].trim() : "") || "unknown";
+}
+
 export function ok<T>(
   data: T,
   requestId: string,
