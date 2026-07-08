@@ -3,6 +3,9 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { passwordStrength } from "@/lib/passwordStrength";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function AccountPage() {
   const router = useRouter();
@@ -12,8 +15,22 @@ export default function AccountPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const strength = passwordStrength(password);
+  const emailOk = EMAIL_RE.test(email);
+  // On signup, require a valid email and at least a medium-strength password.
+  const blockedOnSignup =
+    mode === "signup" && (!emailOk || strength.label === "weak");
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (mode === "signup" && !emailOk) {
+      setError("Enter a valid email address.");
+      return;
+    }
+    if (mode === "signup" && strength.label === "weak") {
+      setError("Choose a stronger password (at least medium).");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -86,6 +103,45 @@ export default function AccountPage() {
                 placeholder="At least 8 characters"
                 className={inputCls}
               />
+              {mode === "signup" && password.length > 0 && (
+                <div className="mt-2">
+                  <div className="flex gap-1" aria-hidden="true">
+                    {[1, 2, 3].map((i) => {
+                      const filled =
+                        strength.label === "weak"
+                          ? i === 1
+                          : strength.label === "medium"
+                            ? i <= 2
+                            : true;
+                      const color =
+                        strength.label === "weak"
+                          ? "bg-[#a62a2a]"
+                          : strength.label === "medium"
+                            ? "bg-[#b7451e]"
+                            : "bg-[#0e7a63]";
+                      return (
+                        <span
+                          key={i}
+                          className={`h-1.5 flex-1 rounded ${filled ? color : "bg-[#e7ebe6]"}`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <p
+                    className={`mt-1 text-xs ${
+                      strength.label === "weak"
+                        ? "text-[#a62a2a]"
+                        : strength.label === "medium"
+                          ? "text-[#8a3315]"
+                          : "text-[#0a5346]"
+                    }`}
+                    aria-live="polite"
+                  >
+                    Strength: <span className="font-semibold capitalize">{strength.label}</span>{" "}
+                    — {strength.hint}
+                  </p>
+                </div>
+              )}
             </div>
 
             {error && (
@@ -96,7 +152,7 @@ export default function AccountPage() {
 
             <button
               type="submit"
-              disabled={busy}
+              disabled={busy || blockedOnSignup}
               className="mt-1 rounded-lg bg-[#0e7a63] px-4 py-3 text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#0a5346] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy

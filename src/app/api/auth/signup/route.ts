@@ -3,6 +3,7 @@ import { hashPassword, setAuthCookie } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { ok, fail, newRequestId, tooLarge, clientIp } from "@/lib/http";
 import { credentialsSchema, zodDetails } from "@/lib/validation";
+import { isDisposableEmail } from "@/lib/email";
 import { dbEnabled, getPrisma } from "@/lib/db";
 import { claimAnonData } from "@/lib/migrateAnon";
 import { logError } from "@/lib/log";
@@ -38,6 +39,14 @@ export async function POST(req: Request) {
     }
 
     const email = parsed.data.email.toLowerCase();
+    if (isDisposableEmail(email)) {
+      return fail(
+        "VALIDATION_ERROR",
+        "Please use a permanent email address — temporary/disposable inboxes aren't allowed.",
+        requestId,
+        { details: [{ path: "email", message: "disposable" }] },
+      );
+    }
     const prisma = getPrisma();
     const takenResponse = () =>
       fail("VALIDATION_ERROR", "An account with that email already exists.", requestId, {

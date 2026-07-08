@@ -344,6 +344,17 @@ Fixes from the adversarial security review folded in:
 - documented trade-offs (signup email-existence signal; login claiming a shared
   device's anonymous work).
 
+## Round 7 — signup validation & cookie consent
+
+- **Disposable/temp email blocking** — signup rejects known throwaway providers
+  (server-side via the 121k-domain `disposable-email-domains` list, kept out of the
+  client bundle) with a clear message.
+- **Email format validation** on both client (inline) and server (zod `.email()`).
+- **Password strength meter** — a shared `passwordStrength()` (weak / medium /
+  strong) drives a live 3-bar meter on signup; submit is gated to ≥ medium.
+- **Cookie-consent banner** — a dismissible Accept / Decline bar (choice stored in
+  localStorage), noting the app uses only essential session cookies.
+
 ---
 
 ## Verification
