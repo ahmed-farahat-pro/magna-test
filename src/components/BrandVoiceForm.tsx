@@ -9,6 +9,7 @@ import {
   type BrandVoice,
 } from "@/lib/brandVoice";
 import { toast } from "@/lib/toast";
+import { useInFlight } from "@/lib/useInFlight";
 import Select from "@/components/Select";
 
 const PERSONALITY = [
@@ -58,6 +59,7 @@ export default function BrandVoiceForm() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const guard = useInFlight(); // block double-submit when saving a brand voice
 
   // form fields
   const [name, setName] = useState("");
@@ -122,19 +124,21 @@ export default function BrandVoiceForm() {
       keywords: toList(keywords),
       avoid: toList(avoid),
     };
-    setBusy(true);
-    const saved = editing?.id
-      ? await updateVoice(editing.id, voice)
-      : await createVoice(voice);
-    setBusy(false);
-    if (saved) {
-      toast.success(editing?.id ? "Brand voice updated" : "Brand voice saved");
-      setEditing(null);
-      refresh();
-    } else {
-      setMsg("Could not save — please try again.");
-      toast.error("Could not save the brand voice.");
-    }
+    await guard(async () => {
+      setBusy(true);
+      const saved = editing?.id
+        ? await updateVoice(editing.id, voice)
+        : await createVoice(voice);
+      setBusy(false);
+      if (saved) {
+        toast.success(editing?.id ? "Brand voice updated" : "Brand voice saved");
+        setEditing(null);
+        refresh();
+      } else {
+        setMsg("Could not save — please try again.");
+        toast.error("Could not save the brand voice.");
+      }
+    });
   }
 
   async function remove(v: BrandVoice) {

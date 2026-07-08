@@ -35,6 +35,16 @@ _AI Content Marketing Suite — design choices, trade-offs, and what's next. One
   availability differences.
 - **Declarative failures.** A single classifier maps any AI/SDK/network error to a
   plain-language, actionable message (retry vs. config-fix vs. rephrase).
+- **Abuse-resistant AI calls (two layers).** Every AI/backend button carries a
+  synchronous in-flight guard (`useInFlight`), so a double-tap — or a scripted
+  `.click()` loop — never fires the same call twice. On the server, a **per-session
+  concurrency lock** (`concurrency.ts`, Redis `SET NX PX` with an in-memory
+  fallback) allows only one in-flight AI request per session; a second concurrent
+  request is refused `429 CONCURRENT_REQUEST` instead of fanning out into another
+  billable model call. This is distinct from rate limiting: the sliding window caps
+  *volume over time*, the lock caps *simultaneity*. Released in a `finally` (inside
+  the stream's `finally` for `/api/generate`), with a TTL so a dead request can't
+  wedge the session shut.
 
 ## Trade-offs
 
@@ -69,5 +79,6 @@ _AI Content Marketing Suite — design choices, trade-offs, and what's next. One
 > disposable-email blocking and a password-strength meter), an **admin dashboard**
 > with full activity tracking and user management, **durable rate limiting**
 > (Upstash Redis with an in-memory fallback), **server-side, multiple brand
-> voices** (create / edit / delete, pick one per generation), and **hard
-> "avoid"-word enforcement** (detect + one-click rewrite).
+> voices** (create / edit / delete, pick one per generation), **hard
+> "avoid"-word enforcement** (detect + one-click rewrite), and **abuse hardening**
+> (client double-submit guards + a per-session AI-concurrency lock).

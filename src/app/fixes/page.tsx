@@ -120,6 +120,15 @@ const ROUNDS: Round[] = [
       "Rebuilt the nav with a hamburger menu so sign-in is always reachable; added an interactive two-flow Workflow page.",
     ],
   },
+  {
+    n: "11",
+    title: "Abuse hardening — double-click & concurrency guards",
+    tags: ["security", "feature"],
+    points: [
+      "Every AI/backend button blocks double-submit with a synchronous in-flight guard (useInFlight) — not just a disabled attribute — so a rapid double-tap or a scripted .click() loop can't fire the same call twice.",
+      "Server-side per-session concurrency lock: only one in-flight AI request per session at a time (Upstash SET NX + TTL, in-memory fallback). Concurrent hammering from one source is refused with 429 CONCURRENT_REQUEST instead of fanning out into extra billable model calls.",
+    ],
+  },
 ];
 
 export default function FixesPage() {
@@ -135,7 +144,7 @@ export default function FixesPage() {
           </h1>
           <p className="mt-3 max-w-2xl text-pretty text-[var(--body)]">
             This project was graded by an independent multi-agent panel, then
-            iterated on across ten rounds. Here&apos;s the full log — what changed,
+            iterated on across eleven rounds. Here&apos;s the full log — what changed,
             why, and how it was verified. The score moved from 89/100 to 104/110.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">

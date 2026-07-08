@@ -9,6 +9,7 @@ import {
 } from "@/lib/brandVoice";
 import { exportPdf, exportDocx } from "@/lib/export";
 import { toast } from "@/lib/toast";
+import { useInFlight } from "@/lib/useInFlight";
 import Select from "@/components/Select";
 
 const CONTENT_TYPES = [
@@ -91,6 +92,10 @@ export default function Generator() {
 
   const canSubmit = topic.trim() && audience.trim() && !loading;
 
+  // Serializes this panel's backend calls — a synchronous guard so a double-tap
+  // (or a script) can't fire generate / image / enforce twice concurrently.
+  const guard = useInFlight();
+
   function resetImage() {
     setImgUrl(null);
     setImgError(null);
@@ -103,6 +108,7 @@ export default function Generator() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
+    await guard(async () => {
     setLoading(true);
     setStreaming(true);
     setStreamText("");
@@ -175,6 +181,7 @@ export default function Generator() {
       setLoading(false);
       setStreaming(false);
     }
+    });
   }
 
   async function generateImage(style: ImageStyle, force = false) {
@@ -183,6 +190,7 @@ export default function Generator() {
     // wasted paid regeneration) — unless the user explicitly asks for a new
     // variation of the same style (force).
     if (!force && imgUrl && style === imgStyle && !imgLoading) return;
+    await guard(async () => {
     setImgLoading(true);
     setImgError(null);
     setImgStyle(style);
@@ -216,10 +224,12 @@ export default function Generator() {
     } finally {
       setImgLoading(false);
     }
+    });
   }
 
   async function enforceBrandVoice() {
     if (!result || !result.avoided?.length) return;
+    await guard(async () => {
     setEnforcing(true);
     try {
       const res = await fetch("/api/enforce-voice", {
@@ -249,6 +259,7 @@ export default function Generator() {
     } finally {
       setEnforcing(false);
     }
+    });
   }
 
   async function copyText() {

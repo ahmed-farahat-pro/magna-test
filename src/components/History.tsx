@@ -14,6 +14,7 @@ import Image from "next/image";
 import { exportPdf, exportDocx, stripMarkdown } from "@/lib/export";
 import { toast } from "@/lib/toast";
 import { fmtUsd, fmtTokens } from "@/lib/pricing";
+import { useInFlight } from "@/lib/useInFlight";
 import { CardSkeleton } from "@/components/Skeleton";
 
 const PAGE_SIZE = 12;
@@ -250,6 +251,7 @@ export default function History() {
   const sceneById = useRef<Record<string, string>>({});
   const dialogRef = useRef<HTMLDivElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
+  const guard = useInFlight(); // double-submit guard for image (re)generation
 
   const load = useCallback(async (p: number) => {
     setLoading(true);
@@ -369,6 +371,7 @@ export default function History() {
   // only send the id + style (+ a cached scene to keep the subject on a restyle).
   async function generateImage(item: Item, style: string) {
     if (imgBusy) return;
+    await guard(async () => {
     setImgBusy(item.id);
     try {
       const res = await fetch("/api/images", {
@@ -401,6 +404,7 @@ export default function History() {
     } finally {
       setImgBusy(null);
     }
+    });
   }
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));

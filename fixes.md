@@ -462,6 +462,60 @@ connectors. Fully responsive.
 
 ---
 
+## 11 · Abuse hardening — double-click & concurrency guards
+
+**Problem.** Every button that calls the AI is a real, billable model call. Two
+ways to waste them (or grief the service): (a) an impatient user double-tapping
+"Generate," and (b) a script firing many **simultaneous** requests from one
+session — the "hammer the endpoint" case. The sliding-window rate limit caps
+requests *over a window*, but says nothing about requests fired *at the same
+instant*, and a React `disabled` attribute has a race: state updates are async, so
+two clicks in the same tick can both see `disabled === false`.
+
+**Fix — two layers.**
+
+- **Client (`useInFlight`).** A tiny hook wraps each submit handler with a
+  **synchronous `useRef` guard** — it flips before React re-renders, so the gap
+  between the click and the disabled button is closed. Rapid double-taps and
+  scripted `.click()` loops are dropped. Wired into every AI/backend button:
+  Generate, image (re)generation, improve, enforce-voice, brand-voice save,
+  login/signup, and admin delete.
+- **Server (`concurrency.ts`).** A **per-session in-flight lock** — at most one
+  AI request per session at a time. `acquireAiSlot()` does a Redis `SET key "1"
+  NX PX=90s` (durable across serverless instances; in-memory `Map` fallback when
+  Upstash isn't configured); the route releases it in a `finally` (for the
+  streaming `/api/generate`, inside the stream's `finally` so it frees on success,
+  refusal, AI error, or unusable output alike). A second concurrent request is
+  refused with **`429 CONCURRENT_REQUEST`** rather than fanned out into another
+  paid call. The 90-second TTL auto-releases a slot if a request dies mid-flight.
+
+```
+        two rapid clicks / N concurrent POSTs from one session
+                    │                         │
+      client: useInFlight ref          server: acquireAiSlot()  (SET NX PX)
+        first passes, rest             first gets the slot, rest get null
+        return immediately                        │
+                    │                             ▼
+                    └────────►  one AI call    429 CONCURRENT_REQUEST
+                                     │           (no extra billable call)
+                                     ▼
+                              releaseAiSlot() in finally  (always frees)
+```
+
+Applied to all four AI endpoints: `/api/generate`, `/api/improve`,
+`/api/images` (the lock spans the art-director call *and* the render), and
+`/api/enforce-voice`. Auth endpoints stay IP-rate-limited (a per-session lock
+wouldn't help an attacker who drops the cookie). Surfaced on the landing bonuses,
+the capability strip, and both `/workflow` flowcharts.
+
+**Files.** `concurrency.ts`, `useInFlight.ts`, `http.ts` (new
+`CONCURRENT_REQUEST` code → 429), the `generate` / `improve` / `images` /
+`enforce-voice` routes, `Generator.tsx`, `Improver.tsx`, `History.tsx`,
+`BrandVoiceForm.tsx`, `account/page.tsx`, `AdminDashboard.tsx`,
+`Architecture.tsx`, `DemoCapabilities.tsx`, `WorkflowFlows.tsx`.
+
+---
+
 ## Verification
 
 Everything above was confirmed on **https://magna-test-ten.vercel.app** after

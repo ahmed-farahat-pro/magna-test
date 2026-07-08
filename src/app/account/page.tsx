@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { passwordStrength } from "@/lib/passwordStrength";
+import { useInFlight } from "@/lib/useInFlight";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -14,6 +15,7 @@ export default function AccountPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const guard = useInFlight(); // block double-submit of login/signup
 
   const strength = passwordStrength(password);
   const emailOk = EMAIL_RE.test(email);
@@ -31,6 +33,7 @@ export default function AccountPage() {
       setError("Choose a stronger password (at least medium).");
       return;
     }
+    await guard(async () => {
     setBusy(true);
     setError(null);
     try {
@@ -53,6 +56,7 @@ export default function AccountPage() {
     } finally {
       setBusy(false);
     }
+    });
   }
 
   const inputCls =

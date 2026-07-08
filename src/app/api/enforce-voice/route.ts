@@ -1,6 +1,7 @@
 import { getActor } from "@/lib/session";
 import { track } from "@/lib/track";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { acquireAiSlot, releaseAiSlot } from "@/lib/concurrency";
 import { ok, fail, newRequestId, tooLarge } from "@/lib/http";
 import { enforceSchema, zodDetails, findAvoidedWords } from "@/lib/validation";
 import { aiEnabled } from "@/lib/ai/config";
@@ -42,6 +43,15 @@ export async function POST(req: Request) {
 
     const { generationId, text, avoid } = parsed.data;
 
+    // One in-flight AI request per session — reject concurrent hammering.
+    if (!(await acquireAiSlot(sessionId))) {
+      return fail(
+        "CONCURRENT_REQUEST",
+        "You already have a request in progress. Please wait for it to finish.",
+        requestId,
+      );
+    }
+    try {
     let rewritten: string;
     try {
       rewritten = await enforceVoice(text, avoid);
@@ -71,6 +81,9 @@ export async function POST(req: Request) {
     await track("enforce_voice", sessionId, isUser, { remaining: remaining.length });
 
     return ok({ text: rewritten, remaining }, requestId);
+    } finally {
+      await releaseAiSlot(sessionId);
+    }
   } catch (e) {
     logError("enforceVoice", requestId, e);
     return fail("INTERNAL_ERROR", "Something went wrong.", requestId);

@@ -15,6 +15,7 @@ const CAPS: { label: string; kind: "core" | "bonus" }[] = [
   { label: "Token & cost tracking per user", kind: "bonus" },
   { label: "Export PDF / Word / txt", kind: "bonus" },
   { label: "Durable rate limiting", kind: "bonus" },
+  { label: "Double-click & concurrency guards", kind: "bonus" },
   { label: "Light & dark themes", kind: "bonus" },
 ];
 

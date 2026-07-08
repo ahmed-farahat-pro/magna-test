@@ -138,8 +138,8 @@ git log --oneline
 - **[SAY]** "Beyond the brief: real accounts — email and password, with your anonymous work migrating onto the account, disposable emails blocked, a password-strength meter. And a full admin dashboard with activity tracking — who generated text, who made images — traffic, usage, and user management."
 - **[SHOW]** Back on **/create**, paste the **blocked** topic (kit §7) → the **content-block** message; then paste the **allowed** metaphor topic (kit §7) → it generates fine.
 - **[SAY]** "Content moderation blocks genuinely harmful requests up front — while marketing metaphors like 'crush the competition' are always fine — and if Claude itself declines, that refusal is caught cleanly too."
-- **[SHOW]** Flash: multiple **brand voices** (add/edit/delete), the **cookie-consent** banner, the site on a **phone frame** (responsive).
-- **[SAY]** "Plus durable rate limiting, multiple brand voices with hard 'avoid'-word enforcement, cookie consent, and a fully responsive mobile layout."
+- **[SHOW]** Flash: multiple **brand voices** (add/edit/delete), the **cookie-consent** banner, the site on a **phone frame** (responsive). Optionally open **/workflow → "Under the hood"** and click to the **"Concurrency lock"** step.
+- **[SAY]** "Plus durable rate limiting, multiple brand voices with hard 'avoid'-word enforcement, cookie consent, a fully responsive mobile layout — and abuse hardening: every button blocks double-clicks, and the server only allows one AI request per session at a time, so nobody can hammer it into extra billable calls."
 - **[EDIT]** This act is a montage — keep it moving, one caption per feature.
 
 ---

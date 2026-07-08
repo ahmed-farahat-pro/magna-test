@@ -292,6 +292,7 @@ const BONUS_LIST = [
   "Live token streaming as Claude writes",
   "Export to Text / Word / PDF, with the image embedded",
   "Durable rate limiting (Upstash Redis, in-memory fallback)",
+  "Abuse hardening — buttons block double-clicks; the server allows only one in-flight AI call per session (rejects concurrent hammering)",
   "Admin dashboard — traffic, usage & user management (+ landing video)",
   "Full activity tracking (registered vs anonymous, by action type)",
   "Per-piece token, model & USD cost — with per-user spend in the admin",

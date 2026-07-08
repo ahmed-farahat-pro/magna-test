@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toast } from "@/lib/toast";
 import { fmtUsd } from "@/lib/pricing";
+import { useInFlight } from "@/lib/useInFlight";
 
 const GOALS = [
   { value: "shorter", label: "Shorter" },
@@ -41,6 +42,7 @@ export default function Improver() {
   const [result, setResult] = useState<Result | null>(null);
   const [copied, setCopied] = useState(false);
   const [recent, setRecent] = useState<Recent[]>([]);
+  const guard = useInFlight();
 
   const loadRecent = useCallback(async () => {
     try {
@@ -66,6 +68,7 @@ export default function Improver() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
+    await guard(async () => {
     setLoading(true);
     setError(null);
     setResult(null);
@@ -96,6 +99,7 @@ export default function Improver() {
     } finally {
       setLoading(false);
     }
+    });
   }
 
   // Open a past improvement back into the before/after view.

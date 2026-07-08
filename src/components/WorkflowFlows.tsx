@@ -76,6 +76,11 @@ const FLOWS: Flow[] = [
       },
       {
         type: "system",
+        title: "One click is enough",
+        body: "The moment you press Generate the button locks, and the server runs only one request per session at a time — so an impatient double-tap never starts two jobs or charges you twice.",
+      },
+      {
+        type: "system",
         title: "A quick safety check",
         body: "Before anything is written, your request is screened. Topics that promote real violence or other harm are politely declined — while everyday marketing language like “crush the competition” or a “killer feature” is always fine.",
       },
@@ -116,7 +121,7 @@ const FLOWS: Flow[] = [
       {
         type: "user",
         title: "Browser → POST /api/generate",
-        body: "A client component sends topic + tone + audience + format. No LLM or image keys ever reach the browser — it only ever talks to /api/*.",
+        body: "A client component sends topic + tone + audience + format. No LLM or image keys ever reach the browser — it only ever talks to /api/*. The button disables itself and a synchronous in-flight guard (useInFlight) drops any extra clicks, so one tap is exactly one request.",
       },
       {
         type: "system",
@@ -127,8 +132,14 @@ const FLOWS: Flow[] = [
       {
         type: "system",
         title: "Rate limit · Upstash Redis",
-        body: "A sliding-window check, keyed by the owner id (Upstash when configured, in-memory fallback otherwise).",
+        body: "A sliding-window check, keyed by the owner id (Upstash when configured, in-memory fallback otherwise). This caps how many requests fit in a window.",
         onError: "Over the limit → 429 RATE_LIMITED with a retry-after header. The stream never starts.",
+      },
+      {
+        type: "system",
+        title: "Concurrency lock · one AI call per session",
+        body: "Where the rate limit caps requests over time, this caps them at one instant: the session takes a single in-flight slot (Redis SET NX with a TTL, in-memory fallback) before the model is called, and frees it when the stream ends — success or error. It stops a burst of simultaneous requests from one source (the rapid-click / scripted-hammer abuse case), each of which is a real billable call.",
+        onError: "A request from this session is already running → 429 CONCURRENT_REQUEST; the second call is refused, never fanned out into another paid model call.",
       },
       {
         type: "system",
@@ -187,17 +198,17 @@ const SIBLINGS: Sibling[] = [
   {
     endpoint: "POST /api/improve",
     what: "Rewrites text toward a goal (shorter / persuasive / formal / SEO / re-audience) and returns a “what changed”.",
-    guard: "Same moderation + refusal handling; degrades gracefully if the DB write fails.",
+    guard: "Same moderation + refusal handling + one-in-flight-call lock; degrades gracefully if the DB write fails.",
   },
   {
     endpoint: "POST /api/images",
     what: "Turns the finished copy into one concrete scene, renders it (OpenAI, with a model-fallback chain), and re-hosts it on Vercel Blob.",
-    guard: "Ownership-scoped where { id, sessionId }; scene is cached so a restyle keeps the subject; private-store proxy.",
+    guard: "Ownership-scoped where { id, sessionId }; the concurrency lock spans the art-director + render; scene cached; private-store proxy.",
   },
   {
     endpoint: "POST /api/enforce-voice",
     what: "Hard-removes a brand's “avoid” words from a piece and reports any that survive.",
-    guard: "Rewrites in place, ownership-scoped; honest about words it couldn't remove.",
+    guard: "Rewrites in place, ownership-scoped, one-in-flight-call lock; honest about words it couldn't remove.",
   },
   {
     endpoint: "GET·POST·PUT·DELETE /api/brand-voice",

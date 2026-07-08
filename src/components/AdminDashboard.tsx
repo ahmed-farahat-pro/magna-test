@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/Skeleton";
 import { toast } from "@/lib/toast";
 import { fmtUsd, fmtTokens } from "@/lib/pricing";
+import { useInFlight } from "@/lib/useInFlight";
 
 type Overview = {
   users: number;
@@ -72,6 +73,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const guard = useInFlight(); // serialize admin mutations (delete / save video)
 
   // Landing-page illustration video
   const [videoInput, setVideoInput] = useState("");
@@ -155,26 +157,28 @@ export default function AdminDashboard() {
   }
 
   async function deleteUser(id: string) {
-    setDeleting(id);
-    try {
-      const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
-      if (res.status === 401) {
-        router.push("/admin/login");
-        return;
+    await guard(async () => {
+      setDeleting(id);
+      try {
+        const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+        if (res.status === 401) {
+          router.push("/admin/login");
+          return;
+        }
+        if (res.ok) {
+          setUsers((prev) => (prev ? prev.filter((u) => u.id !== id) : prev));
+          setConfirmId(null);
+          toast.success("User deleted");
+          load();
+        } else {
+          toast.error("Could not delete the user.");
+        }
+      } catch {
+        toast.error("Network error while deleting the user.");
+      } finally {
+        setDeleting(null);
       }
-      if (res.ok) {
-        setUsers((prev) => (prev ? prev.filter((u) => u.id !== id) : prev));
-        setConfirmId(null);
-        toast.success("User deleted");
-        load();
-      } else {
-        toast.error("Could not delete the user.");
-      }
-    } catch {
-      toast.error("Network error while deleting the user.");
-    } finally {
-      setDeleting(null);
-    }
+    });
   }
 
   const ov = stats?.overview;

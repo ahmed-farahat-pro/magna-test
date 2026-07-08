@@ -1,6 +1,7 @@
 import { getActor } from "@/lib/session";
 import { track } from "@/lib/track";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { acquireAiSlot, releaseAiSlot } from "@/lib/concurrency";
 import { fail, newRequestId, tooLarge } from "@/lib/http";
 import {
   generateSchema,
@@ -79,6 +80,16 @@ export async function POST(req: Request) {
       brandVoiceText,
     );
 
+    // One in-flight AI request per session. A second concurrent generate is
+    // rejected here rather than fanned out into another billable model call.
+    if (!(await acquireAiSlot(sessionId))) {
+      return fail(
+        "CONCURRENT_REQUEST",
+        "You already have a request in progress. Please wait for it to finish before starting another.",
+        requestId,
+      );
+    }
+
     const encoder = new TextEncoder();
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
@@ -87,6 +98,7 @@ export async function POST(req: Request) {
         let pending = ""; // buffered opening, held until the refusal decision
         let inputTokens = 0;
         let outputTokens = 0;
+        try {
         try {
           const s = anthropic().messages.stream({
             model: MODEL,
@@ -238,6 +250,11 @@ export async function POST(req: Request) {
           ),
         );
         controller.close();
+        } finally {
+          // Always free the session's AI slot once the stream ends — success,
+          // early refusal, AI error, or unusable output all funnel through here.
+          await releaseAiSlot(sessionId);
+        }
       },
     });
 

@@ -1,6 +1,7 @@
 import { getActor } from "@/lib/session";
 import { track } from "@/lib/track";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { acquireAiSlot, releaseAiSlot } from "@/lib/concurrency";
 import { ok, fail, newRequestId, tooLarge } from "@/lib/http";
 import { imageSchema, zodDetails, CONTENT_TYPE_WIRE } from "@/lib/validation";
 import { imageEnabled } from "@/lib/ai/config";
@@ -78,6 +79,17 @@ export async function POST(req: Request) {
     if (!blobEnabled()) {
       return fail("CONFIG_ERROR", "Image storage is not configured (missing BLOB_READ_WRITE_TOKEN).", requestId);
     }
+
+    // One in-flight AI request per session — covers the art-director call plus
+    // the image generation, so a burst of clicks can't fan out paid renders.
+    if (!(await acquireAiSlot(sessionId))) {
+      return fail(
+        "CONCURRENT_REQUEST",
+        "You already have a request in progress. Please wait for it to finish.",
+        requestId,
+      );
+    }
+    try {
 
     // Sanitize a client-supplied scene before it re-enters the image prompt:
     // strip control chars, collapse whitespace, and cap length.
@@ -190,6 +202,9 @@ export async function POST(req: Request) {
       },
       requestId,
     );
+    } finally {
+      await releaseAiSlot(sessionId);
+    }
   } catch (e) {
     logError("images", requestId, e);
     return fail("INTERNAL_ERROR", "Something went wrong.", requestId);
