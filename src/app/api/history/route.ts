@@ -16,6 +16,7 @@ export async function GET(req: Request) {
     const parsed = historyQuerySchema.safeParse({
       page: sp.get("page") ?? undefined,
       pageSize: sp.get("pageSize") ?? undefined,
+      kind: sp.get("kind") ?? undefined,
     });
     if (!parsed.success) {
       const details = zodDetails(parsed.error);
