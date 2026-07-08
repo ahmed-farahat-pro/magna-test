@@ -41,16 +41,8 @@ const CHOICES: [string, string][] = [
 
 const TRADEOFFS: [string, string][] = [
   [
-    "In-memory rate limiter, not Redis",
-    "Simple and dependency-free for a single-instance deploy; the swap-in (Upstash) sits behind the same signature. Trade-off: limits reset per instance/restart.",
-  ],
-  [
     "Anonymous session, not full auth",
     "Fast to build and demo, no signup friction — at the cost of no cross-device history and no accounts/teams.",
-  ],
-  [
-    "Brand voice is a soft instruction",
-    "It's woven into the prompt (natural, flexible) rather than enforced by a post-processor — so an “avoid” word can occasionally slip through. Faithful most of the time, not guaranteed.",
   ],
   [
     "Client-side export, no render service",
@@ -79,16 +71,16 @@ const NEXT: { title: string; body: string; starred: boolean }[] = [
     starred: true,
   },
   {
-    title: "Hard brand-voice enforcement",
-    body: "A post-generation lint that flags and rewrites any “avoid” words — turning the soft instruction into a guarantee.",
-    starred: false,
-  },
-  {
     title: "Real auth + team workspaces",
-    body: "Shared brand kits, Redis-backed rate limiting, and usage analytics for a true multi-tenant product.",
+    body: "So brand voices and history follow the user across devices, with usage analytics for a true multi-tenant product.",
     starred: false,
   },
 ];
+
+// Since the first cut: durable rate limiting (Upstash + in-memory fallback),
+// server-side multiple brand voices (create / edit / delete, pick one per
+// generation), and hard "avoid"-word enforcement (detect + one-click rewrite)
+// were all shipped — so they moved out of trade-offs / what's-next.
 
 function Section({
   eyebrow,

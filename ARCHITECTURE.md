@@ -29,15 +29,8 @@ _AI Content Marketing Suite — design choices, trade-offs, and what's next. One
 
 ## Trade-offs
 
-- **In-memory rate limiter, not Redis.** Simple and dependency-free for a
-  single-instance deploy; the swap-in point (Upstash) sits behind the same
-  function signature. Trade-off: limits reset per instance/restart.
 - **Anonymous session, not full auth.** Fast to build and demo, no signup
   friction — at the cost of no cross-device history and no accounts/teams.
-- **Brand voice is a *soft* instruction, not a hard filter.** It's woven into the
-  prompt (natural, flexible) rather than enforced by a post-processor — so an
-  "avoid" word can occasionally slip through. Faithful most of the time, not
-  guaranteed.
 - **Client-side export (jsPDF / docx), no server render service.** No extra infra,
   and dynamic imports keep it out of the initial bundle — but it runs in the
   browser. Word needs a real `.docx` (the `docx` lib), because HTML-in-`.doc`
@@ -53,7 +46,10 @@ _AI Content Marketing Suite — design choices, trade-offs, and what's next. One
   background tweaks on the generated image without leaving the app.
 - **Richer text styling in generation** — choose fonts, sizes, and weights so the
   copy can be exported already-styled, as an extra layer on top of the content.
-- **Hard brand-voice enforcement** — a post-generation lint that flags and rewrites
-  any "avoid" words, turning the soft instruction into a guarantee.
-- **Real auth + team workspaces** with shared brand kits, plus Redis-backed rate
-  limiting and usage analytics for a true multi-tenant product.
+- **Real auth + team workspaces** so brand voices and history follow the user
+  across devices, with usage analytics for a true multi-tenant product.
+
+> Since the first cut, several former trade-offs have been closed:
+> **durable rate limiting** (Upstash Redis with an in-memory fallback),
+> **server-side, multiple brand voices** (create / edit / delete, pick one per
+> generation), and **hard "avoid"-word enforcement** (detect + one-click rewrite).

@@ -2,9 +2,9 @@
 
 import { useState, useEffect, type FormEvent } from "react";
 import {
-  loadBrandVoice,
-  saveBrandVoice,
-  pullBrandVoice,
+  listVoices,
+  getSelectedVoiceId,
+  setSelectedVoiceId,
   type BrandVoice,
 } from "@/lib/brandVoice";
 import { exportPdf, exportDocx } from "@/lib/export";
@@ -64,25 +64,18 @@ export default function Generator() {
   const [enforcing, setEnforcing] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState("");
-  const [brandVoice, setBrandVoice] = useState<BrandVoice | null>(null);
-  const [useVoice, setUseVoice] = useState(false);
+  const [voices, setVoices] = useState<BrandVoice[]>([]);
+  const [voiceId, setVoiceId] = useState<string | null>(null);
 
   useEffect(() => {
-    const local = loadBrandVoice();
-    if (local) {
-      setBrandVoice(local);
-      setUseVoice(true);
-      return;
-    }
-    // Restore from the server (source of truth) on a fresh browser.
-    pullBrandVoice().then((v) => {
-      if (v) {
-        setBrandVoice(v);
-        setUseVoice(true);
-        saveBrandVoice(v);
-      }
+    listVoices().then((vs) => {
+      setVoices(vs);
+      const sel = getSelectedVoiceId();
+      if (sel && vs.some((v) => v.id === sel)) setVoiceId(sel);
     });
   }, []);
+
+  const selectedVoice = voices.find((v) => v.id === voiceId) ?? null;
 
   // image state
   const [imgUrl, setImgUrl] = useState<string | null>(null);
@@ -123,7 +116,7 @@ export default function Generator() {
           tone,
           audience,
           contentType,
-          brandVoice: useVoice && brandVoice ? brandVoice : undefined,
+          brandVoice: selectedVoice ?? undefined,
         }),
       });
       if (!res.ok || !res.body) {
@@ -358,27 +351,41 @@ export default function Generator() {
           />
         </div>
 
-        {brandVoice ? (
-          <label className="flex items-center gap-2.5 rounded-lg border border-[#d9dfd8] bg-white px-3.5 py-2.5 text-sm text-[#3c4a54]">
-            <input
-              type="checkbox"
-              checked={useVoice}
-              onChange={(e) => setUseVoice(e.target.checked)}
-              className="h-4 w-4 accent-[#0e7a63]"
-            />
-            <span>
-              Use brand voice:{" "}
-              <span className="font-semibold text-[#0a5346]">
-                {brandVoice.name}
-              </span>
-            </span>
-          </label>
+        {voices.length > 0 ? (
+          <div>
+            <label className={labelCls} htmlFor="voice">
+              Brand voice
+            </label>
+            <select
+              id="voice"
+              value={voiceId ?? ""}
+              onChange={(e) => {
+                const id = e.target.value || null;
+                setVoiceId(id);
+                setSelectedVoiceId(id);
+              }}
+              className={inputCls}
+            >
+              <option value="">None</option>
+              {voices.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name}
+                </option>
+              ))}
+            </select>
+            <a
+              href="/settings"
+              className="mt-1 inline-block text-xs text-[#5f6960] transition-colors hover:text-[#0a5346]"
+            >
+              Manage brand voices →
+            </a>
+          </div>
         ) : (
           <a
             href="/settings"
             className="rounded-lg border border-dashed border-[#d9dfd8] bg-white px-3.5 py-2.5 text-center text-xs text-[#5f6960] transition-colors hover:border-[#0e7a63] hover:text-[#0a5346]"
           >
-            + Set a brand voice in Settings
+            + Add a brand voice in Settings
           </a>
         )}
 

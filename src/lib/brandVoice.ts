@@ -1,7 +1,9 @@
-// Brand voice is stored client-side (per browser/session) and passed explicitly
-// on generation requests, so it works without server auth and is injected into
-// the prompt only when the user opts in.
+// Brand voices are stored server-side (source of truth), one session can have
+// many. The browser only remembers which one is currently SELECTED on the
+// generator, in localStorage.
+
 export type BrandVoice = {
+  id?: string;
   name: string;
   personality?: string[];
   formality?: string;
@@ -11,47 +13,66 @@ export type BrandVoice = {
   avoid?: string[];
 };
 
-const KEY = "acms_brand_voice";
+const SELECTED_KEY = "acms_brand_voice_selected";
 
-export function loadBrandVoice(): BrandVoice | null {
+export function getSelectedVoiceId(): string | null {
   if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as BrandVoice) : null;
-  } catch {
-    return null;
-  }
+  return window.localStorage.getItem(SELECTED_KEY);
 }
 
-export function saveBrandVoice(v: BrandVoice): void {
-  window.localStorage.setItem(KEY, JSON.stringify(v));
+export function setSelectedVoiceId(id: string | null): void {
+  if (typeof window === "undefined") return;
+  if (id) window.localStorage.setItem(SELECTED_KEY, id);
+  else window.localStorage.removeItem(SELECTED_KEY);
 }
 
-export function clearBrandVoice(): void {
-  window.localStorage.removeItem(KEY);
-}
-
-/** Fetch the session's server-stored brand voice (the source of truth). */
-export async function pullBrandVoice(): Promise<BrandVoice | null> {
+export async function listVoices(): Promise<BrandVoice[]> {
   try {
     const res = await fetch("/api/brand-voice");
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const json = await res.json();
-    return (json?.brandVoice as BrandVoice) ?? null;
+    return (json?.voices as BrandVoice[]) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function createVoice(v: BrandVoice): Promise<BrandVoice | null> {
+  try {
+    const res = await fetch("/api/brand-voice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(v),
+    });
+    if (!res.ok) return null;
+    return (await res.json()).voice ?? null;
   } catch {
     return null;
   }
 }
 
-/** Persist the brand voice to the server (best-effort; localStorage stays the cache). */
-export async function pushBrandVoice(v: BrandVoice): Promise<void> {
+export async function updateVoice(
+  id: string,
+  v: BrandVoice,
+): Promise<BrandVoice | null> {
   try {
-    await fetch("/api/brand-voice", {
+    const res = await fetch(`/api/brand-voice/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(v),
     });
+    if (!res.ok) return null;
+    return (await res.json()).voice ?? null;
   } catch {
-    /* offline — localStorage still holds it */
+    return null;
+  }
+}
+
+export async function deleteVoice(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/brand-voice/${id}`, { method: "DELETE" });
+    return res.ok;
+  } catch {
+    return false;
   }
 }

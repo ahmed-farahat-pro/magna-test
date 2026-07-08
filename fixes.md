@@ -306,6 +306,25 @@ generate stream done ──▶ findAvoidedWords(output, avoid)
 variants), preserving meaning/tone/formatting; the response reports any word that
 still `remaining`s, so the guarantee is surfaced honestly rather than assumed.
 
+## Round 5 — multiple brand voices + trade-off cleanup
+
+### R5.1 · Many brand voices (add / edit / delete / pick)
+The brand voice went from **one per session** to **many**:
+- `BrandVoice` model changed to `id`-PK + `sessionId` index (migration
+  recreates the table); `GET`/`POST /api/brand-voice` (list / create, capped at
+  10) and `PUT`/`DELETE /api/brand-voice/[id]` (update / delete, ownership-scoped).
+- **Settings** is now a manager: a list of voice cards with **Edit** and **Delete**
+  (two-step confirm) and an **Add brand voice** form.
+- **Generator** has a **voice picker** (`None` + each saved voice); the choice is
+  remembered per browser and applied to that generation (the image follows from
+  the copy). Fully server-backed.
+
+### R5.2 · Trade-offs pruned
+`ARCHITECTURE.md` and the `/architecture` page dropped the trade-offs that are now
+fixed — the in-memory rate limiter (→ durable Upstash) and the soft brand-voice
+instruction (→ server-side, multiple, hard-enforced) — and "what's next" no longer
+lists hard enforcement.
+
 ---
 
 ## Verification

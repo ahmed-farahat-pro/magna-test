@@ -7,26 +7,31 @@ import { logError } from "@/lib/log";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// GET — the session's saved brand voice (server-side source of truth), or null.
+const MAX_VOICES = 10;
+
+type Row = { id: string; data: unknown };
+const merge = (r: Row) => ({ id: r.id, ...(r.data as Record<string, unknown>) });
+
+// GET — all brand voices saved for this session (newest first).
 export async function GET() {
   const requestId = newRequestId();
   try {
     const sessionId = await getSessionId();
-    if (!dbEnabled()) return ok({ brandVoice: null }, requestId);
-    const row = await getPrisma().brandVoice.findUnique({
+    if (!dbEnabled()) return ok({ voices: [] }, requestId);
+    const rows = await getPrisma().brandVoice.findMany({
       where: { sessionId },
-      select: { data: true },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, data: true },
     });
-    return ok({ brandVoice: row?.data ?? null }, requestId);
+    return ok({ voices: rows.map(merge) }, requestId);
   } catch (e) {
-    logError("brandVoice.get", requestId, e);
-    // Degrade gracefully — the client still has its localStorage copy.
-    return ok({ brandVoice: null }, requestId);
+    logError("brandVoice.list", requestId, e);
+    return ok({ voices: [] }, requestId);
   }
 }
 
-// PUT — upsert the session's brand voice.
-export async function PUT(req: Request) {
+// POST — create a new brand voice.
+export async function POST(req: Request) {
   const requestId = newRequestId();
   try {
     const sessionId = await getSessionId();
@@ -40,18 +45,21 @@ export async function PUT(req: Request) {
       return fail("VALIDATION_ERROR", details[0]?.message ?? "Invalid brand voice.", requestId, { details });
     }
     if (!dbEnabled()) {
-      return ok({ saved: false, brandVoice: parsed.data }, requestId);
+      return ok({ voice: parsed.data, saved: false }, requestId);
     }
-    // JSON round-trip strips any undefined so it's clean JSONB.
+    const prisma = getPrisma();
+    const count = await prisma.brandVoice.count({ where: { sessionId } });
+    if (count >= MAX_VOICES) {
+      return fail("VALIDATION_ERROR", `You can save up to ${MAX_VOICES} brand voices.`, requestId);
+    }
     const data = JSON.parse(JSON.stringify(parsed.data));
-    await getPrisma().brandVoice.upsert({
-      where: { sessionId },
-      create: { sessionId, data },
-      update: { data },
+    const row = await prisma.brandVoice.create({
+      data: { sessionId, data },
+      select: { id: true, data: true },
     });
-    return ok({ saved: true, brandVoice: parsed.data }, requestId);
+    return ok({ voice: merge(row), saved: true }, requestId);
   } catch (e) {
-    logError("brandVoice.put", requestId, e);
+    logError("brandVoice.create", requestId, e);
     return fail("INTERNAL_ERROR", "Could not save the brand voice.", requestId);
   }
 }

@@ -29,6 +29,13 @@ export async function enforceVoice(
   );
   if (res.stop_reason === "refusal") return text;
   const block = res.content.find((b) => b.type === "text");
-  const out = block && block.type === "text" ? block.text.trim() : "";
+  let out = block && block.type === "text" ? block.text.trim() : "";
+  // Strip any wrapping code fence or triple-quote the model may add.
+  out = out
+    .replace(/^```[a-z]*\n?/i, "")
+    .replace(/\n?```$/i, "")
+    .replace(/^"""\s*/, "")
+    .replace(/\s*"""$/, "")
+    .trim();
   return out.length > 0 ? out : text;
 }
