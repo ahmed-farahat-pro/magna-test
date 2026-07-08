@@ -18,8 +18,12 @@ const CHOICES: [string, string][] = [
     "A single table holds both generated content and improvements, with the image fields on the same row — one history query, one ownership rule, no joins.",
   ],
   [
-    "Anonymous, signed identity",
-    "An HMAC-signed sessionId cookie is minted by Edge middleware — zero-friction (no login) yet forgery-resistant. Every read/write is scoped where { id, sessionId }.",
+    "Two-layer identity, one owner id",
+    "An HMAC-signed anonymous sessionId cookie is minted by Edge middleware; signing up adds an email + password account (scrypt hash, 7-day token). A single getActor() collapses both into one owner id, so every read/write stays scoped where { id, sessionId } — and anonymous work migrates onto the account in one transaction at sign-up.",
+  ],
+  [
+    "Observability without a vendor",
+    "An append-only ActivityEvent log records each action (new anonymous session, text/image/improve, signup/login). A password-gated admin dashboard aggregates it into traffic, usage-by-type, a 14-day chart, the user-vs-anonymous split, and per-user counts — and can delete a user, cascading their content. Writes are best-effort, so analytics never slow or break a user action.",
   ],
   [
     "Streaming for perceived speed",
@@ -41,8 +45,8 @@ const CHOICES: [string, string][] = [
 
 const TRADEOFFS: [string, string][] = [
   [
-    "Anonymous session, not full auth",
-    "Fast to build and demo, no signup friction — at the cost of no cross-device history and no accounts/teams.",
+    "Single operator admin, credentials in env",
+    "The admin is one ADMIN_USERNAME / ADMIN_PASSWORD account — no admin table, nothing to seed or leak — at the cost of no per-admin roles or audit-of-admins. Right-sized for this scope.",
   ],
   [
     "Client-side export, no render service",
@@ -71,16 +75,18 @@ const NEXT: { title: string; body: string; starred: boolean }[] = [
     starred: true,
   },
   {
-    title: "Real auth + team workspaces",
-    body: "So brand voices and history follow the user across devices, with usage analytics for a true multi-tenant product.",
+    title: "Team workspaces & roles",
+    body: "Shared brand voices and history across a team, per-seat permissions, and multiple admins with an audit trail.",
     starred: false,
   },
 ];
 
-// Since the first cut: durable rate limiting (Upstash + in-memory fallback),
-// server-side multiple brand voices (create / edit / delete, pick one per
-// generation), and hard "avoid"-word enforcement (detect + one-click rewrite)
-// were all shipped — so they moved out of trade-offs / what's-next.
+// Since the first cut: email + password accounts (with anonymous-work migration,
+// disposable-email blocking, and a password-strength meter), an admin dashboard
+// with full activity tracking + user management, durable rate limiting (Upstash +
+// in-memory fallback), server-side multiple brand voices (create / edit / delete,
+// pick one per generation), and hard "avoid"-word enforcement (detect + one-click
+// rewrite) were all shipped — so they moved out of trade-offs / what's-next.
 
 function Section({
   eyebrow,

@@ -5,6 +5,7 @@ import { ok, fail, newRequestId, tooLarge, clientIp } from "@/lib/http";
 import { credentialsSchema, zodDetails } from "@/lib/validation";
 import { dbEnabled, getPrisma } from "@/lib/db";
 import { claimAnonData } from "@/lib/migrateAnon";
+import { track } from "@/lib/track";
 import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
     }
 
     await setAuthCookie(user.id);
+    await track("login", user.id, true);
     return ok({ user: { email } }, requestId);
   } catch (e) {
     logError("auth.login", requestId, e);

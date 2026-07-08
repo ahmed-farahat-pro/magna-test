@@ -1,4 +1,5 @@
-import { getSessionId } from "@/lib/session";
+import { getActor } from "@/lib/session";
+import { track } from "@/lib/track";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { fail, newRequestId, tooLarge } from "@/lib/http";
 import {
@@ -28,7 +29,7 @@ const SEP = String.fromCharCode(30); // U+001E
 export async function POST(req: Request) {
   const requestId = newRequestId();
   try {
-    const sessionId = await getSessionId();
+    const { id: sessionId, isUser } = await getActor();
 
     const rl = await checkRateLimit(sessionId, "generate");
     if (!rl.ok) {
@@ -147,6 +148,9 @@ export async function POST(req: Request) {
             logError("generate.persist", requestId, e, { contentType });
           }
         }
+
+        // Record the action for the admin dashboard (best-effort, non-fatal).
+        await track("text_generate", sessionId, isUser, { contentType, saved: id !== null });
 
         // Hard brand-voice check: which "avoid" words slipped into the output.
         const avoided = parsed.data.brandVoice?.avoid?.length

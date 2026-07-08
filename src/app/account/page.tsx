@@ -44,7 +44,8 @@ export default function AccountPage() {
         setError(json?.error?.message ?? "Something went wrong. Please try again.");
         return;
       }
-      // Signed in — go make something.
+      // Signed in — tell the header to re-check auth immediately, then go.
+      window.dispatchEvent(new Event("auth-changed"));
       router.push("/create");
       router.refresh();
     } catch {

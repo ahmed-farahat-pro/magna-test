@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -17,19 +17,46 @@ export default function TopNav() {
   const [email, setEmail] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/auth/me")
+  // Always bypass the HTTP cache — a stale pre-login {user:null} is exactly the
+  // bug that left the header showing "Sign in" after signing in.
+  const refreshAuth = useCallback(() => {
+    fetch("/api/auth/me", { cache: "no-store" })
       .then((r) => r.json())
       .then((j) => setEmail(j?.user?.email ?? null))
       .catch(() => setEmail(null))
       .finally(() => setReady(true));
-  }, [path]);
+  }, []);
+
+  // Re-check on every navigation, on window focus, and when auth explicitly
+  // changes (login/signup/logout dispatch an `auth-changed` event).
+  useEffect(() => {
+    refreshAuth();
+    const onChange = () => refreshAuth();
+    window.addEventListener("auth-changed", onChange);
+    window.addEventListener("focus", onChange);
+    return () => {
+      window.removeEventListener("auth-changed", onChange);
+      window.removeEventListener("focus", onChange);
+    };
+  }, [path, refreshAuth]);
+
+  // Record a unique anonymous visitor once per browser (skips the admin area).
+  useEffect(() => {
+    if (path.startsWith("/admin")) return;
+    fetch("/api/track/visit", { method: "POST" }).catch(() => {});
+    // Fire once on first mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function signOut() {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     setEmail(null);
+    window.dispatchEvent(new Event("auth-changed"));
     window.location.href = "/";
   }
+
+  // The admin area is a separate surface — don't show the consumer nav there.
+  if (path.startsWith("/admin")) return null;
 
   return (
     <header className="sticky top-0 z-10 border-b border-[#d9dfd8] bg-[#eff2ee]/85 backdrop-blur">

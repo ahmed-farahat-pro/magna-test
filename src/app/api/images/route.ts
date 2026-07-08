@@ -1,4 +1,5 @@
-import { getSessionId } from "@/lib/session";
+import { getActor } from "@/lib/session";
+import { track } from "@/lib/track";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { ok, fail, newRequestId, tooLarge } from "@/lib/http";
 import { imageSchema, zodDetails, CONTENT_TYPE_WIRE } from "@/lib/validation";
@@ -20,7 +21,7 @@ export const maxDuration = 60; // DALL·E 3 + b64 download + Blob upload can tak
 export async function POST(req: Request) {
   const requestId = newRequestId();
   try {
-    const sessionId = await getSessionId();
+    const { id: sessionId, isUser } = await getActor();
 
     const rl = await checkRateLimit(sessionId, "image");
     if (!rl.ok) {
@@ -168,6 +169,8 @@ export async function POST(req: Request) {
         return fail("UPSTREAM_BLOB_ERROR", "The image was created but could not be attached to your content. Please try again.", requestId);
       }
     }
+
+    await track("image_generate", sessionId, isUser, { style, saved: canAttach });
 
     return ok(
       { imageUrl, prompt, style, saved: canAttach, enhanced, scene },

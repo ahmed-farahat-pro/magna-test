@@ -10,9 +10,18 @@ _AI Content Marketing Suite — design choices, trade-offs, and what's next. One
 - **One `Generation` model** holds both generated content *and* improvements, with
   the image fields on the same row. A single table means one history query, one
   ownership rule, and no joins.
-- **Anonymous, signed identity.** An HMAC-signed `sessionId` cookie is minted by
-  Edge middleware — zero-friction (no login) yet forgery-resistant. Every read and
-  write is scoped `where: { id, sessionId }`, so users can only touch their own data.
+- **Two-layer identity, one owner id.** An HMAC-signed anonymous `sessionId`
+  cookie is minted by Edge middleware (zero-friction, forgery-resistant); signing
+  up adds an **email + password account** (scrypt hash, 7-day signed token). A
+  single `getActor()` collapses both into one owner id, so every read/write stays
+  scoped `where: { id, sessionId }` unchanged — and anonymous work is **migrated**
+  onto the account in one transaction at sign-up.
+- **Observability without a vendor.** An append-only `ActivityEvent` log records
+  each meaningful action (a new anonymous session, a text/image/improve, a
+  signup/login). A password-gated **admin dashboard** aggregates it into traffic,
+  usage-by-type, a 14-day chart, the user-vs-anonymous split, and per-user counts —
+  and can delete a user (cascading their content). Writes are best-effort, so
+  analytics can never slow or break a user-facing action.
 - **Streaming for perceived speed.** `/api/generate` streams copy token-by-token,
   then a record-separator byte and a small JSON trailer carry the saved id — so the
   UI feels instant instead of staring at a spinner.
@@ -29,8 +38,9 @@ _AI Content Marketing Suite — design choices, trade-offs, and what's next. One
 
 ## Trade-offs
 
-- **Anonymous session, not full auth.** Fast to build and demo, no signup
-  friction — at the cost of no cross-device history and no accounts/teams.
+- **Single operator admin, credentials in env.** The admin is one `ADMIN_USERNAME`
+  / `ADMIN_PASSWORD` account — no admin table, nothing to seed or leak — at the
+  cost of no per-admin roles or audit-of-admins. Right-sized for this scope.
 - **Client-side export (jsPDF / docx), no server render service.** No extra infra,
   and dynamic imports keep it out of the initial bundle — but it runs in the
   browser. Word needs a real `.docx` (the `docx` lib), because HTML-in-`.doc`
@@ -46,10 +56,13 @@ _AI Content Marketing Suite — design choices, trade-offs, and what's next. One
   background tweaks on the generated image without leaving the app.
 - **Richer text styling in generation** — choose fonts, sizes, and weights so the
   copy can be exported already-styled, as an extra layer on top of the content.
-- **Real auth + team workspaces** so brand voices and history follow the user
-  across devices, with usage analytics for a true multi-tenant product.
+- **Team workspaces & roles** — shared brand voices and history across a team,
+  per-seat permissions, and multiple admins with an audit trail.
 
 > Since the first cut, several former trade-offs have been closed:
-> **durable rate limiting** (Upstash Redis with an in-memory fallback),
-> **server-side, multiple brand voices** (create / edit / delete, pick one per
-> generation), and **hard "avoid"-word enforcement** (detect + one-click rewrite).
+> **email + password accounts** (with anonymous-work migration on sign-up, plus
+> disposable-email blocking and a password-strength meter), an **admin dashboard**
+> with full activity tracking and user management, **durable rate limiting**
+> (Upstash Redis with an in-memory fallback), **server-side, multiple brand
+> voices** (create / edit / delete, pick one per generation), and **hard
+> "avoid"-word enforcement** (detect + one-click rewrite).

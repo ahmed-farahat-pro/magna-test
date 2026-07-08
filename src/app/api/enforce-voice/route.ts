@@ -1,4 +1,5 @@
-import { getSessionId } from "@/lib/session";
+import { getActor } from "@/lib/session";
+import { track } from "@/lib/track";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { ok, fail, newRequestId, tooLarge } from "@/lib/http";
 import { enforceSchema, zodDetails, findAvoidedWords } from "@/lib/validation";
@@ -17,7 +18,7 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   const requestId = newRequestId();
   try {
-    const sessionId = await getSessionId();
+    const { id: sessionId, isUser } = await getActor();
 
     const rl = await checkRateLimit(sessionId, "generate");
     if (!rl.ok) {
@@ -66,6 +67,8 @@ export async function POST(req: Request) {
         logError("enforceVoice.persist", requestId, e);
       }
     }
+
+    await track("enforce_voice", sessionId, isUser, { remaining: remaining.length });
 
     return ok({ text: rewritten, remaining }, requestId);
   } catch (e) {

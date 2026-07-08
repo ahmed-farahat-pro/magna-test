@@ -51,7 +51,9 @@ const LAYERS: Layer[] = [
       { t: "Generator", tag: "core" },
       { t: "Improver", tag: "core" },
       { t: "History", tag: "core" },
-      { t: "Settings · brand voice", tag: "bonus" },
+      { t: "Account · sign in", tag: "core" },
+      { t: "Settings · brand voices", tag: "bonus" },
+      { t: "Admin dashboard", tag: "bonus" },
     ],
     edge: "fetch /api/*  (no keys in the browser)",
   },
@@ -67,6 +69,11 @@ const LAYERS: Layer[] = [
       { t: "/api/images", tag: "core" },
       { t: "/api/improve", tag: "core" },
       { t: "/api/history", tag: "core" },
+      { t: "/api/auth/*", tag: "core" },
+      { t: "/api/brand-voice", tag: "bonus" },
+      { t: "/api/enforce-voice", tag: "bonus" },
+      { t: "/api/admin/*", tag: "bonus" },
+      { t: "/api/track/visit", tag: "bonus" },
       { t: "/api/img", tag: "bonus" },
     ],
     edge: "validate → call lib services",
@@ -77,8 +84,12 @@ const LAYERS: Layer[] = [
       { t: "ai/generate", tag: "core" },
       { t: "ai/image", tag: "core" },
       { t: "validation (zod)", tag: "core" },
-      { t: "session", tag: "core" },
+      { t: "session · getActor", tag: "core" },
+      { t: "auth (scrypt)", tag: "core" },
+      { t: "migrateAnon", tag: "core" },
       { t: "rateLimit", tag: "core" },
+      { t: "track", tag: "bonus" },
+      { t: "admin", tag: "bonus" },
       { t: "db (Prisma)", tag: "core" },
       { t: "blob", tag: "core" },
       { t: "export", tag: "bonus" },
@@ -92,13 +103,14 @@ const LAYERS: Layer[] = [
       { t: "OpenAI · images", tag: "ext" },
       { t: "Vercel Blob", tag: "ext" },
       { t: "Neon · Postgres", tag: "ext" },
+      { t: "Upstash · Redis", tag: "ext" },
     ],
   },
 ];
 
 // ── Per-feature call flows ───────────────────────────────────────────────────
 type Step = { actor: string; desc: string; tag?: Tag; tagLabel?: string };
-type FlowKey = "Generate" | "Image" | "Improve" | "History";
+type FlowKey = "Generate" | "Image" | "Improve" | "History" | "Account" | "Admin";
 
 const FLOWS: Record<FlowKey, Step[]> = {
   Generate: [
@@ -199,6 +211,58 @@ const FLOWS: Record<FlowKey, Step[]> = {
       tagLabel: "export",
     },
   ],
+  Account: [
+    {
+      actor: "account/page.tsx",
+      desc: "Sign up with email + password. A live strength meter and disposable-email block guard the form.",
+      tag: "bonus",
+      tagLabel: "validation",
+    },
+    {
+      actor: "POST /api/auth/signup",
+      desc: "IP-rate-limited, zod-validated, temp-mail rejected; the password is hashed with scrypt (no plaintext).",
+    },
+    {
+      actor: "claimAnonData()",
+      desc: "In one transaction, everything you made anonymously is re-owned to your new account.",
+      tag: "core",
+      tagLabel: "migration",
+    },
+    {
+      actor: "setAuthCookie()",
+      desc: "A 7-day HMAC-signed token. From now on getSessionId() resolves to your durable account id, across devices.",
+    },
+    {
+      actor: "→ header updates",
+      desc: "The nav re-checks /api/auth/me (no-store) and swaps “Sign in” for your email + Sign out.",
+    },
+  ],
+  Admin: [
+    {
+      actor: "track() on every action",
+      desc: "generate / image / improve / signup / login each append one ActivityEvent — best-effort, never blocking.",
+      tag: "bonus",
+      tagLabel: "tracking",
+    },
+    {
+      actor: "POST /api/track/visit",
+      desc: "Records exactly one session_start per new anonymous browser, for an accurate visitor count.",
+    },
+    {
+      actor: "POST /api/admin/login",
+      desc: "Env-configured operator credentials (constant-time check, IP-rate-limited) mint an HMAC admin cookie.",
+    },
+    {
+      actor: "GET /api/admin/stats + /users",
+      desc: "Aggregate traffic, usage-by-type, a 14-day chart, the user/anon split, and per-user counts.",
+    },
+    {
+      actor: "AdminDashboard.tsx",
+      desc: "Cards, an activity feed (who did what, when), and delete-user — which cascades all of their data.",
+      tag: "bonus",
+      tagLabel: "management",
+    },
+  ],
 };
 
 const FLOW_KEYS = Object.keys(FLOWS) as FlowKey[];
@@ -207,16 +271,20 @@ const CORE_LIST = [
   "Four content formats, each with its own prompt strategy",
   "All AI runs server-side — no keys ever reach the browser",
   "AI image generation, re-hosted on permanent Blob storage",
-  "Anonymous session-scoped history (create, read, delete)",
+  "Session-scoped history (create, read, delete, export)",
   "The content improver with goal-driven rewrites",
+  "Email + password accounts — anonymous work migrates on sign-up",
 ];
 
 const BONUS_LIST = [
-  "Brand voice — personality, formality, keywords & words to avoid",
-  "Image style picker (photographic, 3D, flat, gradient…)",
+  "Multiple brand voices — create / edit / delete, pick one per generation",
+  "Hard “avoid”-word enforcement (detect + one-click rewrite)",
+  "Content-aware image prompts (an art-director step) + style picker",
   "Live token streaming as Claude writes",
-  "Content-aware image prompts (an art-director step)",
   "Export to Text / Word / PDF, with the image embedded",
+  "Durable rate limiting (Upstash Redis, in-memory fallback)",
+  "Admin dashboard — traffic, usage & user management",
+  "Full activity tracking (who generated text, images & improvements)",
   "Animations, polish & this self-running onboarding demo",
 ];
 

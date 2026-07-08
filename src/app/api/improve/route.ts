@@ -1,4 +1,5 @@
-import { getSessionId } from "@/lib/session";
+import { getActor } from "@/lib/session";
+import { track } from "@/lib/track";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { ok, fail, newRequestId, tooLarge } from "@/lib/http";
 import { improveSchema, zodDetails, IMPROVE_GOAL_DB } from "@/lib/validation";
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const requestId = newRequestId();
   try {
-    const sessionId = await getSessionId();
+    const { id: sessionId, isUser } = await getActor();
 
     const rl = await checkRateLimit(sessionId, "generate");
     if (!rl.ok) {
@@ -75,6 +76,8 @@ export async function POST(req: Request) {
         // Non-fatal — still return the improved text.
       }
     }
+
+    await track("improve", sessionId, isUser, { goal, saved: id !== null });
 
     return ok(
       {

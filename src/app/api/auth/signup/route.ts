@@ -6,6 +6,7 @@ import { credentialsSchema, zodDetails } from "@/lib/validation";
 import { isDisposableEmail } from "@/lib/email";
 import { dbEnabled, getPrisma } from "@/lib/db";
 import { claimAnonData } from "@/lib/migrateAnon";
+import { track } from "@/lib/track";
 import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
@@ -80,6 +81,7 @@ export async function POST(req: Request) {
     }
 
     await setAuthCookie(user.id);
+    await track("signup", user.id, true);
     return ok({ user: { email: user.email } }, requestId);
   } catch (e) {
     logError("auth.signup", requestId, e);

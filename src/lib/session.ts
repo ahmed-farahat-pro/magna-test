@@ -77,3 +77,14 @@ export async function getSessionId(): Promise<string> {
   if (userId) return userId;
   return getAnonSessionId();
 }
+
+/**
+ * Like {@link getSessionId} but also reports whether the owner is a registered
+ * user or an anonymous visitor — used by activity tracking to split traffic by
+ * identity layer without a second lookup at the call site.
+ */
+export async function getActor(): Promise<{ id: string; isUser: boolean }> {
+  const userId = await getUserId();
+  if (userId) return { id: userId, isUser: true };
+  return { id: await getAnonSessionId(), isUser: false };
+}

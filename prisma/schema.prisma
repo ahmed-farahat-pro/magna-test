@@ -148,3 +148,24 @@ model BrandVoice {
   @@index([sessionId, createdAt])
   @@map("brand_voices")
 }
+
+/// Append-only activity log powering the admin dashboard's traffic + usage
+/// analytics. One row per meaningful action (a new anonymous session, a text or
+/// image generation, an improve, a signup/login, ...). Deliberately NOT tied to
+/// a FK: the actor is identified by `sessionId` (a user id when isUser=true, an
+/// anonymous session id otherwise) so both identity layers land in one feed.
+/// `meta` holds small, non-PII context (contentType, style, goal) for breakdowns.
+model ActivityEvent {
+  id        String   @id @default(cuid())
+  type      String   // "session_start" | "text_generate" | "image_generate" | "improve" | "enforce_voice" | "brand_voice_create" | "signup" | "login"
+  sessionId String   // the actor: a user id (isUser=true) or an anonymous session id
+  isUser    Boolean  @default(false)
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  // Admin queries: totals-by-type over time, per-actor lookups, recent-feed.
+  @@index([type, createdAt])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("activity_events")
+}

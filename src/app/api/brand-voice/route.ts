@@ -1,4 +1,5 @@
-import { getSessionId } from "@/lib/session";
+import { getSessionId, getActor } from "@/lib/session";
+import { track } from "@/lib/track";
 import { ok, fail, newRequestId, tooLarge } from "@/lib/http";
 import { brandVoiceSchema, zodDetails } from "@/lib/validation";
 import { dbEnabled, getPrisma } from "@/lib/db";
@@ -34,7 +35,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const requestId = newRequestId();
   try {
-    const sessionId = await getSessionId();
+    const { id: sessionId, isUser } = await getActor();
     if (tooLarge(req)) {
       return fail("PAYLOAD_TOO_LARGE", "Request body is too large.", requestId);
     }
@@ -57,6 +58,7 @@ export async function POST(req: Request) {
       data: { sessionId, data },
       select: { id: true, data: true },
     });
+    await track("brand_voice_create", sessionId, isUser, { name: parsed.data.name });
     return ok({ voice: merge(row), saved: true }, requestId);
   } catch (e) {
     logError("brandVoice.create", requestId, e);
