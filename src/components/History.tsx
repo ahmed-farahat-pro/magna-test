@@ -18,6 +18,15 @@ import { CardSkeleton } from "@/components/Skeleton";
 
 const PAGE_SIZE = 12;
 
+const IMAGE_STYLES: { value: string; label: string }[] = [
+  { value: "photographic", label: "Photographic" },
+  { value: "3d_render", label: "3D render" },
+  { value: "flat_illustration", label: "Flat illustration" },
+  { value: "minimalist", label: "Minimalist" },
+  { value: "bold_gradient", label: "Bold gradient" },
+  { value: "editorial", label: "Editorial" },
+];
+
 const CT_LABEL: Record<string, string> = {
   BLOG_POST: "Blog post",
   LINKEDIN_POST: "LinkedIn",
@@ -235,6 +244,10 @@ export default function History() {
   const [selected, setSelected] = useState<Item | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  // Image generation from history (same content-aware pipeline as the Generate tab).
+  const [imgBusy, setImgBusy] = useState<string | null>(null);
+  const [imgStyle, setImgStyle] = useState<string>("photographic");
+  const sceneById = useRef<Record<string, string>>({});
   const dialogRef = useRef<HTMLDivElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
 
@@ -342,6 +355,52 @@ export default function History() {
       .catch(() => {
         toast.error("Couldn't copy — clipboard unavailable.");
       });
+  }
+
+  // Update one item in both the grid and the open modal.
+  function patchItem(id: string, patch: Partial<Item>) {
+    setItems((xs) => xs.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+    setSelected((s) => (s?.id === id ? { ...s, ...patch } : s));
+  }
+
+  // Generate (or regenerate/restyle) the matching image for a saved piece —
+  // the exact content-aware pipeline the Generate tab uses. The server rebuilds
+  // the prompt from this row's stored copy (already in your brand voice), so we
+  // only send the id + style (+ a cached scene to keep the subject on a restyle).
+  async function generateImage(item: Item, style: string) {
+    if (imgBusy) return;
+    setImgBusy(item.id);
+    try {
+      const res = await fetch("/api/images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          generationId: item.id,
+          style,
+          scene: sceneById.current[item.id] ?? undefined,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(json?.error?.message ?? "Image generation failed.");
+        return;
+      }
+      if (json.scene) sceneById.current[item.id] = json.scene;
+      const added = json.usage?.costUsd ?? 0;
+      patchItem(item.id, {
+        imageUrl: json.imageUrl,
+        imageStyle: style,
+        costUsd: (item.costUsd ?? 0) + added,
+      });
+      setSpend((s) =>
+        s ? { ...s, costUsd: s.costUsd + added } : { costUsd: added, tokensUsed: 0 },
+      );
+      toast.success(item.imageUrl ? "Image regenerated" : "Image ready");
+    } catch {
+      toast.error("Network error while generating the image.");
+    } finally {
+      setImgBusy(null);
+    }
   }
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -463,6 +522,13 @@ export default function History() {
                     >
                       {copiedId === item.id ? "Copied ✓" : "Copy"}
                     </button>
+                    <button
+                      onClick={() => setSelected(item)}
+                      className={ghost}
+                      title="Generate or restyle the matching image"
+                    >
+                      {item.imageUrl ? "Restyle image" : "Add image"}
+                    </button>
                     <DownloadMenu item={item} />
                     <button
                       onClick={() => remove(item.id)}
@@ -536,14 +602,60 @@ export default function History() {
               </button>
             </div>
             <div className="overflow-y-auto px-5 py-4">
-              {selected.imageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={selected.imageUrl}
-                  alt={selected.topic ?? "Generated image"}
-                  className="mb-4 w-full rounded-lg border border-[var(--border)]"
-                />
-              )}
+              {/* Image studio — generate or restyle the matching image, using the
+                  same content-aware pipeline (and stored brand-voice copy) as Generate. */}
+              <div className="mb-4">
+                <div className="relative overflow-hidden rounded-lg border border-[var(--border)]">
+                  {selected.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={selected.imageUrl}
+                      alt={selected.topic ?? "Generated image"}
+                      className="w-full"
+                    />
+                  ) : (
+                    <div className="flex aspect-[16/10] w-full items-center justify-center bg-[var(--surface-2)]">
+                      <span className="font-mono text-xs text-[var(--muted)]">
+                        No image yet
+                      </span>
+                    </div>
+                  )}
+                  {imgBusy === selected.id && (
+                    <div className="shimmer absolute inset-0 flex items-center justify-center bg-[var(--surface-2)]/85">
+                      <span className="flex items-center gap-2 font-mono text-xs text-[var(--body)]">
+                        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[var(--accent)]/40 border-t-[var(--accent)]" />
+                        Painting your image…
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2.5">
+                  <div className="mb-1.5 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-2)]">
+                    {selected.imageUrl
+                      ? "Restyle — pick a different look"
+                      : "Generate a matching image — pick a style"}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {IMAGE_STYLES.map((st) => (
+                      <button
+                        key={st.value}
+                        disabled={imgBusy === selected.id}
+                        onClick={() => {
+                          setImgStyle(st.value);
+                          generateImage(selected, st.value);
+                        }}
+                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                          selected.imageStyle === st.value
+                            ? "border-[var(--accent)] bg-[var(--accent-tint)] text-[var(--accent-strong)]"
+                            : "border-[var(--border)] bg-[var(--surface)] text-[var(--body)] hover:border-[var(--accent-border)]"
+                        }`}
+                      >
+                        {st.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
               <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--ink-2)]">
                 {selected.outputText}
               </div>
