@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toast } from "@/lib/toast";
+import { fmtUsd } from "@/lib/pricing";
 
 const GOALS = [
   { value: "shorter", label: "Shorter" },
@@ -11,8 +12,25 @@ const GOALS = [
   { value: "rewrite_for_audience", label: "New audience" },
 ] as const;
 
+const GOAL_LABEL: Record<string, string> = {
+  SHORTER: "Shorter",
+  MORE_PERSUASIVE: "More persuasive",
+  MORE_FORMAL: "More formal",
+  SEO_OPTIMIZED: "SEO-optimized",
+  REWRITE_FOR_AUDIENCE: "New audience",
+};
+
 type Goal = (typeof GOALS)[number]["value"];
 type Result = { improved: string; changeSummary: string; original: string };
+type Recent = {
+  id: string;
+  improveGoal: string | null;
+  sourceText: string | null;
+  outputText: string;
+  explanation: string | null;
+  costUsd: number | null;
+  createdAt: string;
+};
 
 export default function Improver() {
   const [text, setText] = useState("");
@@ -22,6 +40,23 @@ export default function Improver() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [copied, setCopied] = useState(false);
+  const [recent, setRecent] = useState<Recent[]>([]);
+
+  const loadRecent = useCallback(async () => {
+    try {
+      const res = await fetch("/api/history?kind=IMPROVE&pageSize=12", {
+        cache: "no-store",
+      });
+      const json = await res.json();
+      if (res.ok) setRecent(json.items ?? []);
+    } catch {
+      /* non-fatal */
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRecent();
+  }, [loadRecent]);
 
   const canSubmit =
     text.trim() &&
@@ -55,11 +90,34 @@ export default function Improver() {
         changeSummary: json.changeSummary,
         original: text,
       });
+      loadRecent(); // keep the in-context history current
     } catch {
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
+  }
+
+  // Open a past improvement back into the before/after view.
+  function viewRecent(r: Recent) {
+    setResult({
+      improved: r.outputText,
+      changeSummary: r.explanation ?? "",
+      original: r.sourceText ?? "",
+    });
+    setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Load a past improvement's ORIGINAL text back into the editor to re-improve.
+  function reuseRecent(r: Recent) {
+    if (!r.sourceText) return;
+    setText(r.sourceText);
+    const g = (r.improveGoal ?? "").toLowerCase();
+    if (g) setGoal(g as Goal);
+    setResult(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    toast.success("Loaded back into the editor");
   }
 
   async function copy() {
@@ -194,6 +252,78 @@ export default function Improver() {
           </div>
         </div>
       )}
+
+      {/* ── In-context history: your recent improvements (session-scoped) ── */}
+      {recent.length > 0 && (
+        <div className="mt-10">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-[var(--ink)]">
+              Your recent improvements
+            </h2>
+            <a
+              href="/history"
+              className="font-mono text-xs text-[var(--muted)] transition-colors hover:text-[var(--accent-strong)]"
+            >
+              All history →
+            </a>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {recent.map((r) => (
+              <div
+                key={r.id}
+                className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-md bg-[var(--rust-tint)] px-2 py-0.5 font-mono text-[0.66rem] font-semibold text-[var(--rust)]">
+                    {GOAL_LABEL[r.improveGoal ?? ""] ?? "Improved"}
+                  </span>
+                  <span className="font-mono text-[0.66rem] text-[var(--muted)]">
+                    {new Date(r.createdAt).toLocaleString()}
+                  </span>
+                  {r.costUsd != null && (
+                    <span className="font-mono text-[0.66rem] text-[var(--accent-strong)]">
+                      {fmtUsd(r.costUsd)}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2 line-clamp-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--body)]">
+                  {r.outputText}
+                </p>
+                {r.explanation && (
+                  <p className="mt-1.5 line-clamp-1 text-xs text-[var(--muted)]">
+                    <span className="font-semibold">Changed: </span>
+                    {r.explanation}
+                  </p>
+                )}
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  <button onClick={() => viewRecent(r)} className={recentBtn}>
+                    View
+                  </button>
+                  {r.sourceText && (
+                    <button onClick={() => reuseRecent(r)} className={recentBtn}>
+                      Reuse original
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      navigator.clipboard
+                        .writeText(r.outputText)
+                        .then(() => toast.success("Copied to clipboard"))
+                        .catch(() => toast.error("Couldn't copy."));
+                    }}
+                    className={recentBtn}
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+const recentBtn =
+  "rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs font-medium text-[var(--body)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-strong)]";

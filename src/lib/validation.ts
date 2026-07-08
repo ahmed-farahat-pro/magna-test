@@ -169,6 +169,7 @@ export type EnforceInput = z.infer<typeof enforceSchema>;
 export const historyQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(50).default(12),
+  kind: z.enum(["GENERATE", "IMPROVE"]).optional(),
 });
 
 /** Turn a ZodError into the API's `details[]` shape. */

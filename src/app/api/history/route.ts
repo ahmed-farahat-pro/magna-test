@@ -21,7 +21,7 @@ export async function GET(req: Request) {
       const details = zodDetails(parsed.error);
       return fail("VALIDATION_ERROR", details[0]?.message ?? "Invalid query.", requestId, { details });
     }
-    const { page, pageSize } = parsed.data;
+    const { page, pageSize, kind } = parsed.data;
 
     // Before the DB is configured, history is simply empty (not an error).
     if (!dbEnabled()) {
@@ -29,7 +29,9 @@ export async function GET(req: Request) {
     }
 
     const prisma = getPrisma();
-    const where = { sessionId };
+    // Scope to the session, and optionally to one kind (e.g. only IMPROVE rows
+    // for the in-context history on the Improve page).
+    const where = kind ? { sessionId, kind } : { sessionId };
     const [items, total, spend] = await Promise.all([
       prisma.generation.findMany({
         where,
@@ -42,6 +44,7 @@ export async function GET(req: Request) {
           contentType: true,
           topic: true,
           improveGoal: true,
+          sourceText: true,
           outputText: true,
           explanation: true,
           imageUrl: true,

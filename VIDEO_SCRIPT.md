@@ -126,8 +126,8 @@ git log --oneline
 - **[EDIT]** Caption: *"content-aware — reads the copy, not just the topic."*
 
 ### 2c · Improve, history, export (2:30–3:00)
-- **[SHOW]** Go to **Improve**, paste the Improve text (kit §5) — or reuse the generated copy — pick **More persuasive**, run it; show the **before → after** and the **"what changed"** note. Then **History**: the grid with images; open **Download ▾ → PDF + photo** and flash the file.
-- **[SAY]** "The improver refines text toward a goal and tells you what changed. Everything lands in history — view, copy, delete, or export as text, Word, or PDF with the image embedded."
+- **[SHOW]** Go to **Improve**, paste the Improve text (kit §5) — or reuse the generated copy — pick **More persuasive**, run it; show the **before → after** and the **"what changed"** note. Scroll to **"Your recent improvements"** below it (every improve is saved per session — click **Reuse original** to load one back). Then open **History** and **regenerate/add an image on a text-only piece** (kit §4 style); open **Download ▾ → PDF + photo** and flash the file.
+- **[SAY]** "The improver refines text toward a goal and tells you what changed — and keeps a running history right here so you can revisit or reuse any past version. Everything lands in the main history too, where you can even add or restyle the image on a piece, then export it as text, Word, or PDF."
 - **[EDIT]** Caption: *"export with embedded image."*
 
 ---
