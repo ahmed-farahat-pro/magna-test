@@ -52,16 +52,20 @@ const FEATURES = [
     body: "Images are generated from the actual copy, so the picture matches the message — not just the topic.",
   },
   {
-    title: "Your brand voice",
-    body: "Save a voice — personality, formality, industry, words to use and avoid — and apply it to everything you generate.",
+    title: "Your brand voices",
+    body: "Save several brand voices — personality, formality, words to use and avoid — pick one per piece, and enforce the “avoid” list with one click.",
   },
   {
-    title: "History that remembers",
-    body: "Every generation and improvement is saved to your session, ready to revisit, refine, or reuse.",
+    title: "History that follows you",
+    body: "Every generation and improvement is saved. Create an account and your work — and anything you made anonymously — moves with you across devices.",
   },
   {
     title: "Export anywhere",
     body: "Download as plain text, a real Word .docx, or a PDF — with the matching image baked right in.",
+  },
+  {
+    title: "Safe by default",
+    body: "Harmful requests are declined before any AI runs, and if Claude itself refuses, that's handled cleanly — while everyday marketing language always passes.",
   },
 ];
 

@@ -73,6 +73,7 @@ const LAYERS: Layer[] = [
       { t: "/api/brand-voice", tag: "bonus" },
       { t: "/api/enforce-voice", tag: "bonus" },
       { t: "/api/admin/*", tag: "bonus" },
+      { t: "/api/video", tag: "bonus" },
       { t: "/api/track/visit", tag: "bonus" },
       { t: "/api/img", tag: "bonus" },
     ],
@@ -83,6 +84,7 @@ const LAYERS: Layer[] = [
     chips: [
       { t: "ai/generate", tag: "core" },
       { t: "ai/image", tag: "core" },
+      { t: "ai/moderation", tag: "bonus" },
       { t: "validation (zod)", tag: "core" },
       { t: "session · getActor", tag: "core" },
       { t: "auth (scrypt)", tag: "core" },
@@ -122,7 +124,13 @@ const FLOWS: Record<FlowKey, Step[]> = {
     },
     {
       actor: "POST /api/generate",
-      desc: "Server-side only: zod validation, in-memory rate-limit, and your signed session.",
+      desc: "Server-side only: zod validation, durable rate-limiting, and your signed session (an account when signed in, else anonymous).",
+    },
+    {
+      actor: "screenContent()",
+      desc: "A safety check blocks harmful requests before any AI runs — ordinary marketing metaphor (“crush the competition”) always passes.",
+      tag: "bonus",
+      tagLabel: "moderation",
     },
     {
       actor: "getStreamConfig()",
@@ -130,7 +138,7 @@ const FLOWS: Record<FlowKey, Step[]> = {
     },
     {
       actor: "anthropic().messages.stream()",
-      desc: "Claude Sonnet 5 writes the copy and streams it back token-by-token.",
+      desc: "Claude claude-sonnet-5 writes the copy and streams it back token-by-token; a refusal is caught, never streamed.",
       tag: "bonus",
       tagLabel: "live streaming",
     },
@@ -180,7 +188,7 @@ const FLOWS: Record<FlowKey, Step[]> = {
     },
     {
       actor: "POST /api/improve",
-      desc: "Server-side validation, session scoping, and rate-limit.",
+      desc: "Server-side validation, the same safety screen, owner scoping, and durable rate-limiting.",
     },
     {
       actor: "improve()",
@@ -280,11 +288,13 @@ const BONUS_LIST = [
   "Multiple brand voices — create / edit / delete, pick one per generation",
   "Hard “avoid”-word enforcement (detect + one-click rewrite)",
   "Content-aware image prompts (an art-director step) + style picker",
+  "Content safety — harmful requests blocked, Claude refusals handled",
   "Live token streaming as Claude writes",
   "Export to Text / Word / PDF, with the image embedded",
   "Durable rate limiting (Upstash Redis, in-memory fallback)",
-  "Admin dashboard — traffic, usage & user management",
-  "Full activity tracking (who generated text, images & improvements)",
+  "Admin dashboard — traffic, usage & user management (+ landing video)",
+  "Full activity tracking (registered vs anonymous, by action type)",
+  "Light & dark themes with a persisted toggle",
   "Animations, polish & this self-running onboarding demo",
 ];
 
