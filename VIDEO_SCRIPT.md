@@ -78,9 +78,9 @@ crush the competition and dominate the market with our CRM
 
 ### 8) Admin — needs `ADMIN_USERNAME` / `ADMIN_PASSWORD` set in Vercel
 - Go to **`/admin/login`**, sign in with your admin credentials.
-- **Video for illustration →** paste your YouTube link (replace with your real one):
+- **Video for illustration →** paste your **Google Drive** share link (the file must be shared “Anyone with the link”; replace with your real one):
 ```
-https://www.youtube.com/watch?v=YOUR_VIDEO_ID
+https://drive.google.com/file/d/YOUR_FILE_ID/view?usp=sharing
 ```
 
 ### 9) Claude Code segment — terminal + files to open
