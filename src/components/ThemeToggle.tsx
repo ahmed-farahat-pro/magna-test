@@ -22,7 +22,12 @@ export default function ThemeToggle() {
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
+    const root = document.documentElement;
+    // Animate the flip briefly (scoped), then drop the class so there is no
+    // per-element transition overhead during normal scrolling/tapping.
+    root.classList.add("theming");
+    root.setAttribute("data-theme", next);
+    window.setTimeout(() => root.classList.remove("theming"), 260);
     try {
       localStorage.setItem("nova-theme", next);
     } catch {

@@ -111,9 +111,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Smooth the theme flip (but not layout-affecting props). */
-:root:not(.no-transition) * {
-  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+/* Smooth the theme flip — but ONLY during the toggle (a `theming` class is added
+   to <html> for ~250ms). A universal `* { transition }` would tax every scroll
+   and tap on mobile, so it is deliberately scoped, not global. Interactive
+   elements keep their own Tailwind transition-* classes for hover states. */
+html.theming,
+html.theming * {
+  transition-property: background-color, border-color, color, fill, stroke;
   transition-duration: 220ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -213,6 +217,16 @@ body {
 
 @keyframes grow-down { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 .animate-grow-down { transform-origin: top; animation: grow-down 0.35s ease both; }
+
+/* Animating a heavily-blurred element every frame is expensive and janks scroll
+   on phones — hold the ambient glows still on small screens (they still look good
+   as static gradients). Desktop keeps the motion. */
+@media (max-width: 767px) {
+  .animate-aurora,
+  .animate-float-slow {
+    animation: none !important;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
