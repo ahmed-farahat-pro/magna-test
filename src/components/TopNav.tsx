@@ -39,7 +39,7 @@ export default function TopNav() {
               >
                 {l.label}
                 {l.optional && (
-                  <span className="ml-1 rounded border border-[#d9c3b8] bg-[#f7e8e0] px-1 py-0.5 font-mono text-[0.55rem] font-semibold uppercase tracking-[0.04em] text-[#8a3315]">
+                  <span className="ml-1 rounded border border-[#d9c3b8] bg-[#f7e8e0] px-1 py-0.5 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.04em] text-[#8a3315]">
                     optional
                   </span>
                 )}

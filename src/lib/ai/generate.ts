@@ -52,7 +52,14 @@ const strObj = (props: Record<string, unknown>, required: string[]) => ({
   required,
 });
 const str = { type: "string" };
-const strArr = { type: "array", items: { type: "string" } };
+// Bounded string array — encodes the "exactly N" / "N–M" invariants directly in
+// the schema so the count is enforced at decode, not just requested in the prompt.
+const strArrN = (minItems: number, maxItems: number) => ({
+  type: "array",
+  minItems,
+  maxItems,
+  items: { type: "string" },
+});
 
 const context = (i: GenerateInput) =>
   `TOPIC: ${i.topic}\nTONE: ${i.tone}\nTARGET AUDIENCE: ${i.audience}`;
@@ -81,6 +88,7 @@ Match the requested tone and audience precisely. Be specific and evidence-orient
         metaDescription: str,
         sections: {
           type: "array",
+          minItems: 3,
           items: strObj({ heading: str, body: str }, ["heading", "body"]),
         },
         conclusion: str,
@@ -115,7 +123,7 @@ Length 120–220 words. Match tone and audience. No emoji spam. Output ONLY the 
     user: (i) =>
       `Write a LinkedIn post.\n\n${context(i)}\n\nGive the hook line, the body written in short lines with blank-line spacing, a soft CTA, and 3–5 hashtags (without the # is fine).`,
     schema: strObj(
-      { hook: str, body: str, softCta: str, hashtags: strArr },
+      { hook: str, body: str, softCta: str, hashtags: strArrN(3, 5) },
       ["hook", "body", "softCta", "hashtags"],
     ),
     assemble: (s) => {
@@ -148,6 +156,8 @@ Variants must be genuinely different in angle AND wording — do not reword the 
       {
         variants: {
           type: "array",
+          minItems: 3,
+          maxItems: 3,
           items: strObj(
             { angle: str, headline: str, body: str, cta: str },
             ["angle", "headline", "body", "cta"],
@@ -185,7 +195,7 @@ Keep the body under ~200 words unless the topic truly requires more. One idea, o
       `Write a marketing email.\n\nTOPIC / PURPOSE: ${i.topic}\nTONE: ${i.tone}\nTARGET AUDIENCE: ${i.audience}\n\nGive 3 subject line options, the preview text, the email body (with a {firstName} greeting placeholder), and one primary CTA.`,
     schema: strObj(
       {
-        subjectLines: strArr,
+        subjectLines: strArrN(3, 3),
         previewText: str,
         body: str,
         cta: str,
@@ -229,6 +239,21 @@ function isDegenerate(s: Structured): boolean {
   return bad || !hasContent;
 }
 
+// Assert the per-type array-count invariants in code (not just in the prompt):
+// exactly 3 ad variants, exactly 3 subject lines, 3–5 hashtags, ≥3 blog sections.
+function hasValidCounts(ct: ContentType, s: Structured): boolean {
+  const len = (v: unknown) => (Array.isArray(v) ? v.length : -1);
+  const o = s as Record<string, unknown>;
+  if (ct === "ad_copy") return len(o.variants) === 3;
+  if (ct === "email") return len(o.subjectLines) === 3;
+  if (ct === "linkedin_post") {
+    const n = len(o.hashtags);
+    return n >= 3 && n <= 5;
+  }
+  if (ct === "blog_post") return len(o.sections) >= 3;
+  return true;
+}
+
 export async function generate(
   contentType: ContentType,
   input: GenerateInput,
@@ -267,6 +292,10 @@ export async function generate(
       lastError = "degenerate_output";
       continue;
     }
+    if (!hasValidCounts(contentType, structured)) {
+      lastError = "wrong_count";
+      continue;
+    }
 
     return {
       outputText: cfg.assemble(structured),
@@ -285,6 +314,26 @@ export async function generate(
  * Prompt config for the streaming path — uses a markdown-output system prompt so
  * tokens can be streamed live to the client (no JSON schema to buffer first).
  */
+/**
+ * Post-stream sanity check for the streaming path (which can't use json_schema).
+ * Returns a reason string if the streamed markdown looks unusable, else null —
+ * so the route can refuse to persist junk and tell the user to retry.
+ */
+export function streamedOutputIssue(
+  contentType: ContentType,
+  text: string,
+): string | null {
+  const t = text.trim();
+  if (t.length < 40) return "too_short";
+  if (/^\s*(placeholder|lorem ipsum|tbd|n\/?a|todo)\s*$/i.test(t)) return "stub";
+  // Ad copy must ship exactly the three variants the prompt promises.
+  if (contentType === "ad_copy") {
+    const variants = (t.match(/variant\s*\d/gi) || []).length;
+    if (variants < 3) return "too_few_ad_variants";
+  }
+  return null;
+}
+
 export function getStreamConfig(
   contentType: ContentType,
   input: GenerateInput,

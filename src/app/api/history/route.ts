@@ -2,6 +2,7 @@ import { getSessionId } from "@/lib/session";
 import { ok, fail, newRequestId } from "@/lib/http";
 import { historyQuerySchema, zodDetails } from "@/lib/validation";
 import { dbEnabled, getPrisma } from "@/lib/db";
+import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,7 +56,8 @@ export async function GET(req: Request) {
       { items, page, pageSize, total, hasMore: page * pageSize < total },
       requestId,
     );
-  } catch {
+  } catch (e) {
+    logError("history.list", requestId, e);
     return fail("INTERNAL_ERROR", "Could not load history.", requestId);
   }
 }

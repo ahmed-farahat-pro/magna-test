@@ -6,9 +6,11 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import Image from "next/image";
 import { exportPdf, exportDocx } from "@/lib/export";
 
 const PAGE_SIZE = 12;
@@ -223,7 +225,9 @@ export default function History() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Item | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
 
   const load = useCallback(async (p: number) => {
     setLoading(true);
@@ -261,11 +265,47 @@ export default function History() {
   }, []);
 
   useEffect(() => {
-    if (selected) dialogRef.current?.focus();
+    if (selected) {
+      // Remember what opened the dialog, then move focus into it.
+      lastFocusedRef.current = document.activeElement as HTMLElement | null;
+      dialogRef.current?.focus();
+    } else {
+      // Restore focus to the trigger when the dialog closes.
+      lastFocusedRef.current?.focus?.();
+    }
   }, [selected]);
 
+  // Keep Tab focus inside the open dialog (simple focus trap).
+  function trapFocus(e: ReactKeyboardEvent) {
+    if (e.key !== "Tab" || !dialogRef.current) return;
+    const nodes = dialogRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
+    );
+    const focusable = Array.from(nodes).filter((n) => !n.hasAttribute("disabled"));
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
   async function remove(id: string) {
-    if (!confirm("Delete this entry? This can't be undone.")) return;
+    // Two-step, in-UI confirm (no native window.confirm): first click arms it,
+    // second click within a few seconds performs the delete.
+    if (confirmId !== id) {
+      setConfirmId(id);
+      window.setTimeout(
+        () => setConfirmId((c) => (c === id ? null : c)),
+        3500,
+      );
+      return;
+    }
+    setConfirmId(null);
     // optimistic
     setItems((xs) => xs.filter((x) => x.id !== id));
     setTotal((t) => Math.max(0, t - 1));
@@ -330,12 +370,15 @@ export default function History() {
                 className="animate-fade-up flex flex-col overflow-hidden rounded-xl border border-[#d9dfd8] bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 {item.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.imageUrl}
-                    alt={item.topic ?? "Generated image"}
-                    className="h-36 w-full object-cover"
-                  />
+                  <div className="relative h-36 w-full">
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.topic ?? "Generated image"}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover"
+                    />
+                  </div>
                 )}
                 <div className="flex flex-1 flex-col p-4">
                   <div className="flex items-center justify-between gap-2">
@@ -373,9 +416,13 @@ export default function History() {
                     <DownloadMenu item={item} />
                     <button
                       onClick={() => remove(item.id)}
-                      className="ml-auto rounded-md border border-[#e7c9c0] bg-white px-2.5 py-1 text-xs font-medium text-[#a62a2a] transition-colors hover:bg-[#f7e8e0]"
+                      className={`ml-auto rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
+                        confirmId === item.id
+                          ? "border-[#a62a2a] bg-[#a62a2a] text-white"
+                          : "border-[#e7c9c0] bg-white text-[#a62a2a] hover:bg-[#f7e8e0]"
+                      }`}
                     >
-                      Delete
+                      {confirmId === item.id ? "Confirm delete" : "Delete"}
                     </button>
                   </div>
                 </div>
@@ -421,6 +468,7 @@ export default function History() {
             aria-labelledby="hist-modal-title"
             className="animate-scale-in flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#d9dfd8] bg-white shadow-xl outline-none"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={trapFocus}
           >
             <div className="flex items-center justify-between border-b border-[#e7ebe6] px-5 py-3">
               <span
@@ -468,9 +516,13 @@ export default function History() {
               <DownloadMenu item={selected} up />
               <button
                 onClick={() => remove(selected.id)}
-                className="ml-auto rounded-md border border-[#e7c9c0] bg-white px-2.5 py-1 text-xs font-medium text-[#a62a2a] transition-colors hover:bg-[#f7e8e0]"
+                className={`ml-auto rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
+                  confirmId === selected.id
+                    ? "border-[#a62a2a] bg-[#a62a2a] text-white"
+                    : "border-[#e7c9c0] bg-white text-[#a62a2a] hover:bg-[#f7e8e0]"
+                }`}
               >
-                Delete
+                {confirmId === selected.id ? "Confirm delete" : "Delete"}
               </button>
             </div>
           </div>

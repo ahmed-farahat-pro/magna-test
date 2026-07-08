@@ -642,7 +642,7 @@ export default function AutoDemo() {
                       <span className="font-mono text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#0a5346]">
                         Improved
                       </span>
-                      <span className="rounded bg-[#e6f2ec] px-1.5 py-0.5 font-mono text-[0.58rem] font-semibold text-[#0a5346]">
+                      <span className="rounded bg-[#e6f2ec] px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold text-[#0a5346]">
                         {d.improveGoal}
                       </span>
                     </div>
@@ -705,7 +705,7 @@ export default function AutoDemo() {
                         <it.Scene />
                       </div>
                       <div className="p-2.5">
-                        <span className="rounded bg-[#e6f2ec] px-1.5 py-0.5 font-mono text-[0.58rem] font-semibold text-[#0a5346]">
+                        <span className="rounded bg-[#e6f2ec] px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold text-[#0a5346]">
                           {it.type}
                         </span>
                         <p className="mt-1.5 line-clamp-2 text-[0.72rem] leading-snug text-[#3c4a54]">

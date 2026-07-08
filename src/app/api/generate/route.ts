@@ -1,6 +1,6 @@
 import { getSessionId } from "@/lib/session";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { fail, newRequestId } from "@/lib/http";
+import { fail, newRequestId, tooLarge } from "@/lib/http";
 import {
   generateSchema,
   zodDetails,
@@ -8,9 +8,10 @@ import {
   formatBrandVoice,
 } from "@/lib/validation";
 import { aiEnabled, anthropic, MODEL } from "@/lib/ai/config";
-import { getStreamConfig } from "@/lib/ai/generate";
+import { getStreamConfig, streamedOutputIssue } from "@/lib/ai/generate";
 import { describeAiError } from "@/lib/ai/errors";
 import { dbEnabled, getPrisma } from "@/lib/db";
+import { logError, logWarn } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,6 +34,10 @@ export async function POST(req: Request) {
       return fail("RATE_LIMITED", `Too many requests. Try again in ${rl.retryAfter}s.`, requestId, {
         headers: { "retry-after": String(rl.retryAfter) },
       });
+    }
+
+    if (tooLarge(req)) {
+      return fail("PAYLOAD_TOO_LARGE", "Request body is too large.", requestId);
     }
 
     const body = await req.json().catch(() => null);
@@ -83,6 +88,7 @@ export async function POST(req: Request) {
           }
         } catch (e) {
           const ai = describeAiError(e, "text");
+          logError("generate", requestId, e, { contentType, reason: ai.reason });
           controller.enqueue(
             encoder.encode(
               SEP +
@@ -90,6 +96,26 @@ export async function POST(req: Request) {
                   error: ai.message,
                   code: ai.reason,
                   retryable: ai.retryable,
+                }),
+            ),
+          );
+          controller.close();
+          return;
+        }
+
+        // Guard the streaming path (no json_schema here): if the finished copy
+        // looks unusable, refuse to persist it and tell the client to retry.
+        const issue = streamedOutputIssue(contentType, full);
+        if (issue) {
+          logWarn("generate", requestId, "unusable stream output", { contentType, issue });
+          controller.enqueue(
+            encoder.encode(
+              SEP +
+                JSON.stringify({
+                  error:
+                    "The result came back incomplete. Please try generating again.",
+                  code: issue,
+                  retryable: true,
                 }),
             ),
           );
@@ -116,8 +142,8 @@ export async function POST(req: Request) {
               select: { id: true },
             });
             id = rec.id;
-          } catch {
-            /* swallow persistence errors */
+          } catch (e) {
+            logError("generate.persist", requestId, e, { contentType });
           }
         }
 
@@ -139,7 +165,8 @@ export async function POST(req: Request) {
         "x-accel-buffering": "no",
       },
     });
-  } catch {
+  } catch (e) {
+    logError("generate", requestId, e);
     return fail("INTERNAL_ERROR", "Something went wrong.", requestId);
   }
 }

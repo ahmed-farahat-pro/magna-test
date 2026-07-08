@@ -150,7 +150,7 @@ async function describeScene(input: {
             `CONTENT TYPE: ${input.contentType ?? "post"}\n` +
             `TOPIC: ${input.topic}\n` +
             `TONE: ${input.tone}\n\n` +
-            `MARKETING COPY:\n"""\n${input.content.slice(0, 2400).trim()}\n"""\n\n` +
+            `MARKETING COPY:\n"""\n${input.content.slice(0, 6000).trim()}\n"""\n\n` +
             "Describe the single best visual scene to illustrate this.",
         },
       ],
@@ -185,37 +185,41 @@ export async function buildImagePromptFromContent(input: {
   contentType?: ContentType;
   style: ImageStyle;
   content?: string | null;
-}): Promise<{ prompt: string; enhanced: boolean }> {
+  scene?: string | null; // a previously-derived scene, to reuse across restyles
+}): Promise<{ prompt: string; enhanced: boolean; scene: string | null }> {
   const preset = STYLE_PRESETS[input.style];
-  if (aiEnabled() && input.content && input.content.trim().length > 40) {
+  // Reuse a cached scene when the caller passes one (restyling the same content),
+  // so switching style keeps the SAME subject and skips a fresh ~8s Claude call.
+  let scene = input.scene?.trim() || null;
+  if (!scene && aiEnabled() && input.content && input.content.trim().length > 40) {
     try {
-      const scene = await describeScene({
+      scene = await describeScene({
         topic: input.topic,
         tone: input.tone,
         contentType: input.contentType,
         content: input.content,
       });
-      if (scene) {
-        // Lower-case the scene's leading letter so it reads cleanly after
-        // "…showing" (avoids "showing A relaxed founder…").
-        const subjectScene = /^[A-Z][a-z]/.test(scene)
-          ? scene[0].toLowerCase() + scene.slice(1)
-          : scene;
-        return {
-          prompt: assemble({
-            subject: `A ${preset.leadNoun} showing ${subjectScene}`,
-            tone: input.tone,
-            contentType: input.contentType,
-            style: input.style,
-          }),
-          enhanced: true,
-        };
-      }
     } catch {
-      /* fall through to the deterministic prompt */
+      scene = null;
     }
   }
-  return { prompt: buildImagePrompt(input), enhanced: false };
+  if (scene) {
+    // Lower-case the scene's leading letter so it reads cleanly after "…showing".
+    const subjectScene = /^[A-Z][a-z]/.test(scene)
+      ? scene[0].toLowerCase() + scene.slice(1)
+      : scene;
+    return {
+      prompt: assemble({
+        subject: `A ${preset.leadNoun} showing ${subjectScene}`,
+        tone: input.tone,
+        contentType: input.contentType,
+        style: input.style,
+      }),
+      enhanced: true,
+      scene,
+    };
+  }
+  return { prompt: buildImagePrompt(input), enhanced: false, scene: null };
 }
 
 /** Wide hero for blog/ad, square for social/email. */

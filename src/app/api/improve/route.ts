@@ -1,10 +1,11 @@
 import { getSessionId } from "@/lib/session";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { ok, fail, newRequestId } from "@/lib/http";
+import { ok, fail, newRequestId, tooLarge } from "@/lib/http";
 import { improveSchema, zodDetails, IMPROVE_GOAL_DB } from "@/lib/validation";
 import { aiEnabled, MODEL } from "@/lib/ai/config";
 import { improve } from "@/lib/ai/improve";
 import { describeAiError } from "@/lib/ai/errors";
+import { logError } from "@/lib/log";
 import { dbEnabled, getPrisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -20,6 +21,10 @@ export async function POST(req: Request) {
       return fail("RATE_LIMITED", `Too many requests. Try again in ${rl.retryAfter}s.`, requestId, {
         headers: { "retry-after": String(rl.retryAfter) },
       });
+    }
+
+    if (tooLarge(req)) {
+      return fail("PAYLOAD_TOO_LARGE", "Request body is too large.", requestId);
     }
 
     const body = await req.json().catch(() => null);
@@ -40,6 +45,7 @@ export async function POST(req: Request) {
       result = await improve(goal, text, targetAudience);
     } catch (e) {
       const ai = describeAiError(e, "text");
+      logError("improve", requestId, e, { goal, reason: ai.reason });
       return fail(ai.code, ai.message, requestId, {
         details: [{ path: "ai", message: ai.reason }],
         headers: ai.retryable ? { "retry-after": "5" } : undefined,
@@ -81,7 +87,8 @@ export async function POST(req: Request) {
       },
       requestId,
     );
-  } catch {
+  } catch (e) {
+    logError("improve", requestId, e);
     return fail("INTERNAL_ERROR", "Something went wrong.", requestId);
   }
 }

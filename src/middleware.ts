@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { resolveSessionSecret } from "@/lib/sessionSecret";
 
 // Establishes the anonymous session cookie on the first page navigation — BEFORE
 // any client-side API call fires — so concurrent first requests can't each mint a
@@ -7,7 +8,6 @@ import { NextResponse, type NextRequest } from "next/server";
 // Node-side verifier in lib/session.ts, so the two are interoperable.
 
 const COOKIE = process.env.SESSION_COOKIE_NAME || "acms_sid";
-const SECRET = process.env.SESSION_SECRET || "dev-insecure-secret-change-me";
 const MAX_AGE = 60 * 60 * 24 * 90; // 90 days
 
 function base64url(bytes: Uint8Array): string {
@@ -16,10 +16,10 @@ function base64url(bytes: Uint8Array): string {
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-async function sign(id: string): Promise<string> {
+async function sign(id: string, secret: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(SECRET),
+    new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
@@ -30,9 +30,12 @@ async function sign(id: string): Promise<string> {
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-  if (!req.cookies.get(COOKIE)) {
+  const secret = resolveSessionSecret();
+  // Fail closed: without a real secret in production, don't mint a cookie signed
+  // with a public default. Pages still render; the API layer rejects cleanly.
+  if (secret && !req.cookies.get(COOKIE)) {
     const id = crypto.randomUUID();
-    res.cookies.set(COOKIE, await sign(id), {
+    res.cookies.set(COOKIE, await sign(id, secret), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

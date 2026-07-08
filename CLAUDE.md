@@ -12,8 +12,11 @@ dashboard and a content improver. Magna Labs 48-hour assessment.
   output (`output_config.format` with a JSON schema) — no assistant prefill, no
   `temperature` (rejected on Sonnet 5), `thinking: { type: "disabled" }` for the
   short generation calls. Assert array counts (e.g. exactly 3 ad variants) in code.
-- **Images:** OpenAI `dall-e-3`, request `b64_json`, upload to Vercel Blob, store
-  the **permanent Blob URL** — never the expiring DALL·E URL.
+- **Images:** OpenAI image API. Because model access varies per account, use a
+  resilience **fallback chain** — `gpt-image-1 → dall-e-3 → dall-e-2` (an optional
+  `OPENAI_IMAGE_MODEL` is tried first) — falling through only on availability/
+  verification errors. Normalize `b64_json`/`url` to base64, upload to Vercel Blob,
+  store the **permanent Blob URL** — never the expiring model URL.
 - **Identity:** anonymous `sessionId` httpOnly cookie; scope every DB read/write
   with `where: { id, sessionId }`.
 

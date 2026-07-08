@@ -29,7 +29,7 @@ function Chip({ children, tag }: { children: string; tag: Tag }) {
 function TagPill({ tag, children }: { tag: Tag; children: string }) {
   return (
     <span
-      className={`rounded border px-1.5 py-0.5 font-mono text-[0.56rem] font-semibold uppercase tracking-[0.06em] ${TAG_CLS[tag]}`}
+      className={`rounded border px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold uppercase tracking-[0.06em] ${TAG_CLS[tag]}`}
     >
       {children}
     </span>
@@ -283,7 +283,7 @@ export default function Architecture() {
                   {i < LAYERS.length - 1 && (
                     <div className="flex flex-col items-center py-1 text-[#9fb0a5]">
                       {layer.edge && (
-                        <span className="font-mono text-[0.56rem] uppercase tracking-[0.06em]">
+                        <span className="font-mono text-[0.66rem] uppercase tracking-[0.06em]">
                           {layer.edge}
                         </span>
                       )}

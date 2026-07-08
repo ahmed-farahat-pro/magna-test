@@ -1,6 +1,6 @@
 import { getSessionId } from "@/lib/session";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { ok, fail, newRequestId } from "@/lib/http";
+import { ok, fail, newRequestId, tooLarge } from "@/lib/http";
 import { imageSchema, zodDetails, CONTENT_TYPE_WIRE } from "@/lib/validation";
 import { imageEnabled } from "@/lib/ai/config";
 import {
@@ -11,6 +11,7 @@ import {
 import { describeAiError } from "@/lib/ai/errors";
 import { blobEnabled, uploadPngFromBase64, deleteBlob } from "@/lib/blob";
 import { dbEnabled, getPrisma } from "@/lib/db";
+import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,10 @@ export async function POST(req: Request) {
       return fail("RATE_LIMITED", `Too many requests. Try again in ${rl.retryAfter}s.`, requestId, {
         headers: { "retry-after": String(rl.retryAfter) },
       });
+    }
+
+    if (tooLarge(req)) {
+      return fail("PAYLOAD_TOO_LARGE", "Request body is too large.", requestId);
     }
 
     const body = await req.json().catch(() => null);
@@ -72,12 +77,13 @@ export async function POST(req: Request) {
       return fail("CONFIG_ERROR", "Image storage is not configured (missing BLOB_READ_WRITE_TOKEN).", requestId);
     }
 
-    const { prompt, enhanced } = await buildImagePromptFromContent({
+    const { prompt, enhanced, scene } = await buildImagePromptFromContent({
       topic,
       tone,
       contentType,
       style,
       content,
+      scene: parsed.data.scene,
     });
     const canAttach = Boolean(generationId) && dbEnabled();
 
@@ -99,6 +105,7 @@ export async function POST(req: Request) {
       b64 = await generateImageB64(prompt, isWide(contentType));
     } catch (e) {
       const ai = describeAiError(e, "image");
+      logError("images.generate", requestId, e, { style, reason: ai.reason });
       await markFailed(`image_generation_failed: ${ai.reason}`);
       return fail(ai.code, ai.message, requestId, {
         details: [{ path: "image", message: ai.reason }],
@@ -111,12 +118,13 @@ export async function POST(req: Request) {
       imageUrl = await uploadPngFromBase64(b64);
     } catch (e) {
       const detail = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+      logError("images.upload", requestId, e);
       await markFailed(`image_storage_failed: ${detail}`.slice(0, 300));
       return fail(
         "UPSTREAM_BLOB_ERROR",
         "The image was created but could not be saved. Please try again.",
         requestId,
-        { details: [{ path: "blob", message: detail }] },
+        { details: [{ path: "blob", message: "storage_failed" }] },
       );
     }
 
@@ -151,8 +159,12 @@ export async function POST(req: Request) {
       }
     }
 
-    return ok({ imageUrl, prompt, style, saved: canAttach, enhanced }, requestId);
-  } catch {
+    return ok(
+      { imageUrl, prompt, style, saved: canAttach, enhanced, scene },
+      requestId,
+    );
+  } catch (e) {
+    logError("images", requestId, e);
     return fail("INTERNAL_ERROR", "Something went wrong.", requestId);
   }
 }

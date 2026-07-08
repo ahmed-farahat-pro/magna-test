@@ -2,6 +2,7 @@ import { getSessionId } from "@/lib/session";
 import { ok, fail, newRequestId } from "@/lib/http";
 import { dbEnabled, getPrisma } from "@/lib/db";
 import { blobEnabled, deleteBlob } from "@/lib/blob";
+import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,7 +43,8 @@ export async function GET(req: Request, ctx: Ctx) {
     if (!item) return fail("NOT_FOUND", "That entry could not be found.", requestId);
 
     return ok({ item }, requestId);
-  } catch {
+  } catch (e) {
+    logError("history.get", requestId, e);
     return fail("INTERNAL_ERROR", "Could not load the entry.", requestId);
   }
 }
@@ -75,7 +77,8 @@ export async function DELETE(req: Request, ctx: Ctx) {
 
     await prisma.generation.deleteMany({ where: { id, sessionId } });
     return ok({ deleted: { id } }, requestId);
-  } catch {
+  } catch (e) {
+    logError("history.delete", requestId, e);
     return fail("INTERNAL_ERROR", "Could not delete the entry.", requestId);
   }
 }

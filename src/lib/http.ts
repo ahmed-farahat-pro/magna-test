@@ -29,6 +29,12 @@ export function newRequestId(): string {
   return "req_" + randomUUID().replace(/-/g, "").slice(0, 20);
 }
 
+/** Cheap first-line guard: reject oversized request bodies by Content-Length. */
+export function tooLarge(req: Request, maxBytes = 256_000): boolean {
+  const len = Number(req.headers.get("content-length") || 0);
+  return Number.isFinite(len) && len > maxBytes;
+}
+
 export function ok<T>(
   data: T,
   requestId: string,

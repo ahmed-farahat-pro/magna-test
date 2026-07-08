@@ -7,9 +7,12 @@ import { get } from "@vercel/blob";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Only ever proxy our own generated image paths — never an arbitrary blob path.
+const IMAGE_PATH = /^images\/[a-f0-9-]{16,}\.png$/i;
+
 export async function GET(req: Request) {
   const p = new URL(req.url).searchParams.get("p");
-  if (!p) return new Response("Not found", { status: 404 });
+  if (!p || !IMAGE_PATH.test(p)) return new Response("Not found", { status: 404 });
 
   try {
     const res = await get(p, { access: "private" });

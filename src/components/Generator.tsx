@@ -72,6 +72,9 @@ export default function Generator() {
   const [imgError, setImgError] = useState<string | null>(null);
   const [imgStyle, setImgStyle] = useState<ImageStyle>("photographic");
   const [imgPrompt, setImgPrompt] = useState<string | null>(null);
+  // The derived scene, cached so re-styling keeps the SAME subject and skips a
+  // fresh art-director call.
+  const [imgScene, setImgScene] = useState<string | null>(null);
 
   const canSubmit = topic.trim() && audience.trim() && !loading;
 
@@ -79,6 +82,7 @@ export default function Generator() {
     setImgUrl(null);
     setImgError(null);
     setImgPrompt(null);
+    setImgScene(null);
     setImgLoading(false);
     setImgStyle("photographic");
   }
@@ -156,6 +160,9 @@ export default function Generator() {
 
   async function generateImage(style: ImageStyle) {
     if (!result) return;
+    // No-op when re-clicking the current style on an existing image (avoids a
+    // wasted paid regeneration).
+    if (imgUrl && style === imgStyle && !imgLoading) return;
     setImgLoading(true);
     setImgError(null);
     setImgStyle(style);
@@ -169,6 +176,7 @@ export default function Generator() {
           tone: result.tone,
           contentType: result.contentType,
           content: result.outputText,
+          scene: imgScene ?? undefined,
           style,
         }),
       });
@@ -179,6 +187,7 @@ export default function Generator() {
       }
       setImgUrl(json.imageUrl);
       setImgPrompt(json.prompt ?? null);
+      if (json.scene) setImgScene(json.scene);
     } catch {
       setImgError("Network error while generating the image.");
     } finally {

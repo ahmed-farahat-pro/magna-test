@@ -89,6 +89,9 @@ export const imageSchema = z.object({
   // The generated copy, used to derive a content-aware image prompt. The stored
   // generation is preferred; this is a fallback for when the DB is offline.
   content: z.string().trim().max(12000).optional(),
+  // A previously-derived scene, sent back on restyle so the subject stays fixed
+  // (and we skip a fresh art-director call).
+  scene: z.string().trim().max(1500).optional(),
   style: z.enum(IMAGE_STYLES),
 });
 

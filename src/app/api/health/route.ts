@@ -1,4 +1,5 @@
 import { dbEnabled, getPrisma } from "@/lib/db";
+import { sessionSecretConfigured } from "@/lib/sessionSecret";
 
 // Health / readiness probe. Never throws — safe to hit before env vars exist,
 // so the site is verifiably "live" from the very first deploy.
@@ -11,6 +12,7 @@ export async function GET() {
     openai: process.env.OPENAI_API_KEY ? "set" : "missing",
     blob: process.env.BLOB_READ_WRITE_TOKEN ? "set" : "missing",
     database: process.env.DATABASE_URL ? "set" : "missing",
+    sessionSecret: sessionSecretConfigured() ? "set" : "missing",
   };
 
   let db: "connected" | "error" | "unconfigured" = "unconfigured";
