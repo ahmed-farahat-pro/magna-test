@@ -62,32 +62,42 @@ const FLOWS: Flow[] = [
     tab: "For everyone",
     audience: "The user's-eye view",
     blurb:
-      "What actually happens when you make a piece of content — no jargon, just the journey from idea to finished, saved, shareable content.",
+      "The whole journey — brand voice, generation, images, improving, history, and export — in plain language, with the safety check that keeps it on the rails.",
     nodes: [
       {
         type: "user",
+        title: "Save a brand voice (optional)",
+        body: "In Settings, describe your brand once — personality, formality, words to use, and words to avoid. You can keep several and pick one per piece; it's reused across everything you make.",
+      },
+      {
+        type: "user",
         title: "Describe your idea",
-        body: "Pick a format — blog, LinkedIn, ad, or email — then give a topic, tone, and audience. Add a saved brand voice if you have one.",
+        body: "Pick a format — blog, LinkedIn, ad, or email — then give a topic, tone, and audience, and choose a saved voice to write in.",
+      },
+      {
+        type: "system",
+        title: "A quick safety check",
+        body: "Before anything is written, your request is screened. Topics that promote real violence or other harm are politely declined — while everyday marketing language like “crush the competition” or a “killer feature” is always fine.",
       },
       {
         type: "ai",
         title: "Claude writes your copy — live",
-        body: "The finished text streams in word-by-word, so you watch it come together instead of waiting on a spinner.",
+        body: "The finished text streams in word-by-word in your brand voice, so you watch it come together instead of waiting on a spinner.",
       },
       {
         type: "ai",
         title: "A matching image is painted",
-        body: "An art director reads your actual copy and generates an on-brand picture that reflects the message, in the style you choose.",
+        body: "An art director reads your actual copy and generates an on-brand picture that reflects the message. Pick a style, or restyle it — the subject stays consistent.",
       },
       {
         type: "user",
-        title: "Refine it in one click",
-        body: "Send the copy to the improver to make it shorter, punchier, more formal, or SEO-friendly — and see exactly what changed.",
+        title: "Improve & enforce the voice",
+        body: "Send the copy to the improver to make it shorter, punchier, more formal, SEO-friendly, or re-aimed at a new audience — and see exactly what changed. Any banned words can be rewritten out in one click.",
       },
       {
         type: "data",
-        title: "Everything is saved",
-        body: "Each piece lands in your history, scoped to you. Sign up and it follows you across devices.",
+        title: "Everything is saved to History",
+        body: "Each piece lands in your history — revisit, copy, or delete it. Create an account and your work follows you across devices; anything you made anonymously moves with you.",
       },
       {
         type: "success",
@@ -101,7 +111,7 @@ const FLOWS: Flow[] = [
     tab: "Under the hood",
     audience: "The engineer's view",
     blurb:
-      "The real request pipeline behind a single generation — every hop, and how each failure mode is caught and turned into a clean, typed response. This is the /api/generate path.",
+      "The real request pipeline behind a single generation — every hop, including content moderation and refusal handling, and how each failure becomes a clean, typed response. This is the /api/generate path; the other endpoints share its shape (below).",
     nodes: [
       {
         type: "user",
@@ -127,10 +137,22 @@ const FLOWS: Flow[] = [
         onError: "Invalid → 400 VALIDATION_ERROR in the single envelope { error: { code, message, requestId, details } }.",
       },
       {
+        type: "system",
+        title: "Content moderation · screenContent()",
+        body: "A high-precision pre-filter screens topic + audience for harmful intent (weapons, violence, hate, CSAM, self-harm, drug-making) — before a single token is spent. Tuned so marketing metaphor never trips it.",
+        onError: "Harmful request → 422 CONTENT_BLOCKED with a clear reason. No AI call is made.",
+      },
+      {
         type: "ai",
         title: "Claude streams the copy",
-        body: "getStreamConfig() picks the per-format prompt strategy and folds in the brand voice; anthropic().messages.stream() emits tokens as text/plain.",
+        body: "getStreamConfig() picks the per-format prompt strategy, folds in the brand voice, and appends a safety policy; anthropic().messages.stream() emits tokens as text/plain.",
         onError: "SDK / network / overload → describeAiError() maps it to a typed 502/503 with a plain-language, retryable-or-not message.",
+      },
+      {
+        type: "system",
+        title: "Refusal guard · parseRefusal()",
+        body: "The opening is buffered, not streamed, until we can tell real copy from a decline. If Claude refuses — a ⟦REFUSED⟧ sentinel or an English “I can't help…” — it's caught here.",
+        onError: "Model refusal → 422 CONTENT_BLOCKED carrying Claude's reason. The refusal is never streamed to the user or saved as content.",
       },
       {
         type: "system",
@@ -155,6 +177,42 @@ const FLOWS: Flow[] = [
         body: "A record-separator byte then a small JSON trailer { id, saved } closes the stream, so the client knows it was saved and can attach an image next.",
       },
     ],
+  },
+];
+
+// The rest of the system — every write endpoint reuses the same pipeline shape
+// (session → rate limit → zod → [moderation] → AI → typed error envelope).
+type Sibling = { endpoint: string; what: string; guard: string };
+const SIBLINGS: Sibling[] = [
+  {
+    endpoint: "POST /api/improve",
+    what: "Rewrites text toward a goal (shorter / persuasive / formal / SEO / re-audience) and returns a “what changed”.",
+    guard: "Same moderation + refusal handling; degrades gracefully if the DB write fails.",
+  },
+  {
+    endpoint: "POST /api/images",
+    what: "Turns the finished copy into one concrete scene, renders it (OpenAI, with a model-fallback chain), and re-hosts it on Vercel Blob.",
+    guard: "Ownership-scoped where { id, sessionId }; scene is cached so a restyle keeps the subject; private-store proxy.",
+  },
+  {
+    endpoint: "POST /api/enforce-voice",
+    what: "Hard-removes a brand's “avoid” words from a piece and reports any that survive.",
+    guard: "Rewrites in place, ownership-scoped; honest about words it couldn't remove.",
+  },
+  {
+    endpoint: "GET·POST·PUT·DELETE /api/brand-voice",
+    what: "CRUD for multiple brand voices, stored server-side as the source of truth.",
+    guard: "Every read/write scoped to the owner id; capped per session.",
+  },
+  {
+    endpoint: "/api/auth/*",
+    what: "Email + password accounts (scrypt, 7-day HMAC token) with anonymous-data migration on signup/login.",
+    guard: "IP-rate-limited, no user-enumeration, disposable-email blocking, fail-closed signing.",
+  },
+  {
+    endpoint: "/api/admin/*",
+    what: "An env-gated operator dashboard: traffic, usage-by-type, and user management with cascading delete.",
+    guard: "Constant-time credential check, HMAC admin cookie, server-guarded pages.",
   },
 ];
 
@@ -331,6 +389,41 @@ export default function WorkflowFlows() {
               ? "Switch to “Under the hood” to see the engineering behind it."
               : "Every failure mode above returns the one typed error envelope — nothing 500s silently."}
           </p>
+        </div>
+      )}
+
+      {/* the rest of the system — only on the technical view */}
+      {flowKey === "technical" && (
+        <div className="mx-auto mt-10 max-w-lg">
+          <h3 className="text-center font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[#5c665e]">
+            The same pipeline backs every endpoint
+          </h3>
+          <p className="mx-auto mt-1.5 max-w-md text-center text-xs text-[#5f6960]">
+            session → rate limit → zod → (moderation) → AI → one typed error
+            envelope. The improver, images, brand voices, auth, and admin all reuse
+            this shape.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {SIBLINGS.map((s) => (
+              <div
+                key={s.endpoint}
+                className="rounded-xl border border-[#d9dfd8] bg-white p-3.5"
+              >
+                <code className="font-mono text-[0.72rem] font-semibold text-[#0a5346]">
+                  {s.endpoint}
+                </code>
+                <p className="mt-1.5 text-xs leading-relaxed text-[#3c4a54]">
+                  {s.what}
+                </p>
+                <p className="mt-1.5 flex gap-1.5 text-[0.7rem] leading-relaxed text-[#5c665e]">
+                  <span className="shrink-0 font-mono font-semibold uppercase tracking-[0.05em] text-[#2f5563]">
+                    guard
+                  </span>
+                  {s.guard}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

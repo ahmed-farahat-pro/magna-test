@@ -11,6 +11,7 @@ import {
 } from "@/lib/validation";
 import { aiEnabled, anthropic, MODEL } from "@/lib/ai/config";
 import { getStreamConfig, streamedOutputIssue } from "@/lib/ai/generate";
+import { screenContent, parseRefusal, REFUSAL_SENTINEL } from "@/lib/ai/moderation";
 import { describeAiError } from "@/lib/ai/errors";
 import { dbEnabled, getPrisma } from "@/lib/db";
 import { logError, logWarn } from "@/lib/log";
@@ -58,6 +59,16 @@ export async function POST(req: Request) {
     }
 
     const { contentType, topic, tone, audience } = parsed.data;
+
+    // Content safety: block clearly-harmful requests before spending an AI call.
+    const mod = screenContent(`${topic}\n${audience}`);
+    if (mod.blocked) {
+      logWarn("generate", requestId, "blocked by moderation", { category: mod.category });
+      return fail("CONTENT_BLOCKED", mod.message ?? "That request can't be processed.", requestId, {
+        details: [{ path: "topic", message: mod.category ?? "unsafe" }],
+      });
+    }
+
     const brandVoiceText = parsed.data.brandVoice
       ? formatBrandVoice(parsed.data.brandVoice)
       : undefined;
@@ -71,6 +82,8 @@ export async function POST(req: Request) {
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         let full = "";
+        let flushed = false; // have we started streaming real copy to the client?
+        let pending = ""; // buffered opening, held until the refusal decision
         try {
           const s = anthropic().messages.stream({
             model: MODEL,
@@ -84,8 +97,22 @@ export async function POST(req: Request) {
               event.type === "content_block_delta" &&
               event.delta.type === "text_delta"
             ) {
-              full += event.delta.text;
-              controller.enqueue(encoder.encode(event.delta.text));
+              const text = event.delta.text;
+              full += text;
+              if (flushed) {
+                controller.enqueue(encoder.encode(text));
+                continue;
+              }
+              // Hold the opening until we can tell a safety refusal from real
+              // copy — so a "⟦REFUSED⟧ …" reply is never streamed to the user.
+              pending += text;
+              const head = pending.trimStart();
+              if (head.length > REFUSAL_SENTINEL.length || pending.includes("\n")) {
+                if (head.startsWith(REFUSAL_SENTINEL)) break; // refusal — stop early
+                controller.enqueue(encoder.encode(pending));
+                pending = "";
+                flushed = true;
+              }
             }
           }
         } catch (e) {
@@ -103,6 +130,32 @@ export async function POST(req: Request) {
           );
           controller.close();
           return;
+        }
+
+        // Safety refusal: if we never flushed real copy and the output is a
+        // refusal (the sentinel, or an English "I can't help…"), surface it as a
+        // clean CONTENT_BLOCKED — never stream or persist the refusal as content.
+        const refusalReason = flushed ? null : parseRefusal(full);
+        if (refusalReason) {
+          logWarn("generate", requestId, "model refused", { contentType });
+          controller.enqueue(
+            encoder.encode(
+              SEP +
+                JSON.stringify({
+                  error: `We can't create that — ${refusalReason}. Please try a different topic.`,
+                  code: "CONTENT_BLOCKED",
+                  retryable: false,
+                }),
+            ),
+          );
+          controller.close();
+          return;
+        }
+
+        // Flush any still-buffered opening (short, non-refusal output).
+        if (!flushed && pending) {
+          controller.enqueue(encoder.encode(pending));
+          flushed = true;
         }
 
         // Guard the streaming path (no json_schema here): if the finished copy

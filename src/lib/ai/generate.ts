@@ -1,4 +1,5 @@
 import { anthropic, MODEL } from "./config";
+import { SAFETY_INSTRUCTION } from "./moderation";
 import type { GenerateInput } from "@/lib/validation";
 
 type ContentType = GenerateInput["contentType"];
@@ -353,7 +354,7 @@ export function getStreamConfig(
     ? `${cfg.user(input)}\n\n${brandVoice}`
     : cfg.user(input);
   return {
-    system: cfg.streamSystem,
+    system: cfg.streamSystem + SAFETY_INSTRUCTION,
     user,
     maxTokens: cfg.maxTokens,
     promptStrategy: cfg.promptStrategy,

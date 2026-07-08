@@ -5,8 +5,9 @@ import { ok, fail, newRequestId, tooLarge } from "@/lib/http";
 import { improveSchema, zodDetails, IMPROVE_GOAL_DB } from "@/lib/validation";
 import { aiEnabled, MODEL } from "@/lib/ai/config";
 import { improve } from "@/lib/ai/improve";
+import { screenContent, parseRefusal } from "@/lib/ai/moderation";
 import { describeAiError } from "@/lib/ai/errors";
-import { logError } from "@/lib/log";
+import { logError, logWarn } from "@/lib/log";
 import { dbEnabled, getPrisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -41,6 +42,15 @@ export async function POST(req: Request) {
 
     const { text, goal, targetAudience } = parsed.data;
 
+    // Content safety: refuse to "improve" clearly-harmful text.
+    const mod = screenContent(`${text}\n${targetAudience ?? ""}`);
+    if (mod.blocked) {
+      logWarn("improve", requestId, "blocked by moderation", { category: mod.category });
+      return fail("CONTENT_BLOCKED", mod.message ?? "That text can't be processed.", requestId, {
+        details: [{ path: "text", message: mod.category ?? "unsafe" }],
+      });
+    }
+
     let result;
     try {
       result = await improve(goal, text, targetAudience);
@@ -51,6 +61,13 @@ export async function POST(req: Request) {
         details: [{ path: "ai", message: ai.reason }],
         headers: ai.retryable ? { "retry-after": "5" } : undefined,
       });
+    }
+
+    // Belt & suspenders: if the model returned a refusal instead of a rewrite.
+    const refusal = parseRefusal(result.improved);
+    if (refusal) {
+      logWarn("improve", requestId, "model refused", { goal });
+      return fail("CONTENT_BLOCKED", `We can't improve that — ${refusal}.`, requestId);
     }
 
     let id: string | null = null;
