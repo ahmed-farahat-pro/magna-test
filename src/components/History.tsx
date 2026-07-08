@@ -475,6 +475,12 @@ export default function History() {
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover"
+                      // Images are served through our private-store proxy
+                      // (/api/img?p=…), which Vercel's optimizer rejects
+                      // (INVALID_IMAGE_OPTIMIZE_REQUEST). They're already sized
+                      // PNGs with immutable cache headers, so skip optimization
+                      // and load the proxy URL directly.
+                      unoptimized
                     />
                   </div>
                 )}
