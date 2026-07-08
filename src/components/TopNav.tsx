@@ -11,6 +11,7 @@ const LINKS: { href: string; label: string; optional?: boolean }[] = [
   { href: "/history", label: "History" },
   { href: "/settings", label: "Settings" },
   { href: "/workflow", label: "Workflow" },
+  { href: "/claude-code", label: "Claude Work" },
   { href: "/fixes", label: "Fixes" },
   { href: "/architecture", label: "Architecture", optional: true },
 ];
